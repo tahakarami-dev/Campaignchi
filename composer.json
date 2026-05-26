@@ -1,0 +1,16 @@
+{
+    "name": "msi/campaignchi",
+    "description": "The most professional discount campaign and flash offer management system for WooCommerce, focused on user experience and sales growth.",
+    "autoload": {
+        "psr-4": {
+            "Msi\\Campaignchi\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Taha Karami",
+            "email": "tahakarami2088@gamil.com"
+        }
+    ],
+    "require": {}
+}
