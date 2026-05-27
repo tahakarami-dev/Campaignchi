@@ -2,13 +2,13 @@
 
 /**
  * Plugin Name: کمپین‌چی
- * Plugin URI: https://takix.ir/campaignchi
- * Description: حرفه‌ای‌ترین سیستم مدیریت کمپین‌های تخفیف و فلش سیل برای ووکامرس
+ * Plugin URI: https://www.rtl-theme.com/campaignchi-wordpress-plugin/
+ * Description: حرفه‌ای‌ترین سیستم مدیریت کمپین‌های تخفیف و پیشنهاد شگفت انگیز ووکامرس 
  * Version: 1.0.0
  * Requires at least: 6.0
- * Requires PHP: 8.1
- * Author: طاها کرمی — Takix
- * Author URI: https://takix.ir
+ * Requires PHP: 7.4
+ * Author: طاها کرمی 
+ * Author URI: https://www.rtl-theme.com/author/taha-karami
  * Text Domain: campaignchi
  * Domain Path: /languages
  * WC requires at least: 7.0
@@ -59,8 +59,7 @@ add_action('plugins_loaded', function (): void {
     }
 
     // Boot the application kernel
-    $app = new \Msi\Campaignchi\Core\Application();
-    $app->boot();
+
 
 }, 20); // Priority 20: after WooCommerce (priority 10)
 
@@ -69,17 +68,9 @@ add_action('plugins_loaded', function (): void {
 // Activation Hook
 // -------------------------------------------------------
 
-register_activation_hook(CMC_FILE, function (): void {
-    // TODO: \Msi\Campaignchi\Core\Installer::activate();
-    flush_rewrite_rules();
-});
 
 
 // -------------------------------------------------------
 // Deactivation Hook
 // -------------------------------------------------------
 
-register_deactivation_hook(CMC_FILE, function (): void {
-    // TODO: \Msi\Campaignchi\Core\Installer::deactivate();
-    flush_rewrite_rules();
-});
