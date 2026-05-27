@@ -11,8 +11,6 @@
  * Author URI: https://www.rtl-theme.com/author/taha-karami
  * Text Domain: campaignchi
  * Domain Path: /languages
- * WC requires at least: 7.0
- * WC tested up to: 8.9
  */
 
 declare(strict_types=1);
