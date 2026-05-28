@@ -1,0 +1,568 @@
+/* ==========================================================================
+   CMC Admin Panel — Base Stylesheet
+   WooCommerce Flash Sale Plugin
+   Version: 1.0.0
+   Prefix: cmc- (prevents style conflicts with WordPress/WooCommerce)
+   ========================================================================== */
+
+
+/* ==========================================================================
+   1. DESIGN TOKENS — CSS Custom Properties
+   ========================================================================== */
+
+:root {
+
+  /* --- Brand Colors --- */
+  --cmc-primary-50:    #F3F0FF;
+  --cmc-primary-100:   #E9E4FF;
+  --cmc-primary-500:   #6C47FF;
+  --cmc-primary-600:   #5B3AE6;
+  --cmc-primary-700:   #4A2ECC;
+
+  /* --- Accent (Flash / Urgency) --- */
+  --cmc-accent:        #FF6B35;
+  --cmc-accent-light:  #FFF0EB;
+
+  /* --- Neutral Surface --- */
+  --cmc-bg:            #F7F8FC;
+  --cmc-surface:       #FFFFFF;
+  --cmc-surface-2:     #F9FAFB;
+
+  /* --- Border --- */
+  --cmc-border:        #E5E7EB;
+  --cmc-border-light:  #F3F4F6;
+
+  /* --- Text --- */
+  --cmc-text-heading:  #111827;
+  --cmc-text-body:     #4B5563;
+  --cmc-text-muted:    #9CA3AF;
+  --cmc-text-disabled: #D1D5DB;
+
+  /* --- Semantic Colors --- */
+  --cmc-success:       #22C55E;
+  --cmc-success-light: #F0FDF4;
+  --cmc-danger:        #EF4444;
+  --cmc-danger-light:  #FEF2F2;
+  --cmc-warning:       #F59E0B;
+  --cmc-warning-light: #FFFBEB;
+  --cmc-info:          #3B82F6;
+  --cmc-info-light:    #EFF6FF;
+
+  /* --- Sidebar (dark base) --- */
+  --cmc-sidebar-bg:      #1A1625;
+  --cmc-sidebar-hover:   rgba(255, 255, 255, 0.06);
+  --cmc-sidebar-active:  rgba(108, 71, 255, 0.18);
+  --cmc-sidebar-border:  rgba(255, 255, 255, 0.08);
+  --cmc-sidebar-text:    rgba(255, 255, 255, 0.5);
+  --cmc-sidebar-text-active: #A78BFF;
+
+  /* --- Typography --- */
+  --cmc-font:          'Vazirmatn', 'Tahoma', sans-serif;
+  --cmc-font-size-xs:  11px;
+  --cmc-font-size-sm:  12px;
+  --cmc-font-size-base: 13px;
+  --cmc-font-size-md:  14px;
+  --cmc-font-size-lg:  16px;
+  --cmc-font-size-xl:  20px;
+  --cmc-font-size-2xl: 24px;
+
+  /* --- Spacing (8px base) --- */
+  --cmc-space-1:  4px;
+  --cmc-space-2:  8px;
+  --cmc-space-3:  12px;
+  --cmc-space-4:  16px;
+  --cmc-space-5:  20px;
+  --cmc-space-6:  24px;
+  --cmc-space-8:  32px;
+  --cmc-space-10: 40px;
+  --cmc-space-12: 48px;
+
+  /* --- Border Radius --- */
+  --cmc-radius-sm:   8px;
+  --cmc-radius-md:   14px;
+  --cmc-radius-lg:   20px;
+  --cmc-radius-pill: 999px;
+
+  /* --- Shadows --- */
+  --cmc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --cmc-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --cmc-shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.08);
+
+  /* --- Motion --- */
+  --cmc-transition: 200ms ease-out;
+
+  /* --- Layout --- */
+  --cmc-sidebar-width:  260px;
+  --cmc-topbar-height:  60px;
+  --cmc-content-max:    1280px;
+
+}
+
+
+/* ==========================================================================
+   2. RESET & BASE
+   ========================================================================== */
+
+.cmc-panel *,
+.cmc-panel *::before,
+.cmc-panel *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.cmc-panel {
+  font-family: var(--cmc-font);
+  font-size: var(--cmc-font-size-base);
+  color: var(--cmc-text-body);
+  background: var(--cmc-bg);
+  direction: rtl;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.cmc-panel a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.cmc-panel ul,
+.cmc-panel ol {
+  list-style: none;
+}
+
+.cmc-panel button {
+  cursor: pointer;
+  font-family: var(--cmc-font);
+  border: none;
+  background: none;
+}
+
+.cmc-panel input,
+.cmc-panel select,
+.cmc-panel textarea {
+  font-family: var(--cmc-font);
+}
+
+
+/* ==========================================================================
+   3. LAYOUT — Shell (Sidebar + Main)
+   ========================================================================== */
+
+/* Outer shell that fills the WP admin content area */
+.cmc-panel {
+  display: flex;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Main area (everything except sidebar) */
+.cmc-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Scrollable content wrapper */
+.cmc-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--cmc-space-6);
+  background: var(--cmc-bg);
+}
+
+/* Content max-width container */
+.cmc-content-inner {
+  max-width: var(--cmc-content-max);
+  margin: 0 auto;
+}
+
+
+/* ==========================================================================
+   4. SIDEBAR
+   ========================================================================== */
+
+.cmc-sidebar {
+  width: var(--cmc-sidebar-width);
+  background: var(--cmc-sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+}
+
+/* --- Logo area --- */
+.cmc-sidebar__logo {
+  padding: var(--cmc-space-5) var(--cmc-space-5) var(--cmc-space-4);
+  border-bottom: 1px solid var(--cmc-sidebar-border);
+  flex-shrink: 0;
+}
+
+.cmc-sidebar__logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--cmc-space-3);
+}
+
+.cmc-sidebar__logo-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--cmc-primary-500);
+  border-radius: var(--cmc-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cmc-sidebar__logo-icon svg {
+  width: 18px;
+  height: 18px;
+  color: #fff;
+  stroke: #fff;
+}
+
+.cmc-sidebar__logo-name {
+  color: #fff;
+  font-size: var(--cmc-font-size-md);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.cmc-sidebar__logo-sub {
+  color: var(--cmc-sidebar-text);
+  font-size: var(--cmc-font-size-xs);
+  margin-top: 2px;
+}
+
+/* --- Navigation --- */
+.cmc-sidebar__nav {
+  flex: 1;
+  padding: var(--cmc-space-3) var(--cmc-space-3);
+  overflow-y: auto;
+}
+
+/* Nav section label */
+.cmc-nav__section {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: var(--cmc-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: var(--cmc-space-4) var(--cmc-space-2) var(--cmc-space-2);
+  text-transform: uppercase;
+}
+
+/* Nav item */
+.cmc-nav__item {
+  display: flex;
+  align-items: center;
+  gap: var(--cmc-space-3);
+  padding: 9px var(--cmc-space-3);
+  border-radius: var(--cmc-radius-sm);
+  color: var(--cmc-sidebar-text);
+  font-size: var(--cmc-font-size-base);
+  cursor: pointer;
+  margin-bottom: 2px;
+  transition:
+    background var(--cmc-transition),
+    color var(--cmc-transition);
+  user-select: none;
+}
+
+.cmc-nav__item:hover {
+  background: var(--cmc-sidebar-hover);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.cmc-nav__item.is-active {
+  background: var(--cmc-sidebar-active);
+  color: var(--cmc-sidebar-text-active);
+}
+
+/* Nav icon */
+.cmc-nav__item-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 17px;
+}
+
+.cmc-nav__item.is-active .cmc-nav__item-icon {
+  color: var(--cmc-primary-500);
+}
+
+/* Nav label */
+.cmc-nav__item-label {
+  flex: 1;
+  font-weight: 400;
+}
+
+/* Nav badge (counter) */
+.cmc-nav__item-badge {
+  background: var(--cmc-primary-500);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--cmc-radius-pill);
+  line-height: 1.4;
+}
+
+.cmc-nav__item-badge--accent {
+  background: var(--cmc-accent);
+}
+
+/* --- Sidebar Footer (user profile) --- */
+.cmc-sidebar__footer {
+  padding: var(--cmc-space-3);
+  border-top: 1px solid var(--cmc-sidebar-border);
+  flex-shrink: 0;
+}
+
+.cmc-sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: var(--cmc-space-2);
+  padding: var(--cmc-space-2) var(--cmc-space-3);
+  border-radius: var(--cmc-radius-sm);
+  cursor: pointer;
+  transition: background var(--cmc-transition);
+}
+
+.cmc-sidebar__user:hover {
+  background: var(--cmc-sidebar-hover);
+}
+
+.cmc-sidebar__user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cmc-sidebar__user-name {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--cmc-font-size-base);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cmc-sidebar__user-role {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: var(--cmc-font-size-xs);
+  margin-top: 1px;
+}
+
+.cmc-sidebar__user-arrow {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+
+/* ==========================================================================
+   5. TOPBAR
+   ========================================================================== */
+
+.cmc-topbar {
+  height: var(--cmc-topbar-height);
+  background: var(--cmc-surface);
+  border-bottom: 1px solid var(--cmc-border);
+  display: flex;
+  align-items: center;
+  gap: var(--cmc-space-4);
+  padding: 0 var(--cmc-space-6);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+/* Page title block */
+.cmc-topbar__title {
+  display: flex;
+  flex-direction: column;
+}
+
+.cmc-topbar__page {
+  font-size: var(--cmc-font-size-lg);
+  font-weight: 700;
+  color: var(--cmc-text-heading);
+  line-height: 1.2;
+}
+
+.cmc-topbar__sub {
+  font-size: var(--cmc-font-size-xs);
+  color: var(--cmc-text-muted);
+  margin-top: 2px;
+}
+
+/* Spacer pushes actions to the left */
+.cmc-topbar__spacer {
+  flex: 1;
+}
+
+/* Action group */
+.cmc-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--cmc-space-2);
+}
+
+/* Icon button (bell, search) */
+.cmc-topbar__icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--cmc-radius-sm);
+  background: var(--cmc-surface-2);
+  border: 1px solid var(--cmc-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cmc-text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  transition:
+    background var(--cmc-transition),
+    color var(--cmc-transition);
+  position: relative;
+}
+
+.cmc-topbar__icon-btn:hover {
+  background: var(--cmc-primary-50);
+  color: var(--cmc-primary-500);
+  border-color: var(--cmc-primary-100);
+}
+
+/* Notification dot on icon button */
+.cmc-topbar__icon-btn .cmc-dot {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cmc-accent);
+  border: 1.5px solid #fff;
+}
+
+
+/* ==========================================================================
+   6. GRID & SPACING HELPERS
+   ========================================================================== */
+
+/* Responsive stats row — auto-fit columns */
+.cmc-grid {
+  display: grid;
+  gap: var(--cmc-space-3);
+}
+
+.cmc-grid--2 { grid-template-columns: repeat(2, 1fr); }
+.cmc-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.cmc-grid--4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Main content split: wide + sidebar */
+.cmc-grid--main {
+  grid-template-columns: 1fr 300px;
+  gap: var(--cmc-space-3);
+}
+
+/* Stack helper */
+.cmc-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.cmc-stack--sm  { gap: var(--cmc-space-2); }
+.cmc-stack--md  { gap: var(--cmc-space-4); }
+.cmc-stack--lg  { gap: var(--cmc-space-6); }
+
+/* Row helper */
+.cmc-row {
+  display: flex;
+  align-items: center;
+}
+
+.cmc-row--sm  { gap: var(--cmc-space-2); }
+.cmc-row--md  { gap: var(--cmc-space-4); }
+.cmc-row--between { justify-content: space-between; }
+
+/* Spacing utilities */
+.cmc-mb-3  { margin-bottom: var(--cmc-space-3); }
+.cmc-mb-4  { margin-bottom: var(--cmc-space-4); }
+.cmc-mb-5  { margin-bottom: var(--cmc-space-5); }
+.cmc-mb-6  { margin-bottom: var(--cmc-space-6); }
+
+
+/* ==========================================================================
+   7. SCROLLBAR STYLING
+   ========================================================================== */
+
+.cmc-panel ::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.cmc-panel ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cmc-panel ::-webkit-scrollbar-thumb {
+  background: var(--cmc-border);
+  border-radius: var(--cmc-radius-pill);
+}
+
+.cmc-panel ::-webkit-scrollbar-thumb:hover {
+  background: var(--cmc-text-disabled);
+}
+
+
+/* ==========================================================================
+   8. AVATAR
+   ========================================================================== */
+
+.cmc-avatar {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: var(--cmc-primary-100);
+  color: var(--cmc-primary-500);
+  font-size: var(--cmc-font-size-sm);
+}
+
+.cmc-avatar--sm  { width: 28px; height: 28px; font-size: var(--cmc-font-size-xs); }
+.cmc-avatar--md  { width: 36px; height: 36px; font-size: var(--cmc-font-size-base); }
+.cmc-avatar--lg  { width: 44px; height: 44px; font-size: var(--cmc-font-size-md); }
+
+.cmc-avatar--purple {
+  background: linear-gradient(135deg, var(--cmc-primary-500), #9B7BFF);
+  color: #fff;
+}
+
+
+/* ==========================================================================
+   9. DIVIDER
+   ========================================================================== */
+
+.cmc-divider {
+  height: 1px;
+  background: var(--cmc-border);
+  border: none;
+  margin: var(--cmc-space-4) 0;
+}
+
+.cmc-divider--light {
+  background: var(--cmc-border-light);
+}
+
+
