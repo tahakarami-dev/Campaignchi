@@ -1,14 +1,16 @@
 /**
  * CMC Admin Panel — Core JavaScript
+ * Version: 1.0.0
  *
  * Responsibilities:
- *  1. Sidebar active state (already set server-side, JS for SPA feel)
+ *  1. Mobile sidebar toggle (hamburger + backdrop)
  *  2. Toast notification utility
  *  3. Modal open/close utility
  *  4. Dropdown toggle
- *  5. AJAX helper (wraps fetch + WP nonce)
+ *  5. Tabs
+ *  6. AJAX helper (fetch + WP nonce)
  *
- * All identifiers prefixed with CMC_ or cmc- to avoid conflicts.
+ * All identifiers prefixed with CMC to avoid conflicts with WP/WooCommerce.
  */
 
 "use strict";
@@ -16,7 +18,55 @@
 const CMC = (() => {
 
     // ----------------------------------------------------------
-    // 1. TOAST NOTIFICATIONS
+    // 1. MOBILE SIDEBAR TOGGLE
+    // Hamburger button ↔ sidebar .is-open + backdrop .is-visible
+    // ----------------------------------------------------------
+    function initSidebar() {
+        const hamburger = document.getElementById("cmc-hamburger");
+        const sidebar   = document.getElementById("cmc-sidebar");
+        const backdrop  = document.getElementById("cmc-backdrop");
+
+        if (!hamburger || !sidebar) return;
+
+        // Open / close sidebar
+        hamburger.addEventListener("click", () => {
+            const isOpen = sidebar.classList.contains("is-open");
+            sidebar.classList.toggle("is-open", !isOpen);
+            backdrop?.classList.toggle("is-visible", !isOpen);
+            hamburger.setAttribute("aria-expanded", String(!isOpen));
+        });
+
+        // Close on backdrop click
+        backdrop?.addEventListener("click", () => {
+            sidebar.classList.remove("is-open");
+            backdrop.classList.remove("is-visible");
+            hamburger.setAttribute("aria-expanded", "false");
+        });
+
+        // Close sidebar on nav item click (mobile UX)
+        sidebar.querySelectorAll(".cmc-nav__item").forEach(item => {
+            item.addEventListener("click", () => {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove("is-open");
+                    backdrop?.classList.remove("is-visible");
+                    hamburger.setAttribute("aria-expanded", "false");
+                }
+            });
+        });
+
+        // Close on Escape key
+        document.addEventListener("keydown", e => {
+            if (e.key === "Escape" && sidebar.classList.contains("is-open")) {
+                sidebar.classList.remove("is-open");
+                backdrop?.classList.remove("is-visible");
+                hamburger.setAttribute("aria-expanded", "false");
+            }
+        });
+    }
+
+
+    // ----------------------------------------------------------
+    // 2. TOAST NOTIFICATIONS
     // Usage: CMC.toast("پیام", "success" | "danger" | "warning")
     // ----------------------------------------------------------
     function toast(message, type = "success") {
@@ -38,7 +88,7 @@ const CMC = (() => {
 
         container.appendChild(el);
 
-        // Trigger CSS transition
+        // Trigger CSS entrance transition
         requestAnimationFrame(() => {
             requestAnimationFrame(() => el.classList.add("is-visible"));
         });
@@ -52,9 +102,9 @@ const CMC = (() => {
 
 
     // ----------------------------------------------------------
-    // 2. MODAL UTILITY
-    // Usage: CMC.modal.open("#cmc-modal-id")
-    //        CMC.modal.close("#cmc-modal-id")
+    // 3. MODAL UTILITY
+    // Usage: CMC.modal.open("#cmc-my-modal")
+    //        CMC.modal.close("#cmc-my-modal")
     // ----------------------------------------------------------
     const modal = {
         open(selector) {
@@ -64,14 +114,14 @@ const CMC = (() => {
             document.querySelector(selector)?.classList.remove("is-open");
         },
         init() {
-            // Close on overlay backdrop click
+            // Close on backdrop click
             document.querySelectorAll(".cmc-modal-overlay").forEach(overlay => {
                 overlay.addEventListener("click", e => {
                     if (e.target === overlay) overlay.classList.remove("is-open");
                 });
             });
 
-            // Close button
+            // Close button inside modal
             document.querySelectorAll(".cmc-modal__close").forEach(btn => {
                 btn.addEventListener("click", () => {
                     btn.closest(".cmc-modal-overlay")?.classList.remove("is-open");
@@ -89,8 +139,9 @@ const CMC = (() => {
 
 
     // ----------------------------------------------------------
-    // 3. DROPDOWN TOGGLE
-    // Attach data-cmc-dropdown-trigger to the button inside .cmc-dropdown
+    // 4. DROPDOWN TOGGLE
+    // Add data-cmc-dropdown-trigger to the trigger button
+    // inside any .cmc-dropdown wrapper.
     // ----------------------------------------------------------
     function initDropdowns() {
         document.querySelectorAll(".cmc-dropdown").forEach(wrapper => {
@@ -100,17 +151,17 @@ const CMC = (() => {
 
             trigger.addEventListener("click", e => {
                 e.stopPropagation();
-                const open = menu.classList.contains("is-open");
+                const isOpen = menu.classList.contains("is-open");
 
-                // Close all other open dropdowns first
+                // Close all other open dropdowns
                 document.querySelectorAll(".cmc-dropdown__menu.is-open")
                     .forEach(m => m.classList.remove("is-open"));
 
-                if (!open) menu.classList.add("is-open");
+                menu.classList.toggle("is-open", !isOpen);
             });
         });
 
-        // Close on outside click
+        // Close all dropdowns on outside click
         document.addEventListener("click", () => {
             document.querySelectorAll(".cmc-dropdown__menu.is-open")
                 .forEach(m => m.classList.remove("is-open"));
@@ -119,46 +170,23 @@ const CMC = (() => {
 
 
     // ----------------------------------------------------------
-    // 4. AJAX HELPER
-    // Wraps fetch() with WP nonce and JSON handling.
-    // Usage: CMC.ajax("cmc_get_campaigns", { status: "active" })
-    // ----------------------------------------------------------
-    async function ajax(action, data = {}) {
-        const body = new FormData();
-        body.append("action", action);
-        body.append("nonce",  window.CMC_DATA?.nonce ?? "");
-
-        for (const [key, val] of Object.entries(data)) {
-            body.append(key, val);
-        }
-
-        const response = await fetch(window.CMC_DATA?.ajaxUrl ?? "/wp-admin/admin-ajax.php", {
-            method: "POST",
-            body,
-            credentials: "same-origin",
-        });
-
-        if (!response.ok) {
-            throw new Error(`CMC AJAX error: ${response.status}`);
-        }
-
-        return response.json();
-    }
-
-
-    // ----------------------------------------------------------
     // 5. TABS
-    // Auto-initialise .cmc-tabs by adding click handlers.
+    // Auto-init all .cmc-tabs groups.
+    // Optional: data-target="panel-id" on each .cmc-tab
+    // to show/hide corresponding .cmc-tab-panel elements.
     // ----------------------------------------------------------
     function initTabs() {
         document.querySelectorAll(".cmc-tabs").forEach(tabGroup => {
             tabGroup.querySelectorAll(".cmc-tab").forEach(tab => {
                 tab.addEventListener("click", () => {
+                    // Deactivate siblings
                     tabGroup.querySelectorAll(".cmc-tab")
                         .forEach(t => t.classList.remove("is-active"));
+
+                    // Activate clicked tab
                     tab.classList.add("is-active");
 
-                    // If data-target attribute set, show that panel
+                    // Show target panel if data-target is set
                     const targetId = tab.dataset.target;
                     if (targetId) {
                         document.querySelectorAll(".cmc-tab-panel")
@@ -173,20 +201,47 @@ const CMC = (() => {
 
 
     // ----------------------------------------------------------
-    // INIT
+    // 6. AJAX HELPER
+    // Wraps fetch() with WP nonce + FormData.
+    // Usage: await CMC.ajax("cmc_action_name", { key: "value" })
+    // Returns parsed JSON response.
+    // ----------------------------------------------------------
+    async function ajax(action, data = {}) {
+        const body = new FormData();
+        body.append("action", action);
+        body.append("nonce",  window.CMC_DATA?.nonce ?? "");
+
+        for (const [key, val] of Object.entries(data)) {
+            body.append(key, String(val));
+        }
+
+        const response = await fetch(
+            window.CMC_DATA?.ajaxUrl ?? "/wp-admin/admin-ajax.php",
+            {
+                method      : "POST",
+                body,
+                credentials : "same-origin",
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`[CMC] AJAX request failed: HTTP ${response.status}`);
+        }
+
+        return response.json();
+    }
+
+
+    // ----------------------------------------------------------
+    // INIT — boot all modules on DOM ready
     // ----------------------------------------------------------
     function init() {
+        initSidebar();
         modal.init();
         initDropdowns();
         initTabs();
-
-        // Confirm current page from server-injected data
-        if (window.CMC_DATA?.page) {
-            document.title = document.title; // page title already set server-side
-        }
     }
 
-    // Boot on DOM ready
     document.addEventListener("DOMContentLoaded", init);
 
     // Public API
