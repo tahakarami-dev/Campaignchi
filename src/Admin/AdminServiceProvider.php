@@ -46,19 +46,13 @@ class AdminServiceProvider extends ServiceProvider
     // -------------------------------------------------------
     // Boot
     // -------------------------------------------------------
-
     public function boot(): void
     {
-        // Register WP admin menu item
         Hooks::action('admin_menu', [$this, 'registerMenu']);
-
-        // Enqueue assets only on our page
         Hooks::action('admin_enqueue_scripts', [$this, 'enqueueAssets'], 10, 1);
-
-        // Full-page takeover: suppress WP chrome before headers sent
         Hooks::action('admin_init', [$this, 'maybeRenderPanel']);
+        Hooks::action('admin_head', [$this, 'injectMenuIconStyle']);
     }
-
     // -------------------------------------------------------
     // Menu Registration
     // -------------------------------------------------------
@@ -154,7 +148,38 @@ class AdminServiceProvider extends ServiceProvider
      */
     private function getMenuIcon(): string
     {
-        $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#a78bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
-        return 'data:image/svg+xml;base64,' . base64_encode($svg);
+        return CMC_URL . 'assets/images/logo.png';
+    }
+
+    /**
+     * Inject CSS to prevent WordPress from greyscaling our menu icon.
+     * WP applies opacity + filter on menu icons by default.
+     */
+    public function injectMenuIconStyle(): void
+    {
+?>
+        <style>
+            /* Remove WP greyscale filter from Campaignchi menu icon */
+            #adminmenu #toplevel_page_campaignchi .wp-menu-image img {
+                opacity: 1 !important;
+                filter: none !important;
+                width: 30px !important;
+                height: 30px !important;
+                margin-top: -7px;
+                margin-right: 7px;
+            }
+            #adminmenu #toplevel_page_campaignchi .wp-menu-name{
+                margin-right: 10px !important;
+            }
+
+            /* Hover / active — keep colors, just slight brightness */
+            #adminmenu #toplevel_page_campaignchi:hover .wp-menu-image img,
+            #adminmenu #toplevel_page_campaignchi.wp-has-current-submenu .wp-menu-image img,
+            #adminmenu #toplevel_page_campaignchi.current .wp-menu-image img {
+                opacity: 1 !important;
+                filter: brightness(1.1) !important;
+            }
+        </style>
+<?php
     }
 }
