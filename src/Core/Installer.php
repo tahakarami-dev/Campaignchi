@@ -101,6 +101,18 @@ class Installer
             KEY product_id (product_id)
         ) $charset;";
 
+        // Table: campaign_rules (group selection: category/tag/attribute)
+        $campaign_rules = "CREATE TABLE {$wpdb->prefix}cmc_campaign_rules (
+            id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            campaign_id BIGINT UNSIGNED NOT NULL,
+            rule_type   VARCHAR(30)     NOT NULL,
+            taxonomy    VARCHAR(100)    NOT NULL DEFAULT '',
+            term_id     BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            PRIMARY KEY (id),
+            KEY campaign_id (campaign_id),
+            KEY rule_type (rule_type)
+        ) $charset;";
+
         // Table: campaign_stats (aggregated analytics)
         $campaign_stats = "CREATE TABLE {$wpdb->prefix}cmc_campaign_stats (
             id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -118,6 +130,7 @@ class Installer
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($campaigns);
         dbDelta($campaign_products);
+        dbDelta($campaign_rules);
         dbDelta($campaign_stats);
 
         update_option(self::DB_VERSION_KEY, self::DB_VERSION);

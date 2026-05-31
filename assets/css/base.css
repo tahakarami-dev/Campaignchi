@@ -132,7 +132,6 @@
   cursor: pointer;
   font-family: var(--cmc-font);
   border: none;
-  background: none;
 }
 
 .cmc-panel input,
@@ -450,7 +449,7 @@
 /* Responsive stats row — auto-fit columns */
 .cmc-grid {
   display: grid;
-  gap: var(--cmc-space-3);
+  gap: var(--cmc-space-3) !important;
 }
 
 .cmc-grid--2 {
@@ -643,6 +642,15 @@
   /* Tooltip on hover for icon-only sidebar */
   .cmc-nav__item {
     position: relative;
+  }
+
+  .cmc-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .campaign-summary{
+    flex-direction: column-reverse;
   }
 
   .cmc-nav__item:hover::after {

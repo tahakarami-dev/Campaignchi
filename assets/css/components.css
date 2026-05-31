@@ -162,8 +162,8 @@
 
 /* Primary */
 .cmc-btn--primary {
-  background: var(--cmc-primary-500);
-  color: #fff;
+  background: var(--cmc-primary-500) ;
+  color: #fff !important;
 }
 
 .cmc-btn--primary:hover {
@@ -208,7 +208,7 @@
 /* Accent (Flash Sale) */
 .cmc-btn--accent {
   background: var(--cmc-accent);
-  color: #fff;
+  color: #fff !important;
 }
 
 .cmc-btn--accent:hover {
