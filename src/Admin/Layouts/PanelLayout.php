@@ -249,6 +249,7 @@ class PanelLayout
             <div class="cmc-toast-container" id="cmc-toasts" aria-live="polite"></div>
 
             <!-- Pass WP data to JS -->
+            <!-- Pass WP data to JS — MUST be before any other scripts -->
             <script>
                 window.CMC_DATA = {
                     ajaxUrl: <?php echo wp_json_encode(admin_url('admin-ajax.php')); ?>,
@@ -259,7 +260,14 @@ class PanelLayout
                 };
             </script>
             <script src="<?php echo esc_url(CMC_ASSETS_URL . 'js/panel.js'); ?>?v=<?php echo CMC_VERSION; ?>"></script>
-
+            <?php
+            // Load page-specific scripts after panel.js
+            $pageScripts = [
+                'campaigns' => 'campaigns.js',
+            ];
+            if (isset($pageScripts[$activeSlug])) : ?>
+                <script src="<?php echo esc_url(CMC_ASSETS_URL . 'js/' . $pageScripts[$activeSlug]); ?>?v=<?php echo CMC_VERSION; ?>"></script>
+            <?php endif; ?>
             <?php wp_footer(); ?>
         </body>
 

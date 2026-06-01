@@ -83,6 +83,7 @@ class Installer
             discount_type VARCHAR(20)    NOT NULL DEFAULT 'percent',
             starts_at    DATETIME        NULL,
             ends_at      DATETIME        NULL,
+            description  TEXT            NULL,
             created_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),

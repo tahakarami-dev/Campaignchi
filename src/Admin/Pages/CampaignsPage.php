@@ -236,6 +236,7 @@ class CampaignsPage extends AbstractPage
         $editId   = absint($_GET['id'] ?? 0);
         $isEdit   = ($action === 'edit' && $editId > 0);
         $backUrl  = \Msi\Campaignchi\Admin\AdminRouter::url('campaigns');
+
     ?>
 
         <!-- Back link -->
@@ -831,7 +832,6 @@ class CampaignsPage extends AbstractPage
                 backUrl: <?php echo wp_json_encode($backUrl); ?>,
             };
         </script>
-        <script src="<?php echo esc_url(CMC_ASSETS_URL . 'js/campaigns.js'); ?>?v=<?php echo CMC_VERSION; ?>"></script>
 
 <?php
     }
