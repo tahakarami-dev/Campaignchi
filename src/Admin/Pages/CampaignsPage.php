@@ -345,7 +345,7 @@ class CampaignsPage extends AbstractPage
                 </div>
 
                 <!-- ===== PRODUCT PICKER CARD ===== -->
-                <div class="cmc-card">
+                <div class="cmc-card" style="margin-bottom: 30px;">
                     <div class="cmc-card__header">
                         <div class="cmc-card__title"><?php esc_html_e('محصولات کمپین', 'campaignchi'); ?></div>
                     </div>
