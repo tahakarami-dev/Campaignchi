@@ -250,6 +250,44 @@ class CampaignService
         return $result;
     }
 
+    /**
+     * Get all WooCommerce product brands.
+     * Supports: product_brand (WooCommerce Brands), yith_product_brand, berocket_brand
+     *
+     * @return array
+     */
+    public function getBrands(): array
+    {
+        // Try common brand taxonomies
+        $taxonomies = ['product_brand', 'yith_product_brand', 'berocket_brand', 'pwb-brand'];
+
+        foreach ($taxonomies as $taxonomy) {
+            if (!taxonomy_exists($taxonomy)) {
+                continue;
+            }
+
+            $terms = get_terms([
+                'taxonomy'   => $taxonomy,
+                'hide_empty' => false,
+                'orderby'    => 'name',
+                'order'      => 'ASC',
+            ]);
+
+            if (is_wp_error($terms) || empty($terms)) {
+                continue;
+            }
+
+            return array_map(fn($t) => [
+                'id'       => $t->term_id,
+                'name'     => $t->name,
+                'count'    => $t->count,
+                'taxonomy' => $taxonomy,
+            ], $terms);
+        }
+
+        return [];
+    }
+
     // -------------------------------------------------------
     // ACCESSOR
     // -------------------------------------------------------

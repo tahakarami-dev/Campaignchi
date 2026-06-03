@@ -27,6 +27,8 @@ class CreateCampaignDTO
         public readonly array   $categoryIds,      // for category mode
         public readonly array   $tagIds,           // for tag mode
         public readonly array   $attributeRules,   // [{taxonomy, term_id}]
+        public readonly array   $brandIds,        // ← اضافه کن بعد از $attributeRules
+
         public readonly string  $status,           // draft | active | scheduled
     ) {}
 
@@ -68,6 +70,11 @@ class CreateCampaignDTO
         if ($discountType === 'percent' && $discount > 100) {
             throw new \InvalidArgumentException(__('درصد تخفیف نمی‌تواند بیشتر از ۱۰۰ باشد.', 'campaignchi'));
         }
+
+        $brandIds = array_map(
+            'absint',
+            (array) json_decode(sanitize_text_field($post['brand_ids'] ?? '[]'), true)
+        );
 
         // --- Optional dates ---
         $startsAt = !empty($post['starts_at'])
@@ -125,19 +132,20 @@ class CreateCampaignDTO
         }
 
         return new self(
-            title          : $title,
-            type           : $type,
-            discount       : $discount,
-            discountType   : $discountType,
-            startsAt       : $startsAt,
-            endsAt         : $endsAt,
-            description    : $description,
-            selectionMode  : $selectionMode,
-            productIds     : array_filter($productIds),
-            categoryIds    : array_filter($categoryIds),
-            tagIds         : array_filter($tagIds),
-            attributeRules : $attributeRules,
-            status         : $status,
+            title: $title,
+            type: $type,
+            discount: $discount,
+            discountType: $discountType,
+            startsAt: $startsAt,
+            endsAt: $endsAt,
+            description: $description,
+            selectionMode: $selectionMode,
+            productIds: array_filter($productIds),
+            categoryIds: array_filter($categoryIds),
+            tagIds: array_filter($tagIds),
+            attributeRules: $attributeRules,
+            brandIds: array_filter($brandIds),
+            status: $status,
         );
     }
 }

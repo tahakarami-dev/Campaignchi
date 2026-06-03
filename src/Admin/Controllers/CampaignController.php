@@ -112,6 +112,7 @@ class CampaignController
                 'categories' => $this->service->getCategories(),
                 'tags'       => $this->service->getTags(),
                 'attributes' => $this->service->getAttributes(),
+                'brands'     => $this->service->getBrands(),campaigns
             ],
         ]);
     }

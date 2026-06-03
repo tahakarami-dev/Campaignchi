@@ -46,7 +46,7 @@ class CampaignRepository
         $perPage = max(1, (int) ($args['per_page'] ?? 20));
         $page    = max(1, (int) ($args['page']     ?? 1));
         $offset  = ($page - 1) * $perPage;
-        $orderby = in_array($args['orderby'] ?? '', ['title','status','created_at','starts_at'], true)
+        $orderby = in_array($args['orderby'] ?? '', ['title', 'status', 'created_at', 'starts_at'], true)
             ? $args['orderby']
             : 'created_at';
         $order   = strtoupper($args['order'] ?? 'DESC') === 'ASC' ? 'ASC' : 'DESC';
@@ -131,7 +131,7 @@ class CampaignRepository
             'starts_at'     => $dto->startsAt,
             'ends_at'       => $dto->endsAt,
             'description'   => $dto->description,
-        ], ['%s','%s','%s','%f','%s','%s','%s','%s']);
+        ], ['%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s']);
 
         if (!$wpdb->insert_id) {
             throw new \RuntimeException('[CMC] Failed to insert campaign.');
@@ -172,7 +172,7 @@ class CampaignRepository
                 'description'   => $dto->description,
             ],
             ['id' => $id],
-            ['%s','%s','%s','%f','%s','%s','%s','%s'],
+            ['%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s'],
             ['%d']
         );
 
@@ -285,8 +285,17 @@ class CampaignRepository
             $rows[] = ['campaign_id' => $campaignId, 'rule_type' => 'attribute', 'taxonomy' => $rule['taxonomy'], 'term_id' => $rule['term_id']];
         }
 
+        foreach ($dto->brandIds as $termId) {
+            $rows[] = [
+                'campaign_id' => $campaignId,
+                'rule_type'   => 'brand',
+                'taxonomy'    => 'product_brand',   // primary; getBrands() returns actual taxonomy
+                'term_id'     => $termId
+            ];
+        }
+
         foreach ($rows as $row) {
-            $wpdb->insert($table, $row, ['%d','%s','%s','%d']);
+            $wpdb->insert($table, $row, ['%d', '%s', '%s', '%d']);
         }
     }
 

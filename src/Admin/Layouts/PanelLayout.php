@@ -260,6 +260,8 @@ class PanelLayout
                 };
             </script>
             <script src="<?php echo esc_url(CMC_ASSETS_URL . 'js/panel.js'); ?>?v=<?php echo CMC_VERSION; ?>"></script>
+            <script src="<?php echo esc_url(CMC_ASSETS_URL . 'js/datepicker.js'); ?>?v=<?php echo CMC_VERSION; ?>"></script>
+
             <?php
             // Load page-specific scripts after panel.js
             $pageScripts = [

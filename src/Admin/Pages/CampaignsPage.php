@@ -316,7 +316,7 @@ class CampaignsPage extends AbstractPage
                             <label class="cmc-label"><?php esc_html_e('نوع تخفیف', 'campaignchi'); ?></label>
                             <div class="cmc-discount-type-toggle" id="cmc-discount-type-toggle" style="gap: 8px;">
                                 <button type="button" class="cmc-dt-btn is-active" data-value="percent" style="border-radius: 14px;">٪ درصد</button>
-                                <button type="button" class="cmc-dt-btn" data-value="fixed" style="border-radius: 14px;"cmc-discount-type-toggle>تومان ثابت</button>
+                                <button type="button" class="cmc-dt-btn" data-value="fixed" style="border-radius: 14px;" cmc-discount-type-toggle>تومان ثابت</button>
                             </div>
                             <input type="hidden" id="cmc-field-discount-type" value="percent">
                         </div>
@@ -335,11 +335,29 @@ class CampaignsPage extends AbstractPage
                     <div class="cmc-grid cmc-grid--2" style="gap:var(--cmc-space-4)">
                         <div class="cmc-form-group">
                             <label class="cmc-label"><?php esc_html_e('تاریخ شروع', 'campaignchi'); ?></label>
-                            <input type="datetime-local" id="cmc-field-starts-at" class="cmc-input">
+                            <div class="cmc-input-wrap">
+                                <i class="ti ti-calendar cmc-input-wrap__icon"></i>
+                                <input type="text"
+                                    id="cmc-field-starts-at-display"
+                                    class="cmc-input"
+                                    data-cmc-datepicker="cmc-field-starts-at"
+                                    placeholder="<?php esc_attr_e('انتخاب تاریخ و ساعت...', 'campaignchi'); ?>"
+                                    readonly>
+                            </div>
+                            <input type="hidden" id="cmc-field-starts-at">
                         </div>
                         <div class="cmc-form-group">
                             <label class="cmc-label"><?php esc_html_e('تاریخ پایان', 'campaignchi'); ?></label>
-                            <input type="datetime-local" id="cmc-field-ends-at" class="cmc-input">
+                            <div class="cmc-input-wrap">
+                                <i class="ti ti-calendar cmc-input-wrap__icon"></i>
+                                <input type="text"
+                                    id="cmc-field-ends-at-display"
+                                    class="cmc-input"
+                                    data-cmc-datepicker="cmc-field-ends-at"
+                                    placeholder="<?php esc_attr_e('انتخاب تاریخ و ساعت...', 'campaignchi'); ?>"
+                                    readonly>
+                            </div>
+                            <input type="hidden" id="cmc-field-ends-at">
                         </div>
                     </div>
                 </div>
@@ -363,6 +381,9 @@ class CampaignsPage extends AbstractPage
                         </div>
                         <div class="cmc-tab" data-mode="attribute">
                             <i class="ti ti-adjustments"></i> <?php esc_html_e('ویژگی', 'campaignchi'); ?>
+                        </div>
+                        <div class="cmc-tab" data-mode="brand">
+                            <i class="ti ti-building-store"></i> <?php esc_html_e('برند', 'campaignchi'); ?>
                         </div>
                         <div class="cmc-tab" data-mode="all">
                             <i class="ti ti-select-all"></i> <?php esc_html_e('همه محصولات', 'campaignchi'); ?>
@@ -416,8 +437,18 @@ class CampaignsPage extends AbstractPage
                         </div>
                     </div>
 
+                    <!-- PANEL: Brand selection -->
+                    <div id="cmc-panel-brand" class="cmc-picker-panel" style="display:none">
+                        <div id="cmc-brand-list" class="cmc-term-list">
+                            <div class="cmc-picker-loading">
+                                <i class="ti ti-loader-2 cmc-spin"></i>
+                                <?php esc_html_e('در حال بارگذاری...', 'campaignchi'); ?>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- PANEL: All products -->
-                    <div id="cmc-panel-all" class="cmc-picker-panel" style="display:none">
+                    <div id="cmc-panel-all" class="cmc-picker-PanelLayout" style="display:none">
                         <div class="cmc-alert cmc-alert--warning">
                             <i class="ti ti-alert-triangle cmc-alert__icon"></i>
                             <div class="cmc-alert__body">

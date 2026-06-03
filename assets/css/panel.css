@@ -5,7 +5,6 @@
    Import AFTER base.css and components.css
    ========================================================================== */
 
-
 /* ==========================================================================
    1. BODY RESET
    Ensure WP admin styles don't bleed through
@@ -37,7 +36,6 @@
   float: none !important;
 }
 
-
 /* ==========================================================================
    2. PANEL FULL HEIGHT
    ========================================================================== */
@@ -55,7 +53,6 @@
   height: calc(100vh - var(--cmc-topbar-height));
   overflow-y: auto;
 }
-
 
 /* ==========================================================================
    3. BAR CHART (pure CSS, no library)
@@ -132,8 +129,14 @@
   font-family: var(--cmc-font);
 }
 
-.cmc-chart-bar.is-today::after  { color: var(--cmc-primary-500); font-weight: 700; }
-.cmc-chart-bar.is-accent::after { color: var(--cmc-accent);      font-weight: 700; }
+.cmc-chart-bar.is-today::after {
+  color: var(--cmc-primary-500);
+  font-weight: 700;
+}
+.cmc-chart-bar.is-accent::after {
+  color: var(--cmc-accent);
+  font-weight: 700;
+}
 
 /* Value tooltip on hover */
 .cmc-chart-bar::before {
@@ -143,7 +146,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: var(--cmc-sidebar-bg);
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 10px;
   font-weight: 600;
   padding: 3px 7px;
@@ -160,6 +163,184 @@
   opacity: 1;
 }
 
-.cmc-sidebar__footer{
+.cmc-sidebar__footer {
   padding-bottom: 40px;
+}
+
+/* ==========================================================================
+   PERSIAN DATE PICKER
+   ========================================================================== */
+
+.cmc-dp {
+  position: absolute;
+  z-index: 99999;
+  background: var(--cmc-surface);
+  border: 1px solid var(--cmc-border);
+  border-radius: var(--cmc-radius-lg);
+  box-shadow: var(--cmc-shadow-lg);
+  width: 300px;
+  direction: rtl;
+  font-family: var(--cmc-font);
+  overflow: hidden;
+}
+
+/* Header */
+.cmc-dp__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--cmc-space-3) var(--cmc-space-4);
+  background: var(--cmc-primary-500);
+  color: #fff;
+}
+
+.cmc-dp__htitle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cmc-dp__htitle span {
+  font-size: 11px;
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+.cmc-dp__nav {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--cmc-radius-sm);
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--cmc-transition);
+  font-family: var(--cmc-font);
+}
+
+.cmc-dp__nav:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Calendar table */
+.cmc-dp__cal {
+  width: 100%;
+  border-collapse: collapse;
+  padding: var(--cmc-space-2) var(--cmc-space-3);
+  display: block;
+  padding: 10px 12px;
+}
+
+.cmc-dp__cal th {
+  text-align: center;
+  font-size: 11px;
+  color: var(--cmc-text-muted);
+  font-weight: 600;
+  padding: 4px 0;
+  width: 38px;
+}
+
+.cmc-dp__day {
+  text-align: center;
+  font-size: 13px;
+  color: var(--cmc-text-body);
+  padding: 5px 0;
+  border-radius: var(--cmc-radius-sm);
+  cursor: pointer;
+  transition: background var(--cmc-transition), color var(--cmc-transition);
+  width: 38px;
+  height: 34px;
+  vertical-align: middle;
+}
+
+.cmc-dp__day:hover {
+  background: var(--cmc-primary-50);
+  color: var(--cmc-primary-500);
+}
+
+.cmc-dp__day.is-sel {
+  background: var(--cmc-primary-500);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 50%;
+}
+
+.cmc-dp__day.is-today {
+  border: 2px solid var(--cmc-primary-500);
+  color: var(--cmc-primary-500);
+  font-weight: 700;
+  border-radius: 50%;
+}
+
+.cmc-dp__day--out {
+  cursor: default;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Time picker */
+.cmc-dp__time {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cmc-space-3);
+  padding: var(--cmc-space-3) var(--cmc-space-4);
+  border-top: 1px solid var(--cmc-border-light);
+  background: var(--cmc-surface-2);
+}
+
+.cmc-dp__tfield {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.cmc-dp__tbtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--cmc-text-muted);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: background var(--cmc-transition), color var(--cmc-transition);
+  font-family: var(--cmc-font);
+}
+
+.cmc-dp__tbtn:hover {
+  background: var(--cmc-primary-50);
+  color: var(--cmc-primary-500);
+}
+
+.cmc-dp__tval {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--cmc-text-heading);
+  min-width: 36px;
+  text-align: center;
+  direction: ltr;
+  display: block;
+}
+
+.cmc-dp__tsep {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--cmc-text-muted);
+  margin-bottom: 2px;
+}
+
+/* Footer */
+.cmc-dp__foot {
+  display: flex;
+  gap: var(--cmc-space-2);
+  padding: var(--cmc-space-3) var(--cmc-space-4);
+  border-top: 1px solid var(--cmc-border-light);
 }
