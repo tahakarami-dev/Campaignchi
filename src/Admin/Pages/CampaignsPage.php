@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Msi\Campaignchi\Admin\Pages;
 
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
+use Msi\Campaignchi\Helpers\JalaliHelper;
 
 /**
  * Campaigns Page
  *
- * Renders the campaign list OR the create/edit form,
- * based on ?action= query param.
+ * Renders the campaign list OR the create/edit form.
+ * All dates displayed in Persian (Shamsi/Jalali) format.
  *
  * @package Msi\Campaignchi\Admin\Pages
  */
@@ -19,10 +20,9 @@ class CampaignsPage extends AbstractPage
     public function title(): string
     {
         $action = sanitize_key($_GET['action'] ?? 'list');
-
         return match ($action) {
-            'new'  => __('کمپین جدید', 'campaignchi'),
-            'edit' => __('ویرایش کمپین', 'campaignchi'),
+            'new'   => __('کمپین جدید', 'campaignchi'),
+            'edit'  => __('ویرایش کمپین', 'campaignchi'),
             default => __('کمپین‌ها', 'campaignchi'),
         };
     }
@@ -30,7 +30,6 @@ class CampaignsPage extends AbstractPage
     public function render(): void
     {
         $action = sanitize_key($_GET['action'] ?? 'list');
-
         match ($action) {
             'new', 'edit' => $this->renderForm($action),
             default       => $this->renderList(),
@@ -49,19 +48,12 @@ class CampaignsPage extends AbstractPage
         $search  = sanitize_text_field($_GET['s'] ?? '');
         $perPage = 15;
 
-        $result = $repo->paginate([
-            'page'     => $page,
-            'per_page' => $perPage,
-            'status'   => $status,
-            'search'   => $search,
-        ]);
-
-        $campaigns  = $result['items'];
-        $total      = $result['total'];
+        $result    = $repo->paginate(['page' => $page, 'per_page' => $perPage, 'status' => $status, 'search' => $search]);
+        $campaigns = $result['items'];
+        $total     = $result['total'];
         $totalPages = (int) ceil($total / $perPage);
-
-        $newUrl = \Msi\Campaignchi\Admin\AdminRouter::url('campaigns', ['action' => 'new']);
-?>
+        $newUrl    = \Msi\Campaignchi\Admin\AdminRouter::url('campaigns', ['action' => 'new']);
+    ?>
 
         <!-- ---- Page header ---- -->
         <div class="cmc-row cmc-row--between cmc-mb-5">
@@ -70,10 +62,7 @@ class CampaignsPage extends AbstractPage
                     <?php esc_html_e('کمپین‌ها', 'campaignchi'); ?>
                 </h2>
                 <p style="color:var(--cmc-text-muted);font-size:var(--cmc-font-size-sm);margin:4px 0 0">
-                    <?php printf(
-                        esc_html__('%d کمپین در سیستم', 'campaignchi'),
-                        $total
-                    ); ?>
+                    <?php printf(esc_html__('%d کمپین در سیستم', 'campaignchi'), $total); ?>
                 </p>
             </div>
             <a href="<?php echo esc_url($newUrl); ?>" class="cmc-btn cmc-btn--primary">
@@ -85,7 +74,7 @@ class CampaignsPage extends AbstractPage
         <!-- ---- Filter bar ---- -->
         <div class="cmc-card cmc-mb-4" style="padding:var(--cmc-space-4)">
             <form method="GET" class="cmc-row cmc-row--sm" style="flex-wrap:wrap;gap:var(--cmc-space-3)">
-                <input type="hidden" name="page" value="campaignchi">
+                <input type="hidden" name="page"     value="campaignchi">
                 <input type="hidden" name="cmc_page" value="campaigns">
 
                 <div class="cmc-input-wrap" style="flex:1;min-width:200px">
@@ -97,10 +86,10 @@ class CampaignsPage extends AbstractPage
 
                 <select name="filter_status" class="cmc-select" style="width:160px">
                     <option value=""><?php esc_html_e('همه وضعیت‌ها', 'campaignchi'); ?></option>
-                    <option value="active" <?php selected($status, 'active'); ?>><?php esc_html_e('فعال', 'campaignchi'); ?></option>
-                    <option value="draft" <?php selected($status, 'draft'); ?>><?php esc_html_e('پیش‌نویس', 'campaignchi'); ?></option>
+                    <option value="active"    <?php selected($status, 'active');    ?>><?php esc_html_e('فعال', 'campaignchi'); ?></option>
+                    <option value="draft"     <?php selected($status, 'draft');     ?>><?php esc_html_e('پیش‌نویس', 'campaignchi'); ?></option>
                     <option value="scheduled" <?php selected($status, 'scheduled'); ?>><?php esc_html_e('زمان‌بندی شده', 'campaignchi'); ?></option>
-                    <option value="ended" <?php selected($status, 'ended'); ?>><?php esc_html_e('پایان یافته', 'campaignchi'); ?></option>
+                    <option value="ended"     <?php selected($status, 'ended');     ?>><?php esc_html_e('پایان یافته', 'campaignchi'); ?></option>
                 </select>
 
                 <button type="submit" class="cmc-btn cmc-btn--secondary">
@@ -140,37 +129,44 @@ class CampaignsPage extends AbstractPage
                         </thead>
                         <tbody>
                             <?php foreach ($campaigns as $campaign): ?>
-                                <tr data-id="<?php echo $campaign->id; ?>">
+                                <tr data-id="<?php echo esc_attr($campaign->id); ?>">
+
                                     <td class="cmc-table__cell--bold">
                                         <?php echo esc_html($campaign->title); ?>
                                     </td>
+
                                     <td>
                                         <span class="cmc-badge cmc-badge--primary">
                                             <?php echo esc_html($campaign->typeLabel()); ?>
                                         </span>
                                     </td>
+
                                     <td class="cmc-table__cell--price">
                                         <?php echo esc_html($campaign->discountLabel()); ?>
                                     </td>
+
                                     <td>
                                         <span class="cmc-badge <?php echo esc_attr($campaign->statusBadgeClass()); ?>">
                                             <span class="cmc-badge__dot"></span>
                                             <?php echo esc_html($campaign->statusLabel()); ?>
                                         </span>
                                     </td>
+
+                                    <!-- تاریخ شروع — شمسی فارسی -->
                                     <td class="cmc-table__cell--muted">
-                                        <?php echo $campaign->startsAt
-                                            ? esc_html(wp_date('Y/m/d', strtotime($campaign->startsAt)))
-                                            : '—'; ?>
+                                        <?php echo esc_html(JalaliHelper::toDisplay($campaign->startsAt)); ?>
                                     </td>
+
+                                    <!-- تاریخ پایان — شمسی فارسی -->
                                     <td class="cmc-table__cell--muted">
-                                        <?php echo $campaign->endsAt
-                                            ? esc_html(wp_date('Y/m/d', strtotime($campaign->endsAt)))
-                                            : '—'; ?>
+                                        <?php echo esc_html(JalaliHelper::toDisplay($campaign->endsAt)); ?>
                                     </td>
+
+                                    <!-- تاریخ ایجاد — شمسی فارسی -->
                                     <td class="cmc-table__cell--muted hide-mobile">
-                                        <?php echo esc_html(wp_date('Y/m/d', strtotime($campaign->createdAt))); ?>
+                                        <?php echo esc_html(JalaliHelper::toDisplay($campaign->createdAt)); ?>
                                     </td>
+
                                     <td>
                                         <div class="cmc-table__row-actions">
                                             <a href="<?php echo esc_url(\Msi\Campaignchi\Admin\AdminRouter::url('campaigns', ['action' => 'edit', 'id' => $campaign->id])); ?>"
@@ -179,13 +175,14 @@ class CampaignsPage extends AbstractPage
                                                 <i class="ti ti-edit"></i>
                                             </a>
                                             <button class="cmc-btn cmc-btn--ghost cmc-btn--icon cmc-btn--sm cmc-delete-campaign"
-                                                data-id="<?php echo $campaign->id; ?>"
+                                                data-id="<?php echo esc_attr($campaign->id); ?>"
                                                 data-title="<?php echo esc_attr($campaign->title); ?>"
                                                 title="<?php esc_attr_e('حذف', 'campaignchi'); ?>">
                                                 <i class="ti ti-trash" style="color:var(--cmc-danger)"></i>
                                             </button>
                                         </div>
                                     </td>
+
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -196,10 +193,9 @@ class CampaignsPage extends AbstractPage
                 <?php if ($totalPages > 1): ?>
                     <div class="cmc-row" style="padding:var(--cmc-space-4) var(--cmc-space-5);justify-content:space-between;border-top:1px solid var(--cmc-border-light)">
                         <span style="font-size:var(--cmc-font-size-sm);color:var(--cmc-text-muted)">
-                            <?php printf(
-                                esc_html__('صفحه %d از %d', 'campaignchi'),
-                                $page,
-                                $totalPages
+                            <?php printf(esc_html__('صفحه %s از %s', 'campaignchi'),
+                                JalaliHelper::toPersianNums((string)$page),
+                                JalaliHelper::toPersianNums((string)$totalPages)
                             ); ?>
                         </span>
                         <div class="cmc-row cmc-row--sm">
@@ -220,7 +216,6 @@ class CampaignsPage extends AbstractPage
                         </div>
                     </div>
                 <?php endif; ?>
-
             <?php endif; ?>
         </div>
 
@@ -233,16 +228,14 @@ class CampaignsPage extends AbstractPage
 
     private function renderForm(string $action): void
     {
-        $editId   = absint($_GET['id'] ?? 0);
-        $isEdit   = ($action === 'edit' && $editId > 0);
-        $backUrl  = \Msi\Campaignchi\Admin\AdminRouter::url('campaigns');
-
+        $editId  = absint($_GET['id'] ?? 0);
+        $isEdit  = ($action === 'edit' && $editId > 0);
+        $backUrl = \Msi\Campaignchi\Admin\AdminRouter::url('campaigns');
     ?>
 
         <!-- Back link -->
         <div class="cmc-mb-4">
-            <a href="<?php echo esc_url($backUrl); ?>"
-                class="cmc-btn cmc-btn--ghost cmc-btn--sm">
+            <a href="<?php echo esc_url($backUrl); ?>" class="cmc-btn cmc-btn--ghost cmc-btn--sm">
                 <i class="ti ti-arrow-right"></i>
                 <?php esc_html_e('بازگشت به لیست', 'campaignchi'); ?>
             </a>
@@ -253,18 +246,15 @@ class CampaignsPage extends AbstractPage
             <!-- ========= LEFT: Main form ========= -->
             <div class="cmc-stack cmc-stack--md">
 
-                <!-- Basic info card -->
+                <!-- Basic info -->
                 <div class="cmc-card">
                     <div class="cmc-card__header">
                         <div class="cmc-card__title"><?php esc_html_e('اطلاعات پایه', 'campaignchi'); ?></div>
                     </div>
-
                     <div class="cmc-stack cmc-stack--md">
 
                         <div class="cmc-form-group">
-                            <label class="cmc-label cmc-label--required">
-                                <?php esc_html_e('عنوان کمپین', 'campaignchi'); ?>
-                            </label>
+                            <label class="cmc-label cmc-label--required"><?php esc_html_e('عنوان کمپین', 'campaignchi'); ?></label>
                             <input type="text" id="cmc-field-title" class="cmc-input"
                                 placeholder="<?php esc_attr_e('مثلاً: فلش سیل یلدا ۱۴۰۳', 'campaignchi'); ?>"
                                 maxlength="255">
@@ -273,13 +263,13 @@ class CampaignsPage extends AbstractPage
                         <div class="cmc-form-group">
                             <label class="cmc-label"><?php esc_html_e('توضیحات', 'campaignchi'); ?></label>
                             <textarea id="cmc-field-desc" class="cmc-textarea" rows="3"
-                                placeholder="<?php esc_attr_e('توضیح کوتاه درباره این کمپین...', 'campaignchi'); ?>"></textarea>
+                                placeholder="<?php esc_attr_e('توضیح کوتاه...', 'campaignchi'); ?>"></textarea>
                         </div>
 
-                        <!-- Type toggle -->
+                        <!-- نوع کمپین -->
                         <div class="cmc-form-group">
                             <label class="cmc-label"><?php esc_html_e('نوع کمپین', 'campaignchi'); ?></label>
-                            <div class="cmc-type-toggle" id="cmc-type-toggle">
+                            <div class="cmc-type-toggle">
                                 <button type="button" class="cmc-type-btn is-active" data-value="flash_sale">
                                     <i class="ti ti-clock-bolt"></i>
                                     <?php esc_html_e('فلش سیل', 'campaignchi'); ?>
@@ -297,42 +287,37 @@ class CampaignsPage extends AbstractPage
                     </div>
                 </div>
 
-                <!-- Discount card -->
+                <!-- تخفیف -->
                 <div class="cmc-card">
                     <div class="cmc-card__header">
                         <div class="cmc-card__title"><?php esc_html_e('تخفیف', 'campaignchi'); ?></div>
                     </div>
                     <div class="cmc-row cmc-row--md" style="align-items:flex-start">
-
                         <div class="cmc-form-group" style="flex:1">
-                            <label class="cmc-label cmc-label--required">
-                                <?php esc_html_e('مقدار تخفیف', 'campaignchi'); ?>
-                            </label>
+                            <label class="cmc-label cmc-label--required"><?php esc_html_e('مقدار تخفیف', 'campaignchi'); ?></label>
                             <input type="number" id="cmc-field-discount" class="cmc-input"
-                                placeholder="30" min="0" step="0.01">
+                                placeholder="30" min="0.01" step="0.01">
                         </div>
-
                         <div class="cmc-form-group" style="width:160px">
                             <label class="cmc-label"><?php esc_html_e('نوع تخفیف', 'campaignchi'); ?></label>
-                            <div class="cmc-discount-type-toggle" id="cmc-discount-type-toggle" style="gap: 8px;">
-                                <button type="button" class="cmc-dt-btn is-active" data-value="percent" style="border-radius: 14px;">٪ درصد</button>
-                                <button type="button" class="cmc-dt-btn" data-value="fixed" style="border-radius: 14px;" cmc-discount-type-toggle>تومان ثابت</button>
+                            <div class="cmc-discount-type-toggle">
+                                <button type="button" class="cmc-dt-btn is-active" data-value="percent">٪ درصد</button>
+                                <button type="button" class="cmc-dt-btn"           data-value="fixed">تومان ثابت</button>
                             </div>
                             <input type="hidden" id="cmc-field-discount-type" value="percent">
                         </div>
-
                     </div>
                 </div>
 
-                <!-- Schedule card -->
+                <!-- زمان‌بندی -->
                 <div class="cmc-card">
                     <div class="cmc-card__header">
                         <div class="cmc-card__title"><?php esc_html_e('زمان‌بندی', 'campaignchi'); ?></div>
-                        <span style="font-size:var(--cmc-font-size-xs);color:var(--cmc-text-muted)">
-                            <?php esc_html_e('اختیاری', 'campaignchi'); ?>
-                        </span>
+                        <span style="font-size:var(--cmc-font-size-xs);color:var(--cmc-text-muted)"><?php esc_html_e('اختیاری', 'campaignchi'); ?></span>
                     </div>
                     <div class="cmc-grid cmc-grid--2" style="gap:var(--cmc-space-4)">
+
+                        <!-- تاریخ شروع -->
                         <div class="cmc-form-group">
                             <label class="cmc-label"><?php esc_html_e('تاریخ شروع', 'campaignchi'); ?></label>
                             <div class="cmc-input-wrap">
@@ -341,11 +326,14 @@ class CampaignsPage extends AbstractPage
                                     id="cmc-field-starts-at-display"
                                     class="cmc-input"
                                     data-cmc-datepicker="cmc-field-starts-at"
-                                    placeholder="<?php esc_attr_e('انتخاب تاریخ و ساعت...', 'campaignchi'); ?>"
+                                    placeholder="<?php esc_attr_e('کلیک کنید...', 'campaignchi'); ?>"
                                     readonly>
                             </div>
-                            <input type="hidden" id="cmc-field-starts-at">
+                            <!-- hidden: مقدار ISO برای ارسال به سرور -->
+                            <input type="hidden" id="cmc-field-starts-at" name="starts_at">
                         </div>
+
+                        <!-- تاریخ پایان -->
                         <div class="cmc-form-group">
                             <label class="cmc-label"><?php esc_html_e('تاریخ پایان', 'campaignchi'); ?></label>
                             <div class="cmc-input-wrap">
@@ -354,21 +342,21 @@ class CampaignsPage extends AbstractPage
                                     id="cmc-field-ends-at-display"
                                     class="cmc-input"
                                     data-cmc-datepicker="cmc-field-ends-at"
-                                    placeholder="<?php esc_attr_e('انتخاب تاریخ و ساعت...', 'campaignchi'); ?>"
+                                    placeholder="<?php esc_attr_e('کلیک کنید...', 'campaignchi'); ?>"
                                     readonly>
                             </div>
-                            <input type="hidden" id="cmc-field-ends-at">
+                            <input type="hidden" id="cmc-field-ends-at" name="ends_at">
                         </div>
+
                     </div>
                 </div>
 
-                <!-- ===== PRODUCT PICKER CARD ===== -->
-                <div class="cmc-card" style="margin-bottom: 30px;">
+                <!-- انتخاب محصولات -->
+                <div class="cmc-card" style="margin-bottom:30px">
                     <div class="cmc-card__header">
                         <div class="cmc-card__title"><?php esc_html_e('محصولات کمپین', 'campaignchi'); ?></div>
                     </div>
 
-                    <!-- Selection mode tabs -->
                     <div class="cmc-tabs cmc-mb-4" id="cmc-picker-tabs">
                         <div class="cmc-tab is-active" data-mode="manual">
                             <i class="ti ti-search"></i> <?php esc_html_e('انتخاب دستی', 'campaignchi'); ?>
@@ -391,74 +379,61 @@ class CampaignsPage extends AbstractPage
                     </div>
                     <input type="hidden" id="cmc-field-selection-mode" value="manual">
 
-                    <!-- PANEL: Manual product search -->
+                    <!-- جستجوی دستی -->
                     <div id="cmc-panel-manual" class="cmc-picker-panel">
                         <div class="cmc-input-wrap cmc-mb-3">
                             <i class="ti ti-search cmc-input-wrap__icon"></i>
-                            <input type="text" id="cmc-product-search"
-                                class="cmc-input"
-                                placeholder="<?php esc_attr_e('نام محصول یا SKU را تایپ کنید...', 'campaignchi'); ?>"
+                            <input type="text" id="cmc-product-search" class="cmc-input"
+                                placeholder="<?php esc_attr_e('نام محصول یا SKU...', 'campaignchi'); ?>"
                                 autocomplete="off">
                         </div>
-                        <div id="cmc-search-results" class="cmc-product-results" style="display:none"></div>
-                        <div id="cmc-search-loading" class="cmc-picker-loading" style="display:none">
+                        <div id="cmc-search-results"  class="cmc-product-results" style="display:none"></div>
+                        <div id="cmc-search-loading"  class="cmc-picker-loading"  style="display:none">
                             <i class="ti ti-loader-2 cmc-spin"></i>
                             <?php esc_html_e('در حال جستجو...', 'campaignchi'); ?>
                         </div>
                     </div>
 
-                    <!-- PANEL: Category selection -->
+                    <!-- دسته‌بندی -->
                     <div id="cmc-panel-category" class="cmc-picker-panel" style="display:none">
                         <div id="cmc-category-list" class="cmc-term-list">
-                            <div class="cmc-picker-loading">
-                                <i class="ti ti-loader-2 cmc-spin"></i>
-                                <?php esc_html_e('در حال بارگذاری...', 'campaignchi'); ?>
-                            </div>
+                            <div class="cmc-picker-loading"><i class="ti ti-loader-2 cmc-spin"></i> <?php esc_html_e('در حال بارگذاری...', 'campaignchi'); ?></div>
                         </div>
                     </div>
 
-                    <!-- PANEL: Tag selection -->
+                    <!-- برچسب -->
                     <div id="cmc-panel-tag" class="cmc-picker-panel" style="display:none">
                         <div id="cmc-tag-list" class="cmc-term-list">
-                            <div class="cmc-picker-loading">
-                                <i class="ti ti-loader-2 cmc-spin"></i>
-                                <?php esc_html_e('در حال بارگذاری...', 'campaignchi'); ?>
-                            </div>
+                            <div class="cmc-picker-loading"><i class="ti ti-loader-2 cmc-spin"></i> <?php esc_html_e('در حال بارگذاری...', 'campaignchi'); ?></div>
                         </div>
                     </div>
 
-                    <!-- PANEL: Attribute selection -->
+                    <!-- ویژگی -->
                     <div id="cmc-panel-attribute" class="cmc-picker-panel" style="display:none">
                         <div id="cmc-attribute-list" class="cmc-term-list">
-                            <div class="cmc-picker-loading">
-                                <i class="ti ti-loader-2 cmc-spin"></i>
-                                <?php esc_html_e('در حال بارگذاری...', 'campaignchi'); ?>
-                            </div>
+                            <div class="cmc-picker-loading"><i class="ti ti-loader-2 cmc-spin"></i> <?php esc_html_e('در حال بارگذاری...', 'campaignchi'); ?></div>
                         </div>
                     </div>
 
-                    <!-- PANEL: Brand selection -->
+                    <!-- برند -->
                     <div id="cmc-panel-brand" class="cmc-picker-panel" style="display:none">
                         <div id="cmc-brand-list" class="cmc-term-list">
-                            <div class="cmc-picker-loading">
-                                <i class="ti ti-loader-2 cmc-spin"></i>
-                                <?php esc_html_e('در حال بارگذاری...', 'campaignchi'); ?>
-                            </div>
+                            <div class="cmc-picker-loading"><i class="ti ti-loader-2 cmc-spin"></i> <?php esc_html_e('در حال بارگذاری...', 'campaignchi'); ?></div>
                         </div>
                     </div>
 
-                    <!-- PANEL: All products -->
-                    <div id="cmc-panel-all" class="cmc-picker-PanelLayout" style="display:none">
+                    <!-- همه محصولات -->
+                    <div id="cmc-panel-all" class="cmc-picker-panel" style="display:none">
                         <div class="cmc-alert cmc-alert--warning">
                             <i class="ti ti-alert-triangle cmc-alert__icon"></i>
                             <div class="cmc-alert__body">
                                 <div class="cmc-alert__title"><?php esc_html_e('اعمال روی همه محصولات', 'campaignchi'); ?></div>
-                                <?php esc_html_e('تخفیف این کمپین روی تمام محصولات منتشرشده فروشگاه اعمال خواهد شد.', 'campaignchi'); ?>
+                                <?php esc_html_e('تخفیف روی تمام محصولات منتشرشده اعمال خواهد شد.', 'campaignchi'); ?>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Selected products preview (always visible) -->
+                    <!-- محصولات انتخابی -->
                     <div id="cmc-selected-wrap" style="margin-top:var(--cmc-space-4);display:none">
                         <div class="cmc-row cmc-row--between cmc-mb-3">
                             <span style="font-size:var(--cmc-font-size-sm);font-weight:600;color:var(--cmc-text-heading)">
@@ -470,7 +445,6 @@ class CampaignsPage extends AbstractPage
                     </div>
 
                 </div>
-                <!-- /PRODUCT PICKER -->
 
             </div>
             <!-- /LEFT -->
@@ -478,17 +452,15 @@ class CampaignsPage extends AbstractPage
             <!-- ========= RIGHT: Sidebar ========= -->
             <div class="cmc-stack cmc-stack--md campaign-summary">
 
-                <!-- Publish card -->
+                <!-- انتشار -->
                 <div class="cmc-card">
-                    <div class="cmc-card__title cmc-mb-4">
-                        <?php esc_html_e('انتشار', 'campaignchi'); ?>
-                    </div>
+                    <div class="cmc-card__title cmc-mb-4"><?php esc_html_e('انتشار', 'campaignchi'); ?></div>
 
                     <div class="cmc-form-group cmc-mb-4">
                         <label class="cmc-label"><?php esc_html_e('وضعیت', 'campaignchi'); ?></label>
                         <select id="cmc-field-status" class="cmc-select">
-                            <option value="draft"><?php esc_html_e('پیش‌نویس', 'campaignchi'); ?></option>
-                            <option value="active"><?php esc_html_e('فعال — منتشر شود', 'campaignchi'); ?></option>
+                            <option value="draft">    <?php esc_html_e('پیش‌نویس', 'campaignchi'); ?></option>
+                            <option value="active">   <?php esc_html_e('فعال — منتشر شود', 'campaignchi'); ?></option>
                             <option value="scheduled"><?php esc_html_e('زمان‌بندی شده', 'campaignchi'); ?></option>
                         </select>
                     </div>
@@ -501,7 +473,7 @@ class CampaignsPage extends AbstractPage
                     <button type="button" id="cmc-btn-save"
                         class="cmc-btn cmc-btn--primary"
                         style="width:100%"
-                        data-edit-id="<?php echo $isEdit ? $editId : 0; ?>">
+                        data-edit-id="<?php echo $isEdit ? esc_attr($editId) : 0; ?>">
                         <i class="ti ti-device-floppy"></i>
                         <?php echo $isEdit
                             ? esc_html__('ذخیره تغییرات', 'campaignchi')
@@ -512,19 +484,16 @@ class CampaignsPage extends AbstractPage
                         <button type="button" id="cmc-btn-delete"
                             class="cmc-btn cmc-btn--danger"
                             style="width:100%;margin-top:var(--cmc-space-2)"
-                            data-id="<?php echo $editId; ?>">
+                            data-id="<?php echo esc_attr($editId); ?>">
                             <i class="ti ti-trash"></i>
                             <?php esc_html_e('حذف کمپین', 'campaignchi'); ?>
                         </button>
                     <?php endif; ?>
-
                 </div>
 
-                <!-- Summary card -->
-                <div class="cmc-card" id="cmc-summary-card">
-                    <div class="cmc-card__title cmc-mb-3">
-                        <?php esc_html_e('خلاصه', 'campaignchi'); ?>
-                    </div>
+                <!-- خلاصه -->
+                <div class="cmc-card">
+                    <div class="cmc-card__title cmc-mb-3"><?php esc_html_e('خلاصه', 'campaignchi'); ?></div>
                     <div class="cmc-stack cmc-stack--sm" style="font-size:var(--cmc-font-size-sm)">
                         <div class="cmc-row cmc-row--between">
                             <span style="color:var(--cmc-text-muted)"><?php esc_html_e('نوع:', 'campaignchi'); ?></span>
@@ -546,324 +515,98 @@ class CampaignsPage extends AbstractPage
 
         </div>
 
-        <!-- Campaign form CSS + JS -->
+        <!-- Form CSS -->
         <style>
-            /* Type toggle buttons */
-            .cmc-type-toggle {
-                display: flex;
-                gap: 8px;
-            }
-
+            .cmc-type-toggle { display:flex; gap:8px; }
             .cmc-type-btn {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 4px;
-                padding: 12px 8px;
-                border: 1.5px solid var(--cmc-border);
-                border-radius: var(--cmc-radius-md);
-                background: var(--cmc-surface);
-                cursor: pointer;
-                font-family: var(--cmc-font);
-                font-size: 13px;
-                font-weight: 600;
-                color: var(--cmc-text-body);
-                transition: all var(--cmc-transition);
+                flex:1; display:flex; flex-direction:column; align-items:center;
+                gap:4px; padding:12px 8px; border:1.5px solid var(--cmc-border);
+                border-radius:var(--cmc-radius-md); background:var(--cmc-surface);
+                cursor:pointer; font-family:var(--cmc-font); font-size:13px;
+                font-weight:600; color:var(--cmc-text-body); transition:all var(--cmc-transition);
             }
+            .cmc-type-btn i { font-size:22px; color:var(--cmc-text-muted); }
+            .cmc-type-btn span { font-size:10px; color:var(--cmc-text-muted); font-weight:400; }
+            .cmc-type-btn.is-active { border-color:var(--cmc-primary-500); background:var(--cmc-primary-50); color:var(--cmc-primary-500); }
+            .cmc-type-btn.is-active i { color:var(--cmc-primary-500); }
 
-            .cmc-type-btn i {
-                font-size: 22px;
-                color: var(--cmc-text-muted);
-            }
-
-            .cmc-type-btn span {
-                font-size: 10px;
-                color: var(--cmc-text-muted);
-                font-weight: 400;
-            }
-
-            .cmc-type-btn.is-active {
-                border-color: var(--cmc-primary-500);
-                background: var(--cmc-primary-50);
-                color: var(--cmc-primary-500);
-            }
-
-            .cmc-type-btn.is-active i {
-                color: var(--cmc-primary-500);
-            }
-
-            /* Discount type mini toggle */
-            .cmc-discount-type-toggle {
-                display: flex;
-            }
-
+            .cmc-discount-type-toggle { display:flex; }
             .cmc-dt-btn {
-                flex: 1;
-                padding: 9px 8px;
-                border: 1px solid var(--cmc-border);
-                background: var(--cmc-surface);
-                cursor: pointer;
-                font-family: var(--cmc-font);
-                font-size: 12px;
-                font-weight: 600;
-                color: var(--cmc-text-muted);
-                transition: all var(--cmc-transition);
+                flex:1; padding:9px 8px; border:1px solid var(--cmc-border);
+                background:var(--cmc-surface); cursor:pointer;
+                font-family:var(--cmc-font); font-size:12px; font-weight:600;
+                color:var(--cmc-text-muted); transition:all var(--cmc-transition);
             }
+            .cmc-dt-btn:first-child { border-radius:var(--cmc-radius-md) 0 0 var(--cmc-radius-md); }
+            .cmc-dt-btn:last-child  { border-radius:0 var(--cmc-radius-md) var(--cmc-radius-md) 0; border-right:none; }
+            .cmc-dt-btn.is-active   { background:var(--cmc-primary-500); color:#fff; border-color:var(--cmc-primary-500); }
 
-            .cmc-dt-btn:first-child {
-                border-radius: var(--cmc-radius-md) 0 0 var(--cmc-radius-md);
-            }
+            #cmc-picker-tabs .cmc-tab { font-size:12px; padding:8px 12px; gap:5px; }
 
-            .cmc-dt-btn:last-child {
-                border-radius: 0 var(--cmc-radius-md) var(--cmc-radius-md) 0;
-                border-right: none;
-            }
-
-            .cmc-dt-btn.is-active {
-                background: var(--cmc-primary-500);
-                color: #fff;
-                border-color: var(--cmc-primary-500);
-            }
-
-            /* Picker tabs — override base cmc-tab to work inline */
-            #cmc-picker-tabs .cmc-tab {
-                font-size: 12px;
-                padding: 8px 12px;
-                gap: 5px;
-            }
-
-            /* Product search results */
-            .cmc-product-results {
-                max-height: 260px;
-                overflow-y: auto;
-                border: 1px solid var(--cmc-border);
-                border-radius: var(--cmc-radius-md);
-            }
-
+            .cmc-product-results { max-height:260px; overflow-y:auto; border:1px solid var(--cmc-border); border-radius:var(--cmc-radius-md); }
             .cmc-product-result-item {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 10px 12px;
-                border-bottom: 1px solid var(--cmc-border-light);
-                cursor: pointer;
-                transition: background var(--cmc-transition);
+                display:flex; align-items:center; gap:10px; padding:10px 12px;
+                border-bottom:1px solid var(--cmc-border-light); cursor:pointer;
+                transition:background var(--cmc-transition);
             }
-
-            .cmc-product-result-item:last-child {
-                border-bottom: none;
-            }
-
-            .cmc-product-result-item:hover {
-                background: var(--cmc-surface-2);
-            }
-
-            .cmc-product-result-item.is-selected {
-                background: var(--cmc-primary-50);
-            }
-
-            .cmc-product-result-item img {
-                width: 38px;
-                height: 38px;
-                border-radius: var(--cmc-radius-sm);
-                object-fit: cover;
-                flex-shrink: 0;
-            }
-
-            .cmc-product-result-item__name {
-                font-size: 13px;
-                font-weight: 600;
-                color: var(--cmc-text-heading);
-            }
-
-            .cmc-product-result-item__meta {
-                font-size: 11px;
-                color: var(--cmc-text-muted);
-                margin-top: 2px;
-            }
-
-            .cmc-product-result-item__price {
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--cmc-primary-500);
-                margin-right: auto;
-                white-space: nowrap;
-            }
-
+            .cmc-product-result-item:last-child { border-bottom:none; }
+            .cmc-product-result-item:hover { background:var(--cmc-surface-2); }
+            .cmc-product-result-item.is-selected { background:var(--cmc-primary-50); }
+            .cmc-product-result-item img { width:38px; height:38px; border-radius:var(--cmc-radius-sm); object-fit:cover; flex-shrink:0; }
+            .cmc-product-result-item__name { font-size:13px; font-weight:600; color:var(--cmc-text-heading); }
+            .cmc-product-result-item__meta { font-size:11px; color:var(--cmc-text-muted); margin-top:2px; }
+            .cmc-product-result-item__price { font-size:12px; font-weight:700; color:var(--cmc-primary-500); margin-right:auto; white-space:nowrap; }
             .cmc-product-result-item__check {
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                border: 2px solid var(--cmc-border);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
+                width:20px; height:20px; border-radius:50%; border:2px solid var(--cmc-border);
+                display:flex; align-items:center; justify-content:center; flex-shrink:0;
             }
-
             .cmc-product-result-item.is-selected .cmc-product-result-item__check {
-                background: var(--cmc-primary-500);
-                border-color: var(--cmc-primary-500);
-                color: #fff;
+                background:var(--cmc-primary-500); border-color:var(--cmc-primary-500); color:#fff;
             }
 
-            /* Term list (categories/tags/attributes) */
-            .cmc-term-list {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-                padding: 4px 0;
-            }
-
+            .cmc-term-list { display:flex; flex-wrap:wrap; gap:8px; padding:4px 0; }
             .cmc-term-chip {
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                padding: 5px 10px;
-                border: 1.5px solid var(--cmc-border);
-                border-radius: var(--cmc-radius-pill);
-                font-size: 12px;
-                font-weight: 500;
-                color: var(--cmc-text-body);
-                cursor: pointer;
-                background: var(--cmc-surface);
-                transition: all var(--cmc-transition);
+                display:inline-flex; align-items:center; gap:5px; padding:5px 10px;
+                border:1.5px solid var(--cmc-border); border-radius:var(--cmc-radius-pill);
+                font-size:12px; font-weight:500; color:var(--cmc-text-body);
+                cursor:pointer; background:var(--cmc-surface); transition:all var(--cmc-transition);
             }
+            .cmc-term-chip:hover { border-color:var(--cmc-primary-500); color:var(--cmc-primary-500); }
+            .cmc-term-chip.is-selected { background:var(--cmc-primary-500); border-color:var(--cmc-primary-500); color:#fff; }
+            .cmc-term-chip__count { opacity:0.6; font-size:10px; }
+            .cmc-attr-group { width:100%; }
+            .cmc-attr-group__label { font-size:11px; font-weight:700; color:var(--cmc-text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; }
 
-            .cmc-term-chip:hover {
-                border-color: var(--cmc-primary-500);
-                color: var(--cmc-primary-500);
-            }
-
-            .cmc-term-chip.is-selected {
-                background: var(--cmc-primary-500);
-                border-color: var(--cmc-primary-500);
-                color: #fff;
-            }
-
-            .cmc-term-chip__count {
-                opacity: 0.6;
-                font-size: 10px;
-            }
-
-            .cmc-attr-group {
-                width: 100%;
-            }
-
-            .cmc-attr-group__label {
-                font-size: 11px;
-                font-weight: 700;
-                color: var(--cmc-text-muted);
-                text-transform: uppercase;
-                letter-spacing: 0.06em;
-                margin-bottom: 6px;
-            }
-
-            /* Selected products list */
-            .cmc-selected-products {
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
-                max-height: 220px;
-                overflow-y: auto;
-            }
-
-            .cmc-selected-product {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 8px;
-                border: 1px solid var(--cmc-border);
-                border-radius: var(--cmc-radius-sm);
-                background: var(--cmc-surface);
-            }
-
-            .cmc-selected-product img {
-                width: 32px;
-                height: 32px;
-                border-radius: 6px;
-                object-fit: cover;
-                flex-shrink: 0;
-            }
-
-            .cmc-selected-product__name {
-                font-size: 12px;
-                font-weight: 600;
-                flex: 1;
-                color: var(--cmc-text-heading);
-            }
-
+            .cmc-selected-products { display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto; }
+            .cmc-selected-product { display:flex; align-items:center; gap:10px; padding:8px; border:1px solid var(--cmc-border); border-radius:var(--cmc-radius-sm); background:var(--cmc-surface); }
+            .cmc-selected-product img { width:32px; height:32px; border-radius:6px; object-fit:cover; flex-shrink:0; }
+            .cmc-selected-product__name { font-size:12px; font-weight:600; flex:1; color:var(--cmc-text-heading); }
             .cmc-selected-product__remove {
-                width: 22px;
-                height: 22px;
-                border-radius: 50%;
-                border: none;
-                background: var(--cmc-surface-2);
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: var(--cmc-text-muted);
-                font-size: 12px;
-                flex-shrink: 0;
-                transition: all var(--cmc-transition);
+                width:22px; height:22px; border-radius:50%; border:none; background:var(--cmc-surface-2);
+                cursor:pointer; display:flex; align-items:center; justify-content:center;
+                color:var(--cmc-text-muted); font-size:12px; flex-shrink:0; transition:all var(--cmc-transition);
             }
+            .cmc-selected-product__remove:hover { background:var(--cmc-danger-light); color:var(--cmc-danger); }
 
-            .cmc-selected-product__remove:hover {
-                background: var(--cmc-danger-light);
-                color: var(--cmc-danger);
-            }
-
-            /* Loading spinner */
-            .cmc-picker-loading {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                color: var(--cmc-text-muted);
-                font-size: 13px;
-                padding: 12px 0;
-            }
-
-            .cmc-spin {
-                animation: cmc-spin 0.8s linear infinite;
-                display: inline-block;
-            }
-
-            @keyframes cmc-spin {
-                to {
-                    transform: rotate(360deg);
-                }
-            }
-
-            /* Load more */
+            .cmc-picker-loading { display:flex; align-items:center; gap:8px; color:var(--cmc-text-muted); font-size:13px; padding:12px 0; }
+            .cmc-spin { animation:cmc-spin 0.8s linear infinite; display:inline-block; }
+            @keyframes cmc-spin { to { transform:rotate(360deg); } }
             .cmc-load-more {
-                width: 100%;
-                padding: 8px;
-                text-align: center;
-                font-size: 12px;
-                color: var(--cmc-primary-500);
-                cursor: pointer;
-                border: none;
-                background: none;
-                font-family: var(--cmc-font);
-                border-top: 1px solid var(--cmc-border-light);
+                width:100%; padding:8px; text-align:center; font-size:12px;
+                color:var(--cmc-primary-500); cursor:pointer; border:none; background:none;
+                font-family:var(--cmc-font); border-top:1px solid var(--cmc-border-light);
             }
-
-            .cmc-load-more:hover {
-                background: var(--cmc-primary-50);
-            }
+            .cmc-load-more:hover { background:var(--cmc-primary-50); }
         </style>
 
         <script>
-            // Pass edit data to campaigns.js
-            window.CMC_FORM = {
-                isEdit: <?php echo wp_json_encode($isEdit); ?>,
-                editId: <?php echo wp_json_encode($isEdit ? $editId : 0); ?>,
-                backUrl: <?php echo wp_json_encode($backUrl); ?>,
-            };
+        window.CMC_FORM = {
+            isEdit:  <?php echo wp_json_encode($isEdit); ?>,
+            editId:  <?php echo wp_json_encode($isEdit ? $editId : 0); ?>,
+            backUrl: <?php echo wp_json_encode($backUrl); ?>,
+        };
         </script>
 
-<?php
+    <?php
     }
 }
