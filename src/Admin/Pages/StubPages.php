@@ -68,29 +68,7 @@ final class ProductsPage extends AdminPage
     }
 }
 
-/**
- * SchedulePage — Campaign scheduling calendar
- */
-final class SchedulePage extends AdminPage
-{
-    public function getTitle(): string
-    {
-        return __('زمان‌بندی', 'campaignchi');
-    }
 
-    public function render(): void
-    {
-        ?>
-        <div class="cmc-empty">
-            <div class="cmc-empty__icon"><i class="ti ti-calendar-time"></i></div>
-            <div class="cmc-empty__title"><?php esc_html_e('زمان‌بندی کمپین‌ها', 'campaignchi'); ?></div>
-            <div class="cmc-empty__desc">
-                <?php esc_html_e('به‌زودی: تقویم و زمان‌بندی کمپین‌های تخفیف.', 'campaignchi'); ?>
-            </div>
-        </div>
-        <?php
-    }
-}
 
 /**
  * TemplatesPage — Frontend display templates
