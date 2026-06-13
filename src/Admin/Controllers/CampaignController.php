@@ -17,7 +17,7 @@ use Msi\Campaignchi\Campaign\Services\CampaignService;
  *   cmc_update_campaign
  *   cmc_delete_campaign
  *   cmc_search_products
- *   cmc_get_picker_data     (categories / tags / attributes)
+ *   cmc_get_picker_data     (categories / tags / attributes / brands)
  *   cmc_get_campaign        (single campaign for edit form)
  *
  * @package Msi\Campaignchi\Admin\Controllers
@@ -99,7 +99,7 @@ class CampaignController
 
     /**
      * GET: load all picker data in one shot
-     * (categories + tags + attributes)
+     * (categories + tags + attributes + brands)
      * Called once when the form loads — cached in JS.
      */
     public function getPickerData(): void
@@ -112,7 +112,7 @@ class CampaignController
                 'categories' => $this->service->getCategories(),
                 'tags'       => $this->service->getTags(),
                 'attributes' => $this->service->getAttributes(),
-                'brands'     => $this->service->getBrands(),campaigns
+                'brands'     => $this->service->getBrands(),
             ],
         ]);
     }
@@ -153,18 +153,18 @@ class CampaignController
         $this->json([
             'success'  => true,
             'campaign' => [
-                'id'             => $campaign->id,
-                'title'          => $campaign->title,
-                'type'           => $campaign->type,
-                'status'         => $campaign->status,
-                'discount'       => $campaign->discount,
-                'discount_type'  => $campaign->discountType,
-                'starts_at'      => $campaign->startsAt,
-                'ends_at'        => $campaign->endsAt,
-                'description'    => $campaign->description,
+                'id'            => $campaign->id,
+                'title'         => $campaign->title,
+                'type'          => $campaign->type,
+                'status'        => $campaign->status,
+                'discount'      => $campaign->discount,
+                'discount_type' => $campaign->discountType,
+                'starts_at'     => $campaign->startsAt,
+                'ends_at'       => $campaign->endsAt,
+                'description'   => $campaign->description,
             ],
-            'products'  => $products,
-            'rules'     => $rules,
+            'products' => $products,
+            'rules'    => $rules,
         ]);
     }
 
