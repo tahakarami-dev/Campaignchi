@@ -1,12 +1,11 @@
 /**
  * CMC Campaigns Module — JavaScript
- * Version: 2.0.0
+ * Version: 2.1.0
  *
- * قوانین:
- *  - هیچ alert() / confirm() مرورگری استفاده نمیشه
- *  - همه تاییدیه‌ها از CMC.confirm() (تعریف شده در panel.js)
- *  - همه اعلان‌ها از CMC.toast()
- *  - CMCDatePicker از فایل datepicker.js میاد (تعریف دوباره نمیشه)
+ * Fixes:
+ *  - product_ids و brand_ids دیگه double-stringify نمیشن
+ *  - CMCDatePicker.init() فقط یکبار و بعد از DOM ready صدا زده میشه
+ *  - هیچ alert/confirm مرورگری استفاده نمیشه
  */
 
 "use strict";
@@ -36,6 +35,11 @@
 
   const $ = id => document.getElementById(id);
 
+  /**
+   * AJAX helper
+   * نکته مهم: برای POST، آرایه‌ها و objectها رو مستقیم append میکنیم
+   * تا double-stringify نشن
+   */
   async function apiFetch(action, params = {}, method = 'GET') {
     const ajaxUrl = window.CMC_DATA?.ajaxUrl ?? '/wp-admin/admin-ajax.php';
     const nonce   = window.CMC_DATA?.nonce   ?? '';
@@ -44,16 +48,21 @@
       const url = new URL(ajaxUrl, location.href);
       url.searchParams.set('action', action);
       url.searchParams.set('nonce', nonce);
-      for (const [k, v] of Object.entries(params)) url.searchParams.set(k, String(v));
+      for (const [k, v] of Object.entries(params)) {
+        url.searchParams.set(k, String(v));
+      }
       const res = await fetch(url.toString(), { credentials: 'same-origin' });
       return res.json();
     }
 
+    // POST — مقادیر رو مستقیم append کن (بدون تبدیل اضافی)
     const body = new FormData();
     body.append('action', action);
     body.append('nonce', nonce);
     for (const [k, v] of Object.entries(params)) {
-      body.append(k, typeof v === 'object' ? JSON.stringify(v) : String(v));
+      // اگر string هست مستقیم، اگر غیرstring (number, bool) رو به string تبدیل کن
+      // JSON stringها رو هم مستقیم pass کن چون خودشون قبلاً stringify شدن
+      body.append(k, String(v));
     }
     const res = await fetch(ajaxUrl, { method: 'POST', body, credentials: 'same-origin' });
     return res.json();
@@ -68,9 +77,10 @@
     if (typeof CMC !== 'undefined' && typeof CMC.toast === 'function') {
       CMC.toast(msg, type);
     } else {
-      // اگر panel.js هنوز لود نشده، کمی صبر کن
       setTimeout(() => {
-        if (typeof CMC !== 'undefined') CMC.toast(msg, type);
+        if (typeof CMC !== 'undefined' && typeof CMC.toast === 'function') {
+          CMC.toast(msg, type);
+        }
       }, 500);
     }
   }
@@ -92,9 +102,9 @@
         const title = btn.dataset.title;
 
         showConfirm({
-          title: 'حذف کمپین',
-          body:  `کمپین «${title}» حذف شود؟`,
-          sub:   'تمام داده‌ها، محصولات و آمار این کمپین پاک می‌شوند.',
+          title:   'حذف کمپین',
+          body:    `کمپین «${title}» حذف شود؟`,
+          sub:     'تمام داده‌ها، محصولات و آمار این کمپین پاک می‌شوند.',
           okLabel: 'بله، حذف کن',
           okClass: 'cmc-btn--danger',
           onConfirm: async () => {
@@ -131,7 +141,8 @@
       btn.addEventListener('click', () => {
         document.querySelectorAll('.cmc-type-btn').forEach(b => b.classList.remove('is-active'));
         btn.classList.add('is-active');
-        $('cmc-field-type').value = btn.dataset.value;
+        const f = $('cmc-field-type');
+        if (f) f.value = btn.dataset.value;
         updateSummary();
       });
     });
@@ -140,7 +151,8 @@
       btn.addEventListener('click', () => {
         document.querySelectorAll('.cmc-dt-btn').forEach(b => b.classList.remove('is-active'));
         btn.classList.add('is-active');
-        $('cmc-field-discount-type').value = btn.dataset.value;
+        const f = $('cmc-field-discount-type');
+        if (f) f.value = btn.dataset.value;
         updateSummary();
       });
     });
@@ -149,7 +161,7 @@
   }
 
   // ============================================================
-  // 3. PICKER TABS (manual / category / tag / attribute / brand / all)
+  // 3. PICKER TABS
   // ============================================================
 
   function initPickerTabs() {
@@ -164,7 +176,8 @@
 
         const panel = $(`cmc-panel-${mode}`);
         if (panel) panel.style.display = 'block';
-        $('cmc-field-selection-mode').value = mode;
+        const smf = $('cmc-field-selection-mode');
+        if (smf) smf.value = mode;
 
         if (mode !== 'manual' && mode !== 'all' && !state.pickerData) {
           loadPickerData();
@@ -190,8 +203,8 @@
       await runSearch(true);
     }, 320);
 
-    input.addEventListener('input',  () => handleSearch(input.value.trim()));
-    input.addEventListener('focus',  () => {
+    input.addEventListener('input', () => handleSearch(input.value.trim()));
+    input.addEventListener('focus', () => {
       const r = $('cmc-search-results');
       if (r && r.children.length) r.style.display = 'block';
     });
@@ -212,7 +225,7 @@
         page:   state.searchPage,
       });
 
-      if (!data.success) throw new Error(data.message);
+      if (!data.success) throw new Error(data.message ?? 'خطا');
 
       if (reset) {
         resultsEl.innerHTML = '';
@@ -243,9 +256,9 @@
         resultsEl.appendChild(moreBtn);
       }
 
-      if (resultsEl) resultsEl.style.display = products.length || !reset ? 'block' : 'none';
+      if (resultsEl) resultsEl.style.display = (products.length || !reset) ? 'block' : 'none';
 
-    } catch {
+    } catch (err) {
       showToast('خطا در جستجو', 'danger');
     } finally {
       if (loadingEl) loadingEl.style.display = 'none';
@@ -259,7 +272,7 @@
     item.className  = `cmc-product-result-item${isSelected ? ' is-selected' : ''}`;
     item.dataset.id = product.id;
     item.innerHTML  = `
-      <img src="${product.thumb}" alt="${product.name}" loading="lazy">
+      <img src="${product.thumb}" alt="" loading="lazy">
       <div style="flex:1;min-width:0">
         <div class="cmc-product-result-item__name">${product.name}</div>
         <div class="cmc-product-result-item__meta">${product.sku ? 'SKU: ' + product.sku : product.type}</div>
@@ -289,7 +302,7 @@
   }
 
   // ============================================================
-  // 5. GROUP PICKER (categories / tags / attributes / brands)
+  // 5. GROUP PICKER
   // ============================================================
 
   async function loadPickerData() {
@@ -309,11 +322,11 @@
   function renderPickerPanel(mode) {
     if (!state.pickerData) return;
     if (mode === 'category') {
-      renderTermChips('cmc-category-list', state.pickerData.categories, state.selectedCategories,
+      renderTermChips('cmc-category-list', state.pickerData.categories ?? [], state.selectedCategories,
         (id, sel) => toggleTerm(id, state.selectedCategories, sel));
     }
     if (mode === 'tag') {
-      renderTermChips('cmc-tag-list', state.pickerData.tags, state.selectedTags,
+      renderTermChips('cmc-tag-list', state.pickerData.tags ?? [], state.selectedTags,
         (id, sel) => toggleTerm(id, state.selectedTags, sel));
     }
     if (mode === 'brand') {
@@ -340,9 +353,7 @@
       const chip = document.createElement('div');
       chip.className  = `cmc-term-chip${isSelected ? ' is-selected' : ''}`;
       chip.dataset.id = term.id;
-      chip.innerHTML  = `
-        ${term.name}
-        ${term.count !== undefined ? `<span class="cmc-term-chip__count">(${term.count})</span>` : ''}`;
+      chip.innerHTML  = `${term.name}${term.count !== undefined ? `<span class="cmc-term-chip__count">(${term.count})</span>` : ''}`;
       chip.addEventListener('click', () => {
         const nowSelected = chip.classList.toggle('is-selected');
         onToggle(term.id, nowSelected);
@@ -357,7 +368,7 @@
     if (!container || !state.pickerData) return;
     container.innerHTML = '';
 
-    state.pickerData.attributes.forEach(attr => {
+    (state.pickerData.attributes ?? []).forEach(attr => {
       const group = document.createElement('div');
       group.className = 'cmc-attr-group';
       group.innerHTML = `<div class="cmc-attr-group__label">${attr.label}</div>`;
@@ -369,7 +380,7 @@
           a => a.taxonomy === attr.taxonomy && a.term_id === term.id
         );
         const chip = document.createElement('div');
-        chip.className  = `cmc-term-chip${isSelected ? ' is-selected' : ''}`;
+        chip.className   = `cmc-term-chip${isSelected ? ' is-selected' : ''}`;
         chip.textContent = term.name;
         chip.addEventListener('click', () => {
           const nowSelected = chip.classList.toggle('is-selected');
@@ -398,7 +409,7 @@
   }
 
   // ============================================================
-  // 6. SELECTED PRODUCTS PANEL
+  // 6. SELECTED PRODUCTS
   // ============================================================
 
   function renderSelectedProducts() {
@@ -416,7 +427,7 @@
       const item = document.createElement('div');
       item.className = 'cmc-selected-product';
       item.innerHTML = `
-        <img src="${p.thumb}" alt="${p.name}" loading="lazy">
+        <img src="${p.thumb}" alt="" loading="lazy">
         <span class="cmc-selected-product__name">${p.name}</span>
         <span style="font-size:11px;color:var(--cmc-primary-500);font-weight:600">${p.price}</span>
         <button class="cmc-selected-product__remove" data-id="${p.id}" title="حذف">
@@ -426,11 +437,11 @@
       item.querySelector('.cmc-selected-product__remove').addEventListener('click', () => {
         const idx = state.selectedProducts.findIndex(x => x.id === p.id);
         if (idx !== -1) state.selectedProducts.splice(idx, 1);
-        // sync with search results
         const resultItem = document.querySelector(`#cmc-search-results [data-id="${p.id}"]`);
         if (resultItem) {
           resultItem.classList.remove('is-selected');
-          resultItem.querySelector('.cmc-product-result-item__check').innerHTML = '';
+          const check = resultItem.querySelector('.cmc-product-result-item__check');
+          if (check) check.innerHTML = '';
         }
         renderSelectedProducts();
         updateSummary();
@@ -441,14 +452,14 @@
   }
 
   // ============================================================
-  // 7. SUMMARY LIVE UPDATE
+  // 7. SUMMARY
   // ============================================================
 
   function updateSummary() {
-    const typeVal     = $('cmc-field-type')?.value;
-    const discVal     = $('cmc-field-discount')?.value;
-    const discType    = $('cmc-field-discount-type')?.value;
-    const typeLabels  = { flash_sale: 'فلش سیل', amazing_offer: 'پیشنهاد شگفت‌انگیز' };
+    const typeVal    = $('cmc-field-type')?.value;
+    const discVal    = $('cmc-field-discount')?.value;
+    const discType   = $('cmc-field-discount-type')?.value;
+    const typeLabels = { flash_sale: 'فلش سیل', amazing_offer: 'پیشنهاد شگفت‌انگیز' };
 
     const sumType     = $('cmc-sum-type');
     const sumDiscount = $('cmc-sum-discount');
@@ -459,20 +470,22 @@
       ? discVal + (discType === 'percent' ? '٪' : ' تومان')
       : '—';
 
-    let productSummary = '—';
+    let ps = '—';
     switch (state.selectionMode) {
-      case 'manual':    productSummary = state.selectedProducts.length   ? `${state.selectedProducts.length} محصول`   : 'انتخاب نشده'; break;
-      case 'category':  productSummary = state.selectedCategories.length ? `${state.selectedCategories.length} دسته‌بندی` : 'انتخاب نشده'; break;
-      case 'tag':       productSummary = state.selectedTags.length       ? `${state.selectedTags.length} برچسب`      : 'انتخاب نشده'; break;
-      case 'attribute': productSummary = state.selectedAttributes.length ? `${state.selectedAttributes.length} ویژگی` : 'انتخاب نشده'; break;
-      case 'brand':     productSummary = state.selectedBrands.length     ? `${state.selectedBrands.length} برند`      : 'انتخاب نشده'; break;
-      case 'all':       productSummary = 'همه محصولات'; break;
+      case 'manual':    ps = state.selectedProducts.length   ? `${state.selectedProducts.length} محصول`       : 'انتخاب نشده'; break;
+      case 'category':  ps = state.selectedCategories.length ? `${state.selectedCategories.length} دسته‌بندی` : 'انتخاب نشده'; break;
+      case 'tag':       ps = state.selectedTags.length       ? `${state.selectedTags.length} برچسب`           : 'انتخاب نشده'; break;
+      case 'attribute': ps = state.selectedAttributes.length ? `${state.selectedAttributes.length} ویژگی`     : 'انتخاب نشده'; break;
+      case 'brand':     ps = state.selectedBrands.length     ? `${state.selectedBrands.length} برند`           : 'انتخاب نشده'; break;
+      case 'all':       ps = 'همه محصولات'; break;
     }
-    if (sumProducts) sumProducts.textContent = productSummary;
+    if (sumProducts) sumProducts.textContent = ps;
   }
 
   // ============================================================
   // 8. SAVE CAMPAIGN
+  // BUG FIX: آرایه‌ها قبل از pass شدن به apiFetch باید JSON string باشن
+  // apiFetch داخلش String() میزنه که روی JSON string بی‌تاثیره
   // ============================================================
 
   function initSaveButton() {
@@ -483,22 +496,34 @@
       const editId = parseInt(btn.dataset.editId, 10) || 0;
       const isEdit = editId > 0;
 
+      // JSON stringify کردن آرایه‌ها — این string نهایی‌ه که به server میره
       const payload = {
-        title:           $('cmc-field-title')?.value?.trim()  ?? '',
-        description:     $('cmc-field-desc')?.value?.trim()   ?? '',
-        type:            $('cmc-field-type')?.value           ?? 'flash_sale',
-        discount:        $('cmc-field-discount')?.value       ?? '0',
-        discount_type:   $('cmc-field-discount-type')?.value  ?? 'percent',
-        starts_at:       $('cmc-field-starts-at')?.value      ?? '',
-        ends_at:         $('cmc-field-ends-at')?.value        ?? '',
-        status:          $('cmc-field-status')?.value         ?? 'draft',
+        title:           ($('cmc-field-title')?.value ?? '').trim(),
+        description:     ($('cmc-field-desc')?.value ?? '').trim(),
+        type:            $('cmc-field-type')?.value            ?? 'flash_sale',
+        discount:        $('cmc-field-discount')?.value        ?? '0',
+        discount_type:   $('cmc-field-discount-type')?.value   ?? 'percent',
+        starts_at:       $('cmc-field-starts-at')?.value       ?? '',
+        ends_at:         $('cmc-field-ends-at')?.value         ?? '',
+        status:          $('cmc-field-status')?.value          ?? 'draft',
         selection_mode:  state.selectionMode,
+        // ← اینجا JSON.stringify میکنیم — apiFetch فقط String() میزنه که بی‌تاثیره
         product_ids:     JSON.stringify(state.selectedProducts.map(p => p.id)),
         category_ids:    JSON.stringify(state.selectedCategories),
         tag_ids:         JSON.stringify(state.selectedTags),
         attribute_rules: JSON.stringify(state.selectedAttributes),
         brand_ids:       JSON.stringify(state.selectedBrands),
       };
+
+      // validation ساده
+      if (!payload.title) {
+        showFormError('عنوان کمپین الزامی است');
+        return;
+      }
+      if (!payload.discount || parseFloat(payload.discount) <= 0) {
+        showFormError('مقدار تخفیف باید بزرگتر از صفر باشد');
+        return;
+      }
 
       if (isEdit) payload.id = editId;
 
@@ -537,7 +562,6 @@
 
     btn.addEventListener('click', () => {
       const id = parseInt(btn.dataset.id, 10);
-
       showConfirm({
         title:   'حذف کمپین',
         body:    'این کمپین به طور کامل حذف شود؟',
@@ -550,9 +574,7 @@
             const res = await apiFetch('cmc_delete_campaign', { id }, 'POST');
             if (res.success) {
               showToast('کمپین حذف شد', 'success');
-              setTimeout(() => {
-                window.location.href = window.CMC_FORM?.backUrl ?? '#';
-              }, 900);
+              setTimeout(() => { window.location.href = window.CMC_FORM?.backUrl ?? '#'; }, 900);
             } else {
               showToast(res.message ?? 'خطا', 'danger');
               btn.disabled = false;
@@ -579,24 +601,28 @@
 
       const c = res.campaign;
 
-      if ($('cmc-field-title'))         $('cmc-field-title').value         = c.title        ?? '';
-      if ($('cmc-field-desc'))          $('cmc-field-desc').value          = c.description  ?? '';
-      if ($('cmc-field-discount'))      $('cmc-field-discount').value      = c.discount      ?? '';
-      if ($('cmc-field-status'))        $('cmc-field-status').value        = c.status        ?? 'draft';
-      if ($('cmc-field-type'))          $('cmc-field-type').value          = c.type          ?? 'flash_sale';
-      if ($('cmc-field-discount-type')) $('cmc-field-discount-type').value = c.discount_type ?? 'percent';
+      if ($('cmc-field-title'))         $('cmc-field-title').value         = c.title         ?? '';
+      if ($('cmc-field-desc'))          $('cmc-field-desc').value          = c.description    ?? '';
+      if ($('cmc-field-discount'))      $('cmc-field-discount').value      = c.discount       ?? '';
+      if ($('cmc-field-status'))        $('cmc-field-status').value        = c.status         ?? 'draft';
+      if ($('cmc-field-type'))          $('cmc-field-type').value          = c.type           ?? 'flash_sale';
+      if ($('cmc-field-discount-type')) $('cmc-field-discount-type').value = c.discount_type  ?? 'percent';
 
-      // Set date pickers
-      if (c.starts_at) CMCDatePicker.setValue('cmc-field-starts-at', c.starts_at.replace(' ', 'T'));
-      if (c.ends_at)   CMCDatePicker.setValue('cmc-field-ends-at',   c.ends_at.replace(' ', 'T'));
+      // تاریخ‌گیر شمسی
+      if (c.starts_at && typeof CMCDatePicker !== 'undefined') {
+        CMCDatePicker.setValue('cmc-field-starts-at', c.starts_at.replace(' ', 'T'));
+      }
+      if (c.ends_at && typeof CMCDatePicker !== 'undefined') {
+        CMCDatePicker.setValue('cmc-field-ends-at', c.ends_at.replace(' ', 'T'));
+      }
 
-      // Sync type buttons
+      // sync toggle buttons
       document.querySelectorAll('.cmc-type-btn').forEach(b =>
         b.classList.toggle('is-active', b.dataset.value === c.type));
       document.querySelectorAll('.cmc-dt-btn').forEach(b =>
         b.classList.toggle('is-active', b.dataset.value === c.discount_type));
 
-      // Products
+      // محصولات انتخابی
       if (res.products?.length) {
         state.selectedProducts = res.products;
         renderSelectedProducts();
@@ -615,8 +641,8 @@
   function showFormError(msg) {
     const el = $('cmc-form-error');
     const tx = $('cmc-form-error-text');
-    if (el) el.style.display  = 'flex';
-    if (tx) tx.textContent     = msg;
+    if (el) el.style.display = 'flex';
+    if (tx) tx.textContent   = msg;
     el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
@@ -633,22 +659,24 @@
     const isForm = !!$('cmc-btn-save');
 
     if (!isForm) {
-      // صفحه لیست
       initList();
     } else {
-      // صفحه فرم
       initFormToggles();
       initPickerTabs();
       initProductSearch();
       initSaveButton();
       initDeleteButton();
       updateSummary();
-      loadEditData();
 
-      // تاریخ‌گیر شمسی (از datepicker.js)
+      // تاریخ‌گیر شمسی — فقط یکبار init
       if (typeof CMCDatePicker !== 'undefined') {
         CMCDatePicker.init();
+      } else {
+        console.warn('[CMC] CMCDatePicker not found — make sure datepicker.js loads before campaigns.js');
       }
+
+      // بارگذاری داده ویرایش بعد از init تاریخ‌گیر
+      loadEditData();
     }
   });
 

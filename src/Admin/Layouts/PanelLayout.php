@@ -95,7 +95,6 @@ class PanelLayout
             <nav class="cmc-sidebar__nav" aria-label="<?php esc_attr_e('منوی اصلی', 'campaignchi'); ?>">
                 <?php $this->renderNavItem('dashboard',  'ti-layout-dashboard', 'داشبورد',   $activeSlug); ?>
                 <?php $this->renderNavItem('campaigns',  'ti-bolt',             'کمپین‌ها',  $activeSlug, '۴'); ?>
-                <?php $this->renderNavItem('schedule',   'ti-calendar-time',    'زمان‌بندی', $activeSlug, null, true); ?>
 
                 <p class="cmc-nav__section"><?php esc_html_e('تنظیمات', 'campaignchi'); ?></p>
 

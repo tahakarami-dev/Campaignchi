@@ -1,13 +1,10 @@
 /* ==========================================================================
    CMC Admin Panel — Panel-Specific CSS
-   Extra styles for the full-page admin panel layout
-   (chart, body reset, WP suppression)
-   Import AFTER base.css and components.css
+   Import AFTER base.css و components.css
    ========================================================================== */
 
 /* ==========================================================================
    1. BODY RESET
-   Ensure WP admin styles don't bleed through
    ========================================================================== */
 
 .cmc-body {
@@ -18,7 +15,6 @@
   overflow: hidden;
 }
 
-/* Hide any WP admin elements that survived */
 #adminmenuwrap,
 #adminmenuback,
 #wpfooter,
@@ -55,7 +51,7 @@
 }
 
 /* ==========================================================================
-   3. BAR CHART (pure CSS, no library)
+   3. BAR CHART (pure CSS)
    ========================================================================== */
 
 .cmc-chart-bars {
@@ -64,7 +60,6 @@
   margin-top: var(--cmc-space-4);
 }
 
-/* Horizontal grid lines */
 .cmc-chart-bars__grid {
   position: absolute;
   inset: 0;
@@ -81,7 +76,6 @@
   width: 100%;
 }
 
-/* Bars wrapper */
 .cmc-chart-bars__bars {
   position: absolute;
   inset: 0;
@@ -91,7 +85,6 @@
   padding-bottom: 24px;
 }
 
-/* Individual bar */
 .cmc-chart-bar {
   flex: 1;
   height: var(--h, 50%);
@@ -102,21 +95,11 @@
   transition: opacity var(--cmc-transition);
 }
 
-.cmc-chart-bar:hover {
-  opacity: 0.75;
-}
+.cmc-chart-bar:hover { opacity: 0.75; }
 
-/* Today highlight */
-.cmc-chart-bar.is-today {
-  background: var(--cmc-primary-500);
-}
+.cmc-chart-bar.is-today { background: var(--cmc-primary-500); }
+.cmc-chart-bar.is-accent { background: var(--cmc-accent); }
 
-/* Flash / accent bar */
-.cmc-chart-bar.is-accent {
-  background: var(--cmc-accent);
-}
-
-/* Day label below bar */
 .cmc-chart-bar::after {
   content: attr(data-label);
   position: absolute;
@@ -129,16 +112,9 @@
   font-family: var(--cmc-font);
 }
 
-.cmc-chart-bar.is-today::after {
-  color: var(--cmc-primary-500);
-  font-weight: 700;
-}
-.cmc-chart-bar.is-accent::after {
-  color: var(--cmc-accent);
-  font-weight: 700;
-}
+.cmc-chart-bar.is-today::after  { color: var(--cmc-primary-500); font-weight: 700; }
+.cmc-chart-bar.is-accent::after { color: var(--cmc-accent);      font-weight: 700; }
 
-/* Value tooltip on hover */
 .cmc-chart-bar::before {
   content: attr(data-val);
   position: absolute;
@@ -146,7 +122,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: var(--cmc-sidebar-bg);
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255,255,255,0.9);
   font-size: 10px;
   font-weight: 600;
   padding: 3px 7px;
@@ -159,188 +135,150 @@
   direction: rtl;
 }
 
-.cmc-chart-bar:hover::before {
-  opacity: 1;
-}
+.cmc-chart-bar:hover::before { opacity: 1; }
 
 .cmc-sidebar__footer {
   padding-bottom: 40px;
 }
-
 /* ==========================================================================
-   PERSIAN DATE PICKER
+   CMC Admin Panel — Panel-Specific CSS
+   Import AFTER base.css و components.css
    ========================================================================== */
 
-.cmc-dp {
-  position: absolute;
-  z-index: 99999;
-  background: var(--cmc-surface);
-  border: 1px solid var(--cmc-border);
-  border-radius: var(--cmc-radius-lg);
-  box-shadow: var(--cmc-shadow-lg);
-  width: 300px;
-  direction: rtl;
-  font-family: var(--cmc-font);
+/* ==========================================================================
+   1. BODY RESET
+   ========================================================================== */
+
+.cmc-body {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: var(--cmc-bg) !important;
+  font-family: var(--cmc-font) !important;
   overflow: hidden;
 }
 
-/* Header */
-.cmc-dp__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--cmc-space-3) var(--cmc-space-4);
-  background: var(--cmc-primary-500);
-  color: #fff;
+#adminmenuwrap,
+#adminmenuback,
+#wpfooter,
+.update-nag,
+.notice,
+.wp-pointer {
+  display: none !important;
 }
 
-.cmc-dp__htitle {
+#wpcontent,
+#wpbody,
+#wpbody-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  float: none !important;
+}
+
+/* ==========================================================================
+   2. PANEL FULL HEIGHT
+   ========================================================================== */
+
+.cmc-panel {
+  height: 100vh;
+}
+
+.cmc-main {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.cmc-content {
+  height: calc(100vh - var(--cmc-topbar-height));
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   3. BAR CHART (pure CSS)
+   ========================================================================== */
+
+.cmc-chart-bars {
+  position: relative;
+  height: 160px;
+  margin-top: var(--cmc-space-4);
+}
+
+.cmc-chart-bars__grid {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.cmc-dp__htitle span {
-  font-size: 11px;
-  opacity: 0.8;
-  font-weight: 400;
-}
-
-.cmc-dp__nav {
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  color: #fff;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--cmc-radius-sm);
-  cursor: pointer;
-  font-size: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--cmc-transition);
-  font-family: var(--cmc-font);
-}
-
-.cmc-dp__nav:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-/* Calendar table */
-.cmc-dp__cal {
-  width: 100%;
-  border-collapse: collapse;
-  padding: var(--cmc-space-2) var(--cmc-space-3);
-  display: block;
-  padding: 10px 12px;
-}
-
-.cmc-dp__cal th {
-  text-align: center;
-  font-size: 11px;
-  color: var(--cmc-text-muted);
-  font-weight: 600;
-  padding: 4px 0;
-  width: 38px;
-}
-
-.cmc-dp__day {
-  text-align: center;
-  font-size: 13px;
-  color: var(--cmc-text-body);
-  padding: 5px 0;
-  border-radius: var(--cmc-radius-sm);
-  cursor: pointer;
-  transition: background var(--cmc-transition), color var(--cmc-transition);
-  width: 38px;
-  height: 34px;
-  vertical-align: middle;
-}
-
-.cmc-dp__day:hover {
-  background: var(--cmc-primary-50);
-  color: var(--cmc-primary-500);
-}
-
-.cmc-dp__day.is-sel {
-  background: var(--cmc-primary-500);
-  color: #fff;
-  font-weight: 700;
-  border-radius: 50%;
-}
-
-.cmc-dp__day.is-today {
-  border: 2px solid var(--cmc-primary-500);
-  color: var(--cmc-primary-500);
-  font-weight: 700;
-  border-radius: 50%;
-}
-
-.cmc-dp__day--out {
-  cursor: default;
-  opacity: 0;
+  justify-content: space-between;
   pointer-events: none;
 }
 
-/* Time picker */
-.cmc-dp__time {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--cmc-space-3);
-  padding: var(--cmc-space-3) var(--cmc-space-4);
-  border-top: 1px solid var(--cmc-border-light);
-  background: var(--cmc-surface-2);
+.cmc-chart-bars__grid span {
+  display: block;
+  height: 1px;
+  background: var(--cmc-border-light);
+  width: 100%;
 }
 
-.cmc-dp__tfield {
+.cmc-chart-bars__bars {
+  position: absolute;
+  inset: 0;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
+  align-items: flex-end;
+  gap: 8px;
+  padding-bottom: 24px;
 }
 
-.cmc-dp__tbtn {
-  background: none;
-  border: none;
+.cmc-chart-bar {
+  flex: 1;
+  height: var(--h, 50%);
+  background: var(--cmc-primary-50);
+  border-radius: 6px 6px 0 0;
+  position: relative;
   cursor: pointer;
-  color: var(--cmc-text-muted);
+  transition: opacity var(--cmc-transition);
+}
+
+.cmc-chart-bar:hover { opacity: 0.75; }
+
+.cmc-chart-bar.is-today { background: var(--cmc-primary-500); }
+.cmc-chart-bar.is-accent { background: var(--cmc-accent); }
+
+.cmc-chart-bar::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  transition: background var(--cmc-transition), color var(--cmc-transition);
+  color: var(--cmc-text-muted);
+  white-space: nowrap;
   font-family: var(--cmc-font);
 }
 
-.cmc-dp__tbtn:hover {
-  background: var(--cmc-primary-50);
-  color: var(--cmc-primary-500);
+.cmc-chart-bar.is-today::after  { color: var(--cmc-primary-500); font-weight: 700; }
+.cmc-chart-bar.is-accent::after { color: var(--cmc-accent);      font-weight: 700; }
+
+.cmc-chart-bar::before {
+  content: attr(data-val);
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--cmc-sidebar-bg);
+  color: rgba(255,255,255,0.9);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: var(--cmc-radius-sm);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--cmc-transition);
+  font-family: var(--cmc-font);
+  direction: rtl;
 }
 
-.cmc-dp__tval {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--cmc-text-heading);
-  min-width: 36px;
-  text-align: center;
-  direction: ltr;
-  display: block;
-}
+.cmc-chart-bar:hover::before { opacity: 1; }
 
-.cmc-dp__tsep {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--cmc-text-muted);
-  margin-bottom: 2px;
-}
-
-/* Footer */
-.cmc-dp__foot {
-  display: flex;
-  gap: var(--cmc-space-2);
-  padding: var(--cmc-space-3) var(--cmc-space-4);
-  border-top: 1px solid var(--cmc-border-light);
+.cmc-sidebar__footer {
+  padding-bottom: 40px;
 }

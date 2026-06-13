@@ -1,25 +1,25 @@
 /* ==========================================================================
-   CMC Persian Date Picker — Standalone CSS
-   Import after panel.css
+   CMC Persian Date Picker — datepicker.css
+   Import AFTER panel.css
    ========================================================================== */
 
-/* ---- Popup container ---- */
+/* ---- Popup ---- */
 .cmc-dp {
   position: absolute;
-  z-index: 99999;
+  z-index: 999999 !important; /* بالاتر از همه چیز */
   width: 300px;
   background: var(--cmc-surface);
   border: 1px solid var(--cmc-border);
   border-radius: var(--cmc-radius-lg);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1);
   direction: rtl;
   font-family: var(--cmc-font);
   overflow: hidden;
-  animation: cmc-dp-in 160ms ease-out;
+  animation: cmc-dp-in 150ms ease-out;
 }
 
 @keyframes cmc-dp-in {
-  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
   to   { opacity: 1; transform: translateY(0)    scale(1);    }
 }
 
@@ -28,10 +28,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 12px 12px;
-  background: linear-gradient(135deg, var(--cmc-primary-500), #9b7bff);
+  padding: 12px 10px;
+  background: linear-gradient(135deg, var(--cmc-primary-500) 0%, #9b7bff 100%);
   color: #fff;
   gap: 4px;
+  user-select: none;
 }
 
 .cmc-dp__htitle {
@@ -40,12 +41,14 @@
   align-items: center;
   gap: 1px;
   flex: 1;
+  cursor: default;
 }
 
 .cmc-dp__htitle b {
   font-size: 14px;
   font-weight: 700;
   color: #fff;
+  line-height: 1.2;
 }
 
 .cmc-dp__htitle span {
@@ -57,53 +60,59 @@
 }
 
 .cmc-dp__nav {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   background: rgba(255,255,255,0.15);
   border: none;
   color: #fff;
-  font-size: 16px;
+  font-size: 15px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 150ms;
+  transition: background 130ms;
   flex-shrink: 0;
-  line-height: 1;
   font-family: var(--cmc-font);
+  line-height: 1;
 }
 
-.cmc-dp__nav:hover { background: rgba(255,255,255,0.28); }
+.cmc-dp__nav:hover { background: rgba(255,255,255,0.3); }
 
 /* ---- Calendar ---- */
 .cmc-dp__cal {
   width: 100%;
   border-collapse: collapse;
-  padding: 10px 10px 6px;
   display: block;
+  padding: 10px 10px 4px;
   box-sizing: border-box;
 }
 
+.cmc-dp__cal thead { display: table; width: 100%; }
+.cmc-dp__cal tbody { display: table; width: 100%; }
+.cmc-dp__cal tr    { display: table-row; }
+
 .cmc-dp__cal th {
+  display: table-cell;
   text-align: center;
   font-size: 11px;
   font-weight: 600;
   color: var(--cmc-text-muted);
-  padding: 4px 0;
-  width: 40px;
+  padding: 3px 0;
+  width: 38px;
 }
 
 .cmc-dp__day {
+  display: table-cell;
   text-align: center;
   font-size: 13px;
   color: var(--cmc-text-body);
   width: 38px;
-  height: 34px;
+  height: 32px;
   border-radius: 8px;
   cursor: pointer;
   vertical-align: middle;
-  transition: background 130ms, color 130ms;
+  transition: background 120ms, color 120ms;
   user-select: none;
 }
 
@@ -112,10 +121,10 @@
   color: var(--cmc-primary-500);
 }
 
-/* انتخاب شده */
+/* روز انتخابی */
 .cmc-dp__day.is-sel {
-  background: var(--cmc-primary-500);
-  color: #fff;
+  background: var(--cmc-primary-500) !important;
+  color: #fff !important;
   font-weight: 700;
   border-radius: 50%;
 }
@@ -128,10 +137,10 @@
   border-radius: 50%;
 }
 
-/* روزهای خارج از ماه */
+/* روزهای خارج ماه */
 .cmc-dp__day--out {
-  cursor: default;
   visibility: hidden;
+  cursor: default;
   pointer-events: none;
 }
 
@@ -139,17 +148,18 @@
 .cmc-dp__time {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
+  gap: 6px;
+  padding: 8px 14px;
   border-top: 1px solid var(--cmc-border-light);
   background: var(--cmc-surface-2);
+  user-select: none;
 }
 
 .cmc-dp__tfield {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
 }
 
 .cmc-dp__tbtn {
@@ -159,10 +169,10 @@
   color: var(--cmc-text-muted);
   font-size: 10px;
   padding: 2px 10px;
-  border-radius: 6px;
-  transition: background 130ms, color 130ms;
+  border-radius: 5px;
+  transition: background 120ms, color 120ms;
   font-family: var(--cmc-font);
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .cmc-dp__tbtn:hover {
@@ -171,10 +181,10 @@
 }
 
 .cmc-dp__tval {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--cmc-text-heading);
-  min-width: 40px;
+  min-width: 38px;
   text-align: center;
   direction: ltr;
   display: block;
@@ -182,22 +192,21 @@
 }
 
 .cmc-dp__tsep {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  color: var(--cmc-text-muted);
-  padding-bottom: 4px;
+  color: var(--cmc-primary-500);
+  padding-bottom: 2px;
   line-height: 1;
+  opacity: 0.7;
 }
 
 /* ---- Footer ---- */
 .cmc-dp__foot {
   display: flex;
-  gap: 8px;
-  padding: 10px 14px 12px;
+  gap: 6px;
+  padding: 8px 10px 10px;
   border-top: 1px solid var(--cmc-border-light);
 }
 
-.cmc-dp__ok,
-.cmc-dp__clear {
-  flex: 1;
-}
+.cmc-dp__ok    { flex: 2; }
+.cmc-dp__clear { flex: 1; }
