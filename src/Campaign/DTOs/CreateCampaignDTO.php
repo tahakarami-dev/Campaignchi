@@ -46,6 +46,7 @@ class CreateCampaignDTO
     public static function fromPost(array $post): self
     {
         // --- Required fields ---
+        $post = wp_unslash($post);
         $title = sanitize_text_field($post['title'] ?? '');
         if (empty($title)) {
             throw new \InvalidArgumentException(__('عنوان کمپین الزامی است.', 'campaignchi'));
