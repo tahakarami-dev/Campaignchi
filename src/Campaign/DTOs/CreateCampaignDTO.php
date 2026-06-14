@@ -22,12 +22,12 @@ class CreateCampaignDTO
         public readonly ?string $startsAt,
         public readonly ?string $endsAt,
         public readonly ?string $description,
-        public readonly string  $selectionMode,   // manual | category | tag | attribute | all
+        public readonly string  $selectionMode,   // manual | category | tag | attribute | brand | all
         public readonly array   $productIds,       // for manual mode
         public readonly array   $categoryIds,      // for category mode
         public readonly array   $tagIds,           // for tag mode
         public readonly array   $attributeRules,   // [{taxonomy, term_id}]
-        public readonly array   $brandIds,        // ← اضافه کن بعد از $attributeRules
+        public readonly array   $brandIds,         // for brand mode
 
         public readonly string  $status,           // draft | active | scheduled
     ) {}
@@ -103,8 +103,9 @@ class CreateCampaignDTO
             : null;
 
         // --- Selection mode ---
+        // ⚠️ FIX باگ ۳: 'brand' به لیست مقادیر مجاز اضافه شد
         $selectionMode = sanitize_key($post['selection_mode'] ?? 'manual');
-        if (!in_array($selectionMode, ['manual', 'category', 'tag', 'attribute', 'all'], true)) {
+        if (!in_array($selectionMode, ['manual', 'category', 'tag', 'attribute', 'brand', 'all'], true)) {
             $selectionMode = 'manual';
         }
 

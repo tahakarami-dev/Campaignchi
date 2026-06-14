@@ -122,16 +122,18 @@ class CampaignRepository
 
         $table = $wpdb->prefix . 'cmc_campaigns';
 
+        // ⚠️ FIX باگ ۱: ستون selection_mode به insert اضافه شد
         $wpdb->insert($table, [
-            'title'         => $dto->title,
-            'status'        => $dto->status,
-            'type'          => $dto->type,
-            'discount'      => $dto->discount,
-            'discount_type' => $dto->discountType,
-            'starts_at'     => $dto->startsAt,
-            'ends_at'       => $dto->endsAt,
-            'description'   => $dto->description,
-        ], ['%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s']);
+            'title'          => $dto->title,
+            'status'         => $dto->status,
+            'type'           => $dto->type,
+            'discount'       => $dto->discount,
+            'discount_type'  => $dto->discountType,
+            'selection_mode' => $dto->selectionMode,
+            'starts_at'      => $dto->startsAt,
+            'ends_at'        => $dto->endsAt,
+            'description'    => $dto->description,
+        ], ['%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s']);
 
         if (!$wpdb->insert_id) {
             throw new \RuntimeException('[CMC] Failed to insert campaign.');
@@ -159,20 +161,22 @@ class CampaignRepository
 
         $table = $wpdb->prefix . 'cmc_campaigns';
 
+        // ⚠️ FIX باگ ۱: ستون selection_mode به update اضافه شد
         $wpdb->update(
             $table,
             [
-                'title'         => $dto->title,
-                'status'        => $dto->status,
-                'type'          => $dto->type,
-                'discount'      => $dto->discount,
-                'discount_type' => $dto->discountType,
-                'starts_at'     => $dto->startsAt,
-                'ends_at'       => $dto->endsAt,
-                'description'   => $dto->description,
+                'title'          => $dto->title,
+                'status'         => $dto->status,
+                'type'           => $dto->type,
+                'discount'       => $dto->discount,
+                'discount_type'  => $dto->discountType,
+                'selection_mode' => $dto->selectionMode,
+                'starts_at'      => $dto->startsAt,
+                'ends_at'        => $dto->endsAt,
+                'description'    => $dto->description,
             ],
             ['id' => $id],
-            ['%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s'],
+            ['%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s'],
             ['%d']
         );
 
@@ -225,7 +229,19 @@ class CampaignRepository
     }
 
     /**
-     * Get rules for a campaign (category/tag/attribute selections).
+     * Get rules for a campaign (category/tag/attribute/brand selections),
+     * grouped and shaped exactly as the edit form (campaigns.js) expects:
+     *
+     *   [
+     *     'category_ids'    => int[],
+     *     'tag_ids'         => int[],
+     *     'brand_ids'       => int[],
+     *     'attribute_rules' => [ ['taxonomy' => string, 'term_id' => int], ... ],
+     *   ]
+     *
+     * ⚠️ FIX باگ ۲: قبلاً این متد آرایه‌ی خام ردیف‌های جدول رو برمی‌گرداند
+     * که با ساختار مورد انتظار JS (rules.category_ids, rules.tag_ids, ...)
+     * مطابقت نداشت و همیشه undefined می‌شد.
      *
      * @param int $campaignId
      * @return array
@@ -235,10 +251,48 @@ class CampaignRepository
         global $wpdb;
 
         $table = $wpdb->prefix . 'cmc_campaign_rules';
-        return $wpdb->get_results(
+
+        $result = [
+            'category_ids'    => [],
+            'tag_ids'         => [],
+            'brand_ids'       => [],
+            'attribute_rules' => [],
+        ];
+
+        // اگر جدول وجود نداشته باشد (مثلاً نصب قدیمی)، خروجی خالی برگردان
+        if ($wpdb->get_var("SHOW TABLES LIKE '{$table}'") !== $table) {
+            return $result;
+        }
+
+        $rows = $wpdb->get_results(
             $wpdb->prepare("SELECT * FROM {$table} WHERE campaign_id = %d", $campaignId),
             ARRAY_A
         ) ?: [];
+
+        foreach ($rows as $row) {
+            switch ($row['rule_type']) {
+                case 'category':
+                    $result['category_ids'][] = (int) $row['term_id'];
+                    break;
+
+                case 'tag':
+                    $result['tag_ids'][] = (int) $row['term_id'];
+                    break;
+
+                case 'brand':
+                    $result['brand_ids'][] = (int) $row['term_id'];
+                    break;
+
+                case 'attribute':
+                    $result['attribute_rules'][] = [
+                        'taxonomy' => (string) $row['taxonomy'],
+                        'term_id'  => (int) $row['term_id'],
+                    ];
+                    break;
+            }
+        }
+
+        return $result;
     }
 
     // -------------------------------------------------------
@@ -265,13 +319,19 @@ class CampaignRepository
         }
     }
 
-    /** Insert rule rows for category/tag/attribute selections */
+    /** Insert rule rows for category/tag/attribute/brand selections */
     private function syncRules(int $campaignId, CreateCampaignDTO $dto): void
     {
         global $wpdb;
 
         $table = $wpdb->prefix . 'cmc_campaign_rules';
-        $rows  = [];
+
+        // اگر جدول وجود ندارد، چیزی برای ذخیره نیست (نصب قدیمی)
+        if ($wpdb->get_var("SHOW TABLES LIKE '{$table}'") !== $table) {
+            return;
+        }
+
+        $rows = [];
 
         foreach ($dto->categoryIds as $termId) {
             $rows[] = ['campaign_id' => $campaignId, 'rule_type' => 'category', 'taxonomy' => 'product_cat', 'term_id' => $termId];
