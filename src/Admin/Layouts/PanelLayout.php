@@ -152,12 +152,6 @@ class PanelLayout
                         <i class="ti ti-plus" style="font-size:14px;"></i>
                         <?php esc_html_e('کمپین جدید', 'campaignchi'); ?>
                     </a>
-
-                    <a href="<?php echo esc_url(AdminRouter::url('campaigns', ['action' => 'flash'])); ?>"
-                       class="cmc-btn cmc-btn--accent cmc-btn--sm">
-                        <i class="ti ti-bolt" style="font-size:14px;"></i>
-                        <?php esc_html_e('فلش سیل', 'campaignchi'); ?>
-                    </a>
                 </div>
 
             </header>
