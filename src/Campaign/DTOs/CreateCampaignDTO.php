@@ -76,14 +76,26 @@ class CreateCampaignDTO
             (array) json_decode(sanitize_text_field($post['brand_ids'] ?? '[]'), true)
         );
 
-        // --- Optional dates ---
+        // --- Optional dates (با validation کامل فرمت + رنج ساعت/دقیقه) ---
         $startsAt = !empty($post['starts_at'])
-            ? sanitize_text_field($post['starts_at'])
+            ? self::validateDateTime(sanitize_text_field($post['starts_at']), __('تاریخ شروع', 'campaignchi'))
             : null;
 
         $endsAt = !empty($post['ends_at'])
-            ? sanitize_text_field($post['ends_at'])
+            ? self::validateDateTime(sanitize_text_field($post['ends_at']), __('تاریخ پایان', 'campaignchi'))
             : null;
+
+        // --- منطق کسب‌وکار: تاریخ پایان باید بعد از تاریخ شروع باشد ---
+        if ($startsAt !== null && $endsAt !== null) {
+            $startsTs = strtotime($startsAt);
+            $endsTs   = strtotime($endsAt);
+
+            if ($endsTs <= $startsTs) {
+                throw new \InvalidArgumentException(
+                    __('تاریخ و ساعت پایان کمپین باید بعد از تاریخ و ساعت شروع باشد.', 'campaignchi')
+                );
+            }
+        }
 
         $description = !empty($post['description'])
             ? sanitize_textarea_field($post['description'])
@@ -147,5 +159,80 @@ class CreateCampaignDTO
             brandIds: array_filter($brandIds),
             status: $status,
         );
+    }
+
+    // -------------------------------------------------------
+    // VALIDATION HELPERS
+    // -------------------------------------------------------
+
+    /**
+     * Validate و normalize کردن یک رشته‌ی تاریخ/ساعت ورودی از picker.
+     *
+     * فرمت‌های قابل قبول:
+     *   - 'YYYY-MM-DDTHH:MM'        (چیزی که datepicker.js می‌فرستد)
+     *   - 'YYYY-MM-DD HH:MM'
+     *   - 'YYYY-MM-DD HH:MM:SS'
+     *
+     * قوانین اعتبارسنجی (مثل یک ساعت واقعی):
+     *   - تاریخ باید معتبر باشد (با checkdate)
+     *   - ساعت باید بین ۰۰ تا ۲۳ باشد
+     *   - دقیقه باید بین ۰۰ تا ۵۹ باشد
+     *
+     * خروجی همیشه به فرمت استاندارد MySQL DATETIME
+     * نرمال‌سازی می‌شود: 'YYYY-MM-DD HH:MM:SS'
+     *
+     * @param string $value
+     * @param string $fieldLabel  برای پیام خطا (مثلاً «تاریخ شروع»)
+     * @return string
+     * @throws \InvalidArgumentException
+     */
+    private static function validateDateTime(string $value, string $fieldLabel): string
+    {
+        $value = trim($value);
+
+        // 'YYYY-MM-DD[ T]HH:MM[:SS]'
+        $pattern = '/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2}))?$/';
+
+        if (!preg_match($pattern, $value, $m)) {
+            throw new \InvalidArgumentException(
+                sprintf(__('فرمت «%s» نامعتبر است.', 'campaignchi'), $fieldLabel)
+            );
+        }
+
+        $year   = (int) $m[1];
+        $month  = (int) $m[2];
+        $day    = (int) $m[3];
+        $hour   = (int) $m[4];
+        $minute = (int) $m[5];
+        $second = isset($m[6]) ? (int) $m[6] : 0;
+
+        // --- تاریخ معتبر باشد (مثلاً 31 فروردین/اسفند یا 30 بهمن سال غیرکبیسه رد شود) ---
+        if (!checkdate($month, $day, $year)) {
+            throw new \InvalidArgumentException(
+                sprintf(__('تاریخ «%s» نامعتبر است.', 'campaignchi'), $fieldLabel)
+            );
+        }
+
+        // --- ساعت: دقیقاً مثل یک ساعت واقعی، 00 تا 23 ---
+        if ($hour < 0 || $hour > 23) {
+            throw new \InvalidArgumentException(
+                sprintf(__('ساعت «%s» باید بین ۰۰ تا ۲۳ باشد.', 'campaignchi'), $fieldLabel)
+            );
+        }
+
+        // --- دقیقه: دقیقاً مثل یک ساعت واقعی، 00 تا 59 ---
+        if ($minute < 0 || $minute > 59) {
+            throw new \InvalidArgumentException(
+                sprintf(__('دقیقه «%s» باید بین ۰۰ تا ۵۹ باشد.', 'campaignchi'), $fieldLabel)
+            );
+        }
+
+        // --- ثانیه (در صورت وجود) ---
+        if ($second < 0 || $second > 59) {
+            $second = 0;
+        }
+
+        // خروجی نرمال‌شده برای ذخیره در ستون DATETIME
+        return sprintf('%04d-%02d-%02d %02d:%02d:%02d', $year, $month, $day, $hour, $minute, $second);
     }
 }

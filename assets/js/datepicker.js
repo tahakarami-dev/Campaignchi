@@ -1,6 +1,6 @@
 /**
  * CMCDatePicker — Persian (Jalali) Date & Time Picker
- * Version: 3.0.0 — Production Ready
+ * Version: 3.1.0 — Production Ready
  *
  * Bug fixes:
  *  - ISO parse بدون timezone-shift (دستی parse میکنیم)
@@ -8,6 +8,8 @@
  *  - positioning: هوشمند بالا/پایین/چپ/راست
  *  - z-index بالا
  *  - جلوگیری از init دوباره
+ *  - v3.1.0: clamp ساعت (0-23) و دقیقه (0-59) هنگام پارس مقادیر ورودی
+ *            (جلوگیری از نمایش مقادیر نامعتبر مثل 53:33 هنگام لود مقدار ذخیره‌شده)
  */
 
 "use strict";
@@ -75,8 +77,34 @@ const CMCDatePicker = (() => {
   }
 
   /* ============================================================
+   * CLAMP HELPERS — جلوگیری از ساعت/دقیقه‌ی نامعتبر
+   * مثل یک ساعت واقعی: ساعت 00 تا 23 و دقیقه 00 تا 59
+   * ============================================================ */
+
+  function clampHour(h) {
+    h = parseInt(h, 10);
+    if (isNaN(h)) return 0;
+    if (h < 0)  return 0;
+    if (h > 23) return 23;
+    return h;
+  }
+
+  function clampMinute(m) {
+    m = parseInt(m, 10);
+    if (isNaN(m)) return 0;
+    if (m < 0)  return 0;
+    if (m > 59) return 59;
+    return m;
+  }
+
+  /* ============================================================
    * PARSE ISO — بدون timezone-shift
    * 'YYYY-MM-DD HH:MM:SS' یا 'YYYY-MM-DDTHH:MM' هر دو OK
+   *
+   * مقادیر ساعت/دقیقه بعد از parse، clamp می‌شوند تا هیچ‌وقت
+   * مقدار نامعتبر (مثل ساعت ۵۳ یا دقیقه ۷۵) داخل picker
+   * نمایش داده نشود — حتی اگر مقدار قبلاً به‌صورت کثیف
+   * در hidden input یا دیتابیس ذخیره شده باشد.
    * ============================================================ */
 
   function parseISO(str) {
@@ -86,7 +114,8 @@ const CMCDatePicker = (() => {
     if (!m) return null;
     return {
       gy:  +m[1], gm: +m[2], gd: +m[3],
-      h:   +(m[4]||0), min: +(m[5]||0),
+      h:   clampHour(m[4] || 0),
+      min: clampMinute(m[5] || 0),
     };
   }
 
