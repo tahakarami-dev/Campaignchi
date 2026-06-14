@@ -21,6 +21,7 @@ class Campaign
         public readonly string  $type,            // flash_sale | amazing_offer
         public readonly float   $discount,
         public readonly string  $discountType,    // percent | fixed
+        public readonly string  $selectionMode,   // manual | category | tag | attribute | brand | all
         public readonly ?string $startsAt,
         public readonly ?string $endsAt,
         public readonly ?string $description,
@@ -44,17 +45,18 @@ class Campaign
         }
 
         return new self(
-            id           : (int)    $row->id,
-            title        : (string) $row->title,
-            status       : (string) $row->status,
-            type         : (string) $row->type,
-            discount     : (float)  $row->discount,
-            discountType : (string) $row->discount_type,
-            startsAt     : $row->starts_at   ?: null,
-            endsAt       : $row->ends_at     ?: null,
-            description  : $row->description ?? null,
-            createdAt    : (string) $row->created_at,
-            updatedAt    : (string) $row->updated_at,
+            id            : (int)    $row->id,
+            title         : (string) $row->title,
+            status        : (string) $row->status,
+            type          : (string) $row->type,
+            discount      : (float)  $row->discount,
+            discountType  : (string) $row->discount_type,
+            selectionMode : (string) ($row->selection_mode ?? 'manual'),
+            startsAt      : $row->starts_at   ?: null,
+            endsAt        : $row->ends_at     ?: null,
+            description   : $row->description ?? null,
+            createdAt     : (string) $row->created_at,
+            updatedAt     : (string) $row->updated_at,
         );
     }
 
@@ -107,6 +109,20 @@ class Campaign
             'flash_sale'    => 'فلش سیل',
             'amazing_offer' => 'پیشنهاد شگفت‌انگیز',
             default         => $this->type,
+        };
+    }
+
+    /** Selection mode label (Persian) */
+    public function selectionModeLabel(): string
+    {
+        return match ($this->selectionMode) {
+            'manual'    => 'انتخاب دستی',
+            'category'  => 'دسته‌بندی',
+            'tag'       => 'برچسب',
+            'attribute' => 'ویژگی',
+            'brand'     => 'برند',
+            'all'       => 'همه محصولات',
+            default     => $this->selectionMode,
         };
     }
 }

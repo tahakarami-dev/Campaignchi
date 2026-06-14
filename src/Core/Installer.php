@@ -75,22 +75,23 @@ class Installer
 
         // Table: campaigns
         $campaigns = "CREATE TABLE {$wpdb->prefix}cmc_campaigns (
-            id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            title        VARCHAR(255)    NOT NULL,
-            status       VARCHAR(20)     NOT NULL DEFAULT 'draft',
-            type         VARCHAR(50)     NOT NULL DEFAULT 'flash_sale',
-            discount     DECIMAL(10,2)   NOT NULL DEFAULT 0,
-            discount_type VARCHAR(20)    NOT NULL DEFAULT 'percent',
-            starts_at    DATETIME        NULL,
-            ends_at      DATETIME        NULL,
-            description  TEXT            NULL,
-            created_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            KEY status (status),
-            KEY starts_at (starts_at),
-            KEY ends_at (ends_at)
-        ) $charset;";
+           id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+           title        VARCHAR(255)    NOT NULL,
+           status       VARCHAR(20)     NOT NULL DEFAULT 'draft',
+           type         VARCHAR(50)     NOT NULL DEFAULT 'flash_sale',
+           discount     DECIMAL(10,2)   NOT NULL DEFAULT 0,
+           discount_type VARCHAR(20)    NOT NULL DEFAULT 'percent',
+           selection_mode VARCHAR(20)   NOT NULL DEFAULT 'manual',
+           starts_at    DATETIME        NULL,
+           ends_at      DATETIME        NULL,
+           description  TEXT            NULL,
+           created_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+           updated_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+           PRIMARY KEY (id),
+           KEY status (status),
+           KEY starts_at (starts_at),
+           KEY ends_at (ends_at)
+       ) $charset;";
 
         // Table: campaign_products (pivot)
         $campaign_products = "CREATE TABLE {$wpdb->prefix}cmc_campaign_products (
