@@ -1,6 +1,6 @@
 /**
  * CMCDatePicker — Persian (Jalali) Date & Time Picker
- * Version: 3.1.0 — Production Ready
+ * Version: 3.2.0 — Production Ready
  *
  * Bug fixes:
  *  - ISO parse بدون timezone-shift (دستی parse میکنیم)
@@ -9,7 +9,11 @@
  *  - z-index بالا
  *  - جلوگیری از init دوباره
  *  - v3.1.0: clamp ساعت (0-23) و دقیقه (0-59) هنگام پارس مقادیر ورودی
- *            (جلوگیری از نمایش مقادیر نامعتبر مثل 53:33 هنگام لود مقدار ذخیره‌شده)
+ *  - v3.2.0:
+ *      • چینش ساعت/دقیقه با wrapper مستقل (.cmc-dp__time-fields) با
+ *        direction:ltr + row-reverse → همیشه HH سمت راست و MM سمت چپ
+ *        (مثل یک ساعت دیجیتال واقعی)، مستقل از جهت کلی صفحه/پاپ‌آپ.
+ *      • گام دقیقه از ۵ به ۱ تغییر کرد (دقت کامل ۰۰ تا ۵۹)
  */
 
 "use strict";
@@ -271,16 +275,21 @@ const CMCDatePicker = (() => {
         <i class="ti ti-clock" style="color:var(--cmc-primary-500);font-size:15px;flex-shrink:0"></i>
         <span style="font-size:12px;color:var(--cmc-text-muted);margin-left:6px;flex-shrink:0">ساعت</span>
         <div style="flex:1"></div>
-        <div class="cmc-dp__tfield">
-          <button class="cmc-dp__tbtn" data-t="hu" type="button">▲</button>
-          <span class="cmc-dp__tval" id="cmc-dp-h">${toPer(pad2(h))}</span>
-          <button class="cmc-dp__tbtn" data-t="hd" type="button">▼</button>
-        </div>
-        <span class="cmc-dp__tsep">:</span>
-        <div class="cmc-dp__tfield">
-          <button class="cmc-dp__tbtn" data-t="mu" type="button">▲</button>
-          <span class="cmc-dp__tval" id="cmc-dp-m">${toPer(pad2(min))}</span>
-          <button class="cmc-dp__tbtn" data-t="md" type="button">▼</button>
+
+        <!-- wrapper مستقل: همیشه ساعت سمت راست، دقیقه سمت چپ
+             (direction:ltr + row-reverse → مستقل از جهت کلی صفحه) -->
+        <div class="cmc-dp__time-fields">
+          <div class="cmc-dp__tfield">
+            <button class="cmc-dp__tbtn" data-t="hu" type="button">▲</button>
+            <span class="cmc-dp__tval" id="cmc-dp-h">${toPer(pad2(h))}</span>
+            <button class="cmc-dp__tbtn" data-t="hd" type="button">▼</button>
+          </div>
+          <span class="cmc-dp__tsep">:</span>
+          <div class="cmc-dp__tfield">
+            <button class="cmc-dp__tbtn" data-t="mu" type="button">▲</button>
+            <span class="cmc-dp__tval" id="cmc-dp-m">${toPer(pad2(min))}</span>
+            <button class="cmc-dp__tbtn" data-t="md" type="button">▼</button>
+          </div>
         </div>
       </div>
 
@@ -325,8 +334,9 @@ const CMCDatePicker = (() => {
         const t = btn.dataset.t;
         if (t==='hu') ps.h   = (ps.h   + 1)      % 24;
         if (t==='hd') ps.h   = (ps.h   - 1 + 24) % 24;
-        if (t==='mu') ps.min = (ps.min  + 5)      % 60;
-        if (t==='md') ps.min = (ps.min  - 5 + 60) % 60;
+        // گام دقیقه = ۱ (دقت کامل، مثل ساعت واقعی ۰۰ تا ۵۹)
+        if (t==='mu') ps.min = (ps.min  + 1)      % 60;
+        if (t==='md') ps.min = (ps.min  - 1 + 60) % 60;
         const hEl = document.getElementById('cmc-dp-h');
         const mEl = document.getElementById('cmc-dp-m');
         if (hEl) hEl.textContent = toPer(pad2(ps.h));

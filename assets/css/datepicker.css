@@ -155,6 +155,20 @@
   user-select: none;
 }
 
+/* ---- Time fields wrapper ----
+   مستقل از جهت کلی صفحه/پاپ‌آپ:
+   با direction:ltr + row-reverse تضمین می‌کنیم که همیشه
+   ساعت (HH) سمت راست و دقیقه (MM) سمت چپ باشد — دقیقاً مثل
+   یک ساعت دیجیتال واقعی (HH:MM). ترتیب DOM: hour, sep, minute */
+.cmc-dp__time-fields {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  direction: rtl;
+  flex-direction: row-reverse;
+  flex-shrink: 0;
+}
+
 .cmc-dp__tfield {
   display: flex;
   flex-direction: column;
