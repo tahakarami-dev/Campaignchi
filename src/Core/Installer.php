@@ -167,12 +167,24 @@ class Installer
 
     /**
      * Schedule recurring background tasks.
+     *
+     * Uses the 'cmc_five_minutes' custom interval registered by
+     * PricingServiceProvider::registerCronSchedule() — that filter
+     * runs on every request (plugins_loaded), so it's available
+     * by the time WP-Cron actually fires this event.
+     *
+     * If a previous version scheduled this event with a different
+     * recurrence (e.g. 'hourly'), it's unscheduled first.
      */
     private static function scheduleEvents(): void
     {
-        if (!wp_next_scheduled('cmc_process_campaigns')) {
-            wp_schedule_event(time(), 'hourly', 'cmc_process_campaigns');
+        $timestamp = wp_next_scheduled('cmc_process_campaigns');
+
+        if ($timestamp) {
+            wp_unschedule_event($timestamp, 'cmc_process_campaigns');
         }
+
+        wp_schedule_event(time(), 'cmc_five_minutes', 'cmc_process_campaigns');
     }
 
     /**

@@ -104,6 +104,96 @@ class CampaignRepository
         return $row ? Campaign::fromRow($row) : null;
     }
 
+    /**
+     * Get all campaigns that are currently LIVE (their discount must
+     * be applied to products right now).
+     *
+     * Rules:
+     *  - status must be 'active' or 'scheduled' (draft/ended never live)
+     *  - amazing_offer: live only if status = 'active' (no date check)
+     *  - flash_sale: live if NOW is between starts_at and ends_at
+     *                (open-ended bounds if either date is NULL)
+     *
+     * Ordering = priority for overlapping campaigns:
+     *   1) flash_sale before amazing_offer
+     *   2) newest campaign (higher id) wins ties
+     *
+     * @return Campaign[]
+     */
+    public function getLiveCampaigns(): array
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cmc_campaigns';
+        $now   = current_time('mysql');
+
+        $sql = "SELECT * FROM {$table}
+                WHERE status IN ('active', 'scheduled')
+                AND (
+                    (type = 'amazing_offer' AND status = 'active')
+                    OR (
+                        type = 'flash_sale'
+                        AND (starts_at IS NULL OR starts_at <= %s)
+                        AND (ends_at   IS NULL OR ends_at   >= %s)
+                    )
+                )
+                ORDER BY (type = 'flash_sale') DESC, id DESC";
+
+        $rows = $wpdb->get_results($wpdb->prepare($sql, $now, $now));
+
+        return array_map([Campaign::class, 'fromRow'], $rows ?: []);
+    }
+
+    /**
+     * Flash-sale campaigns that should switch scheduled → active
+     * because their starts_at has arrived.
+     *
+     * @return Campaign[]
+     */
+    public function getCampaignsToActivate(): array
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cmc_campaigns';
+        $now   = current_time('mysql');
+
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM {$table}
+             WHERE status = 'scheduled'
+               AND type = 'flash_sale'
+               AND starts_at IS NOT NULL
+               AND starts_at <= %s",
+            $now
+        ));
+
+        return array_map([Campaign::class, 'fromRow'], $rows ?: []);
+    }
+
+    /**
+     * Flash-sale campaigns whose ends_at has passed and should
+     * switch active/scheduled → ended.
+     *
+     * @return Campaign[]
+     */
+    public function getCampaignsToExpire(): array
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cmc_campaigns';
+        $now   = current_time('mysql');
+
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM {$table}
+             WHERE status IN ('active', 'scheduled')
+               AND type = 'flash_sale'
+               AND ends_at IS NOT NULL
+               AND ends_at < %s",
+            $now
+        ));
+
+        return array_map([Campaign::class, 'fromRow'], $rows ?: []);
+    }
+
     // -------------------------------------------------------
     // WRITE
     // -------------------------------------------------------
@@ -122,7 +212,6 @@ class CampaignRepository
 
         $table = $wpdb->prefix . 'cmc_campaigns';
 
-        // ⚠️ FIX باگ ۱: ستون selection_mode به insert اضافه شد
         $wpdb->insert($table, [
             'title'          => $dto->title,
             'status'         => $dto->status,
@@ -145,6 +234,9 @@ class CampaignRepository
         $this->syncProducts($id, $dto);
         $this->syncRules($id, $dto);
 
+        // Pricing engine: a new live campaign may now affect products
+        do_action('cmc_campaign_changed', $id);
+
         return $id;
     }
 
@@ -161,7 +253,6 @@ class CampaignRepository
 
         $table = $wpdb->prefix . 'cmc_campaigns';
 
-        // ⚠️ FIX باگ ۱: ستون selection_mode به update اضافه شد
         $wpdb->update(
             $table,
             [
@@ -185,6 +276,30 @@ class CampaignRepository
         $this->deleteRules($id);
         $this->syncProducts($id, $dto);
         $this->syncRules($id, $dto);
+
+        // Pricing engine: rules/discount/dates may have changed
+        do_action('cmc_campaign_changed', $id);
+    }
+
+    /**
+     * Update only the status field (used by the auto-transition cron).
+     *
+     * @param int    $id
+     * @param string $status draft|active|scheduled|ended
+     */
+    public function updateStatus(int $id, string $status): void
+    {
+        global $wpdb;
+
+        $wpdb->update(
+            $wpdb->prefix . 'cmc_campaigns',
+            ['status' => $status],
+            ['id' => $id],
+            ['%s'],
+            ['%d']
+        );
+
+        do_action('cmc_campaign_changed', $id);
     }
 
     /**
@@ -204,6 +319,8 @@ class CampaignRepository
             ['id' => $id],
             ['%d']
         );
+
+        do_action('cmc_campaign_changed', $id);
     }
 
     // -------------------------------------------------------
