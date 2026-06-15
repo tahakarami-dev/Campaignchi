@@ -79,6 +79,19 @@
     };
   }
 
+  /**
+   * Persian labels for selection_mode — used to show the
+   * "currently saved mode" badge in edit screens.
+   */
+  const modeLabels = {
+    manual: "انتخاب دستی",
+    category: "دسته‌بندی",
+    tag: "برچسب",
+    attribute: "ویژگی",
+    brand: "برند",
+    all: "همه محصولات",
+  };
+
   function showToast(msg, type = "success") {
     if (typeof CMC !== "undefined" && typeof CMC.toast === "function") {
       CMC.toast(msg, type);
@@ -739,6 +752,12 @@
 
       const smf = $("cmc-field-selection-mode");
       if (smf) smf.value = mode;
+
+      const modeBadge = $("cmc-products-mode-badge");
+      if (modeBadge) {
+        modeBadge.textContent = `فعلی: ${modeLabels[mode] ?? mode}`;
+        modeBadge.style.display = "inline-flex";
+      }
 
       // فعال کردن تب مربوطه
       document.querySelectorAll("#cmc-picker-tabs .cmc-tab").forEach((tab) => {

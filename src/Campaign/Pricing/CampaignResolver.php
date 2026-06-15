@@ -15,16 +15,28 @@ use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
  * Builds a cached map of:  product_id => campaign info
  * by resolving every currently-LIVE campaign's target products.
  *
- * Cached for CACHE_TTL seconds via transient, and invalidated
- * immediately whenever a campaign or product taxonomy changes
- * (see PricingServiceProvider).
+ * CACHE STRATEGY (important):
+ * The cache is NOT a fixed TTL. Each time it's rebuilt, we ask
+ * CampaignRepository::getNextTransitionTimestamp() for the soonest
+ * moment a flash-sale campaign is due to start or end, and set the
+ * transient to expire EXACTLY then (bounded between MIN/MAX). This
+ * guarantees discounts turn on/off on schedule, down to the minute,
+ * instead of lagging behind a fixed 5-minute window.
+ *
+ * Also invalidated immediately whenever a campaign or product taxonomy
+ * changes (see PricingServiceProvider).
  *
  * @package Msi\Campaignchi\Campaign\Pricing
  */
 class CampaignResolver
 {
     private const CACHE_KEY = 'cmc_pricing_map_v1';
-    private const CACHE_TTL = 300; // 5 minutes
+
+    /** Never cache for less than this (avoid hammering the DB) */
+    private const MIN_CACHE_TTL = 20; // seconds
+
+    /** Never cache for longer than this (fallback when nothing is scheduled) */
+    private const MAX_CACHE_TTL = 300; // 5 minutes
 
     /** @var array<int, array>|null product_id => campaign info */
     private ?array $map = null;
@@ -102,7 +114,7 @@ class CampaignResolver
         set_transient(self::CACHE_KEY, [
             'map'      => $this->map,
             'fallback' => $this->fallbackCampaigns,
-        ], self::CACHE_TTL);
+        ], $this->calculateCacheTtl());
     }
 
     /**
@@ -136,6 +148,27 @@ class CampaignResolver
                 }
             }
         }
+    }
+
+    /**
+     * Decide how long the freshly-built pricing map may stay cached.
+     *
+     * We look up the soonest moment a flash-sale campaign is due to
+     * start or end, and cap the cache to expire exactly then — so
+     * discounts switch on/off on schedule (within MIN_CACHE_TTL
+     * seconds of accuracy), not whenever a fixed TTL happens to run out.
+     */
+    private function calculateCacheTtl(): int
+    {
+        $next = $this->repo->getNextTransitionTimestamp();
+
+        if ($next === null) {
+            return self::MAX_CACHE_TTL;
+        }
+
+        $diff = $next - time();
+
+        return max(self::MIN_CACHE_TTL, min($diff, self::MAX_CACHE_TTL));
     }
 
     private function toArray(Campaign $campaign): array

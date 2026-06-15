@@ -194,6 +194,42 @@ class CampaignRepository
         return array_map([Campaign::class, 'fromRow'], $rows ?: []);
     }
 
+    /**
+     * Get the Unix timestamp of the NEXT moment a flash-sale campaign's
+     * live state should change (it's about to start, or about to end).
+     *
+     * Used by CampaignResolver to set a precise pricing-cache expiration —
+     * so discounts turn on/off exactly on schedule instead of waiting for
+     * a fixed cache TTL (which previously caused up to a 5-minute delay).
+     *
+     * @return int|null Unix timestamp of the next transition, or null if none upcoming
+     */
+    public function getNextTransitionTimestamp(): ?int
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cmc_campaigns';
+        $now   = current_time('mysql');
+
+        $sql = "SELECT MIN(t) FROM (
+                    SELECT starts_at AS t FROM {$table}
+                        WHERE type = 'flash_sale'
+                          AND status IN ('active', 'scheduled')
+                          AND starts_at IS NOT NULL
+                          AND starts_at > %s
+                    UNION ALL
+                    SELECT ends_at AS t FROM {$table}
+                        WHERE type = 'flash_sale'
+                          AND status IN ('active', 'scheduled')
+                          AND ends_at IS NOT NULL
+                          AND ends_at > %s
+                ) AS transitions";
+
+        $next = $wpdb->get_var($wpdb->prepare($sql, $now, $now));
+
+        return $next ? strtotime($next) : null;
+    }
+
     // -------------------------------------------------------
     // WRITE
     // -------------------------------------------------------

@@ -42,4 +42,30 @@ final class PriceCalculator
 
         return round($final, $decimals);
     }
+
+    /**
+     * Compute the effective percent-off for DISPLAY purposes,
+     * regardless of how the campaign discount was configured
+     * (percent or fixed amount).
+     *
+     * A fixed-amount discount has a different percentage on every
+     * product depending on its regular price — so this must be
+     * calculated per-product, at render time.
+     *
+     * Example: 50,000 fixed discount on a 200,000 product = 25%.
+     *
+     * @param float $regularPrice
+     * @param float $finalPrice
+     * @return int Rounded percent (0-100)
+     */
+    public static function percentOff(float $regularPrice, float $finalPrice): int
+    {
+        if ($regularPrice <= 0 || $finalPrice >= $regularPrice) {
+            return 0;
+        }
+
+        $percent = (($regularPrice - $finalPrice) / $regularPrice) * 100;
+
+        return (int) round($percent);
+    }
 }

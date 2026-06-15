@@ -66,12 +66,14 @@ class PricingServiceProvider extends ServiceProvider
 
     private function registerPriceFilters(): void
     {
-        foreach ([
-            'woocommerce_product_get_price',
-            'woocommerce_product_get_sale_price',
-            'woocommerce_product_variation_get_price',
-            'woocommerce_product_variation_get_sale_price',
-        ] as $hook) {
+        foreach (
+            [
+                'woocommerce_product_get_price',
+                'woocommerce_product_get_sale_price',
+                'woocommerce_product_variation_get_price',
+                'woocommerce_product_variation_get_sale_price',
+            ] as $hook
+        ) {
             Hooks::filter($hook, [$this, 'filterPrice'], 99, 2);
         }
 
@@ -219,6 +221,11 @@ class PricingServiceProvider extends ServiceProvider
     /**
      * Output a small "🔥 X% تخفیف" badge if the current global $product
      * is covered by a live campaign.
+     *
+     * The percentage is ALWAYS shown — even for fixed-amount discounts,
+     * which are converted to a percentage dynamically based on THIS
+     * product's regular price (a fixed amount means a different %
+     * on every product).
      */
     public function renderBadge(): void
     {
@@ -242,9 +249,13 @@ class PricingServiceProvider extends ServiceProvider
             return;
         }
 
-        $label = $campaign['discount_type'] === 'percent'
-            ? JalaliHelper::toPersianNums((string) $campaign['discount']) . '٪'
-            : wc_price($campaign['discount']);
+        $percent = PriceCalculator::percentOff($regular, $final);
+
+        if ($percent <= 0) {
+            return;
+        }
+
+        $label = JalaliHelper::toPersianNums((string) $percent) . '٪';
 
         printf(
             '<span class="cmc-flash-badge"><i class="ti ti-bolt"></i> %s</span>',
