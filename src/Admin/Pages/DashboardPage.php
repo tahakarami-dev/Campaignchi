@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Admin\Pages;
 
+use Msi\Campaignchi\Analytics\Services\AnalyticsService;
+use Msi\Campaignchi\Core\Application;
+use Msi\Campaignchi\Helpers\JalaliHelper;
+
 /**
  * Dashboard Page
  *
- * Main overview: stat cards, sales chart, active campaigns, activity feed.
+ * تمام اعداد این صفحه از AnalyticsService خوانده می‌شوند و
+ * بر اساس محصولاتی که الان زیر یک کمپین زنده هستند محاسبه می‌شوند —
+ * نه کل فروش/بازدید/سفارش‌های ووکامرس.
  *
  * @package Msi\Campaignchi\Admin\Pages
  */
@@ -20,6 +26,14 @@ class DashboardPage extends AbstractPage
 
     public function render(): void
     {
+        $analytics = $this->analytics();
+
+        $stats           = $analytics->getStatCards();
+        $chart           = $analytics->getWeeklyChart();
+        $activeCampaigns = $analytics->getActiveCampaignsWidget(2);
+        $topProducts     = $analytics->getTopProducts(3);
+        $activity        = $analytics->getRecentActivity(4);
+
         ?>
 
         <!-- ============================================================
@@ -27,61 +41,33 @@ class DashboardPage extends AbstractPage
         ============================================================ -->
         <div class="cmc-grid cmc-grid--4 cmc-mb-5">
 
-            <div class="cmc-stat-card">
-                <div class="cmc-stat-card__header">
-                    <span class="cmc-stat-card__label"><?php esc_html_e('کمپین فعال', 'campaignchi'); ?></span>
-                    <span class="cmc-stat-card__icon cmc-stat-card__icon--purple">
-                        <i class="ti ti-bolt"></i>
-                    </span>
-                </div>
-                <div class="cmc-stat-card__value">۴</div>
-                <div class="cmc-stat-card__change cmc-stat-card__change--up">
-                    <i class="ti ti-arrow-up" style="font-size:11px;"></i>
-                    <?php esc_html_e('۲ تا بیشتر از هفته قبل', 'campaignchi'); ?>
-                </div>
-            </div>
+            <?php $this->renderStatCard(
+                __('کمپین فعال', 'campaignchi'),
+                $stats['active_campaigns'],
+                'ti-bolt',
+                'purple'
+            ); ?>
 
-            <div class="cmc-stat-card">
-                <div class="cmc-stat-card__header">
-                    <span class="cmc-stat-card__label"><?php esc_html_e('فروش امروز', 'campaignchi'); ?></span>
-                    <span class="cmc-stat-card__icon cmc-stat-card__icon--orange">
-                        <i class="ti ti-chart-line"></i>
-                    </span>
-                </div>
-                <div class="cmc-stat-card__value">۱۲.۴M</div>
-                <div class="cmc-stat-card__change cmc-stat-card__change--up">
-                    <i class="ti ti-arrow-up" style="font-size:11px;"></i>
-                    <?php esc_html_e('۱۸٪ رشد', 'campaignchi'); ?>
-                </div>
-            </div>
+            <?php $this->renderStatCard(
+                __('فروش امروز (محصولات کمپین)', 'campaignchi'),
+                $stats['sales_today'],
+                'ti-chart-line',
+                'orange'
+            ); ?>
 
-            <div class="cmc-stat-card">
-                <div class="cmc-stat-card__header">
-                    <span class="cmc-stat-card__label"><?php esc_html_e('نرخ تبدیل', 'campaignchi'); ?></span>
-                    <span class="cmc-stat-card__icon cmc-stat-card__icon--green">
-                        <i class="ti ti-click"></i>
-                    </span>
-                </div>
-                <div class="cmc-stat-card__value">۶.۸٪</div>
-                <div class="cmc-stat-card__change cmc-stat-card__change--up">
-                    <i class="ti ti-arrow-up" style="font-size:11px;"></i>
-                    <?php esc_html_e('۱.۲٪ افزایش', 'campaignchi'); ?>
-                </div>
-            </div>
+            <?php $this->renderStatCard(
+                __('نرخ تبدیل کمپین‌ها', 'campaignchi'),
+                $stats['conversion_rate'],
+                'ti-click',
+                'green'
+            ); ?>
 
-            <div class="cmc-stat-card">
-                <div class="cmc-stat-card__header">
-                    <span class="cmc-stat-card__label"><?php esc_html_e('بازدید امروز', 'campaignchi'); ?></span>
-                    <span class="cmc-stat-card__icon cmc-stat-card__icon--blue">
-                        <i class="ti ti-eye"></i>
-                    </span>
-                </div>
-                <div class="cmc-stat-card__value">۸,۳۴۱</div>
-                <div class="cmc-stat-card__change cmc-stat-card__change--down">
-                    <i class="ti ti-arrow-down" style="font-size:11px;"></i>
-                    <?php esc_html_e('۳٪ کاهش', 'campaignchi'); ?>
-                </div>
-            </div>
+            <?php $this->renderStatCard(
+                __('بازدید امروز (محصولات کمپین)', 'campaignchi'),
+                $stats['views_today'],
+                'ti-eye',
+                'blue'
+            ); ?>
 
         </div>
 
@@ -94,27 +80,35 @@ class DashboardPage extends AbstractPage
             <div class="cmc-card">
                 <div class="cmc-card__header">
                     <div>
-                        <div class="cmc-card__title"><?php esc_html_e('عملکرد فروش', 'campaignchi'); ?></div>
+                        <div class="cmc-card__title"><?php esc_html_e('فروش کمپین', 'campaignchi'); ?></div>
                         <div class="cmc-card__subtitle"><?php esc_html_e('۷ روز اخیر', 'campaignchi'); ?></div>
                     </div>
                     <a href="<?php echo esc_url(\Msi\Campaignchi\Admin\AdminRouter::url('reports')); ?>" class="cmc-card__action">
                         <?php esc_html_e('گزارش کامل', 'campaignchi'); ?>
                     </a>
                 </div>
-                <div class="cmc-chart-bars">
-                    <div class="cmc-chart-bars__grid">
-                        <span></span><span></span><span></span><span></span>
+
+                <?php if (array_sum(array_column($chart, 'value')) <= 0): ?>
+                    <div class="cmc-empty" style="padding:var(--cmc-space-8) 0">
+                        <div class="cmc-empty__icon"><i class="ti ti-chart-line"></i></div>
+                        <div class="cmc-empty__title"><?php esc_html_e('هنوز فروشی ثبت نشده', 'campaignchi'); ?></div>
+                        <div class="cmc-empty__desc"><?php esc_html_e('وقتی محصولات کمپین فروخته شوند، نمودار اینجا نمایش داده می‌شود.', 'campaignchi'); ?></div>
                     </div>
-                    <div class="cmc-chart-bars__bars">
-                        <div class="cmc-chart-bar" style="--h:45%" data-label="شن" data-val="۴.۱M"></div>
-                        <div class="cmc-chart-bar" style="--h:60%" data-label="یک" data-val="۵.۴M"></div>
-                        <div class="cmc-chart-bar" style="--h:42%" data-label="دو" data-val="۳.۸M"></div>
-                        <div class="cmc-chart-bar is-today" style="--h:75%" data-label="سه" data-val="۶.۸M"></div>
-                        <div class="cmc-chart-bar" style="--h:55%" data-label="چه" data-val="۴.۹M"></div>
-                        <div class="cmc-chart-bar" style="--h:85%" data-label="پن" data-val="۷.۶M"></div>
-                        <div class="cmc-chart-bar is-accent" style="--h:70%" data-label="جم" data-val="۶.۳M"></div>
+                <?php else: ?>
+                    <div class="cmc-chart-bars">
+                        <div class="cmc-chart-bars__grid">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                        <div class="cmc-chart-bars__bars">
+                            <?php foreach ($chart as $bar): ?>
+                                <div class="cmc-chart-bar<?php echo $bar['is_today'] ? ' is-today' : ''; ?>"
+                                     style="--h:<?php echo max(4, (int) $bar['percent']); ?>%"
+                                     data-label="<?php echo esc_attr($bar['label']); ?>"
+                                     data-val="<?php echo esc_attr($bar['value_label']); ?>"></div>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
-                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Active campaigns -->
@@ -126,50 +120,54 @@ class DashboardPage extends AbstractPage
                     </a>
                 </div>
 
-                <div class="cmc-camp-item">
-                    <div class="cmc-camp-item__thumb cmc-camp-item__thumb--flash">
-                        <i class="ti ti-bolt"></i>
+                <?php if (empty($activeCampaigns)): ?>
+                    <div class="cmc-empty" style="padding:var(--cmc-space-6) 0">
+                        <div class="cmc-empty__icon"><i class="ti ti-bolt-off"></i></div>
+                        <div class="cmc-empty__title"><?php esc_html_e('کمپین فعالی وجود ندارد', 'campaignchi'); ?></div>
+                        <a href="<?php echo esc_url(\Msi\Campaignchi\Admin\AdminRouter::url('campaigns', ['action' => 'new'])); ?>" class="cmc-btn cmc-btn--primary cmc-btn--sm">
+                            <i class="ti ti-plus"></i>
+                            <?php esc_html_e('ساخت کمپین', 'campaignchi'); ?>
+                        </a>
                     </div>
-                    <div class="cmc-camp-item__body">
-                        <div class="cmc-camp-item__title-row">
-                            <span class="cmc-camp-item__name"><?php esc_html_e('فلش سیل یلدا', 'campaignchi'); ?></span>
-                            <span class="cmc-badge cmc-badge--flash"><span class="cmc-badge__dot"></span> <?php esc_html_e('فوری', 'campaignchi'); ?></span>
-                        </div>
-                        <div class="cmc-camp-item__meta"><?php esc_html_e('۱۲ محصول · ۲ ساعت مانده', 'campaignchi'); ?></div>
-                        <div class="cmc-progress" style="margin-top:8px;">
-                            <div class="cmc-progress__meta">
-                                <span><?php esc_html_e('موجودی', 'campaignchi'); ?></span>
-                                <span class="cmc-progress__meta-value" style="color:var(--cmc-accent)">۳۸٪</span>
+                <?php else: ?>
+                    <?php foreach ($activeCampaigns as $row): $campaign = $row['campaign']; ?>
+                        <div class="cmc-camp-item">
+                            <div class="cmc-camp-item__thumb <?php echo $campaign->type === 'flash_sale' ? 'cmc-camp-item__thumb--flash' : 'cmc-camp-item__thumb--primary'; ?>">
+                                <i class="ti <?php echo $campaign->type === 'flash_sale' ? 'ti-bolt' : 'ti-star'; ?>"></i>
                             </div>
-                            <div class="cmc-progress__track">
-                                <div class="cmc-progress__fill cmc-progress__fill--accent" style="width:38%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                            <div class="cmc-camp-item__body">
+                                <div class="cmc-camp-item__title-row">
+                                    <span class="cmc-camp-item__name"><?php echo esc_html($campaign->title); ?></span>
+                                    <?php if ($row['is_urgent']): ?>
+                                        <span class="cmc-badge cmc-badge--flash">
+                                            <span class="cmc-badge__dot"></span> <?php esc_html_e('فوری', 'campaignchi'); ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="cmc-badge cmc-badge--active">
+                                            <span class="cmc-badge__dot"></span> <?php esc_html_e('فعال', 'campaignchi'); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="cmc-camp-item__meta"><?php echo esc_html($row['meta']); ?></div>
 
-                <div class="cmc-camp-item">
-                    <div class="cmc-camp-item__thumb cmc-camp-item__thumb--primary">
-                        <i class="ti ti-tag"></i>
-                    </div>
-                    <div class="cmc-camp-item__body">
-                        <div class="cmc-camp-item__title-row">
-                            <span class="cmc-camp-item__name"><?php esc_html_e('تخفیف محصولات دیجیتال', 'campaignchi'); ?></span>
-                            <span class="cmc-badge cmc-badge--active"><span class="cmc-badge__dot"></span> <?php esc_html_e('فعال', 'campaignchi'); ?></span>
-                        </div>
-                        <div class="cmc-camp-item__meta"><?php esc_html_e('۸ محصول · تا ۵ خرداد', 'campaignchi'); ?></div>
-                        <div class="cmc-progress" style="margin-top:8px;">
-                            <div class="cmc-progress__meta">
-                                <span><?php esc_html_e('موجودی', 'campaignchi'); ?></span>
-                                <span class="cmc-progress__meta-value" style="color:var(--cmc-success)">۷۲٪</span>
-                            </div>
-                            <div class="cmc-progress__track">
-                                <div class="cmc-progress__fill cmc-progress__fill--success" style="width:72%"></div>
+                                <?php if ($row['stock_percent'] !== null): ?>
+                                    <div class="cmc-progress" style="margin-top:8px;">
+                                        <div class="cmc-progress__meta">
+                                            <span><?php esc_html_e('موجودی', 'campaignchi'); ?></span>
+                                            <span class="cmc-progress__meta-value">
+                                                <?php echo esc_html(JalaliHelper::toPersianNums((string) $row['stock_percent'])); ?>٪
+                                            </span>
+                                        </div>
+                                        <div class="cmc-progress__track">
+                                            <div class="cmc-progress__fill <?php echo $row['stock_percent'] < 30 ? 'cmc-progress__fill--accent' : 'cmc-progress__fill--success'; ?>"
+                                                 style="width:<?php echo (int) $row['stock_percent']; ?>%"></div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
-                    </div>
-                </div>
-
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
 
         </div>
@@ -179,40 +177,50 @@ class DashboardPage extends AbstractPage
         ============================================================ -->
         <div class="cmc-grid cmc-grid--2">
 
-            <!-- Top products -->
+            <!-- Top campaign products -->
             <div class="cmc-card cmc-card--flush">
                 <div class="cmc-card__header" style="padding: var(--cmc-space-5) var(--cmc-space-5) 0;">
-                    <div class="cmc-card__title"><?php esc_html_e('پرفروش‌ترین محصولات', 'campaignchi'); ?></div>
-                    <a href="#" class="cmc-card__action"><?php esc_html_e('گزارش کامل', 'campaignchi'); ?></a>
+                    <div class="cmc-card__title"><?php esc_html_e('پرفروش‌ترین محصولات کمپین امروز', 'campaignchi'); ?></div>
                 </div>
-                <div class="cmc-table-wrap">
-                    <table class="cmc-table">
-                        <thead>
-                            <tr>
-                                <th><?php esc_html_e('محصول', 'campaignchi'); ?></th>
-                                <th class="cmc-table__cell--center"><?php esc_html_e('فروش', 'campaignchi'); ?></th>
-                                <th><?php esc_html_e('قیمت', 'campaignchi'); ?></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="cmc-table__cell--bold"><?php esc_html_e('قالب وردپرس Nexus', 'campaignchi'); ?></td>
-                                <td class="cmc-table__cell--center"><span class="cmc-badge cmc-badge--active">۱۴۳</span></td>
-                                <td><span class="cmc-table__cell--price">۱۸۰K</span> <span class="cmc-table__cell--strike">۳۵۰K</span></td>
-                            </tr>
-                            <tr>
-                                <td class="cmc-table__cell--bold"><?php esc_html_e('افزونه SEO Pro', 'campaignchi'); ?></td>
-                                <td class="cmc-table__cell--center"><span class="cmc-badge cmc-badge--primary">۹۷</span></td>
-                                <td><span class="cmc-table__cell--price">۹۵K</span> <span class="cmc-table__cell--strike">۱۵۰K</span></td>
-                            </tr>
-                            <tr>
-                                <td class="cmc-table__cell--bold"><?php esc_html_e('دوره آموزش Laravel', 'campaignchi'); ?></td>
-                                <td class="cmc-table__cell--center"><span class="cmc-badge cmc-badge--flash">۶۴</span></td>
-                                <td><span class="cmc-table__cell--price">۴۵۰K</span> <span class="cmc-table__cell--strike">۷۵۰K</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+
+                <?php if (empty($topProducts)): ?>
+                    <div class="cmc-empty" style="padding:var(--cmc-space-6) var(--cmc-space-5)">
+                        <div class="cmc-empty__icon"><i class="ti ti-package-off"></i></div>
+                        <div class="cmc-empty__title"><?php esc_html_e('هنوز فروشی ثبت نشده', 'campaignchi'); ?></div>
+                        <div class="cmc-empty__desc"><?php esc_html_e('پس از اولین خرید از محصولات کمپین اینجا نمایش داده می‌شود.', 'campaignchi'); ?></div>
+                    </div>
+                <?php else: ?>
+                    <div class="cmc-table-wrap">
+                        <table class="cmc-table">
+                            <thead>
+                                <tr>
+                                    <th><?php esc_html_e('محصول', 'campaignchi'); ?></th>
+                                    <th class="cmc-table__cell--center"><?php esc_html_e('فروش', 'campaignchi'); ?></th>
+                                    <th><?php esc_html_e('قیمت', 'campaignchi'); ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($topProducts as $p): ?>
+                                    <tr>
+                                        <td class="cmc-table__cell--bold">
+                                            <?php echo esc_html($p['name']); ?>
+                                            <div class="cmc-table__cell--muted"><?php echo esc_html($p['campaign_title']); ?></div>
+                                        </td>
+                                        <td class="cmc-table__cell--center">
+                                            <span class="cmc-badge cmc-badge--active"><?php echo esc_html($p['qty']); ?></span>
+                                        </td>
+                                        <td>
+                                            <span class="cmc-table__cell--price"><?php echo $p['price']; // phpcs:ignore -- wc_price() returns escaped HTML ?></span>
+                                            <?php if ($p['regular_price']): ?>
+                                                <span class="cmc-table__cell--strike"><?php echo $p['regular_price']; // phpcs:ignore -- wc_price() returns escaped HTML ?></span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <!-- Activity feed -->
@@ -220,31 +228,66 @@ class DashboardPage extends AbstractPage
                 <div class="cmc-card__header">
                     <div class="cmc-card__title"><?php esc_html_e('فعالیت‌های اخیر', 'campaignchi'); ?></div>
                 </div>
-                <div class="cmc-activity-item">
-                    <div class="cmc-activity-item__icon cmc-activity-item__icon--flash"><i class="ti ti-bolt"></i></div>
-                    <div>
-                        <div class="cmc-activity-item__text"><?php esc_html_e('کمپین «فلش سیل یلدا» شروع شد', 'campaignchi'); ?></div>
-                        <div class="cmc-activity-item__time"><?php esc_html_e('۱۵ دقیقه پیش', 'campaignchi'); ?></div>
+
+                <?php if (empty($activity)): ?>
+                    <div class="cmc-empty" style="padding:var(--cmc-space-6) 0">
+                        <div class="cmc-empty__icon"><i class="ti ti-history"></i></div>
+                        <div class="cmc-empty__title"><?php esc_html_e('فعالیتی ثبت نشده', 'campaignchi'); ?></div>
                     </div>
-                </div>
-                <div class="cmc-activity-item">
-                    <div class="cmc-activity-item__icon cmc-activity-item__icon--success"><i class="ti ti-check"></i></div>
-                    <div>
-                        <div class="cmc-activity-item__text"><?php esc_html_e('۱۲ سفارش جدید ثبت شد', 'campaignchi'); ?></div>
-                        <div class="cmc-activity-item__time"><?php esc_html_e('۴۵ دقیقه پیش', 'campaignchi'); ?></div>
-                    </div>
-                </div>
-                <div class="cmc-activity-item">
-                    <div class="cmc-activity-item__icon cmc-activity-item__icon--primary"><i class="ti ti-plus"></i></div>
-                    <div>
-                        <div class="cmc-activity-item__text"><?php esc_html_e('محصول «دوره React» اضافه شد', 'campaignchi'); ?></div>
-                        <div class="cmc-activity-item__time"><?php esc_html_e('۵ ساعت پیش', 'campaignchi'); ?></div>
-                    </div>
-                </div>
+                <?php else: ?>
+                    <?php foreach ($activity as $item): ?>
+                        <div class="cmc-activity-item">
+                            <div class="cmc-activity-item__icon <?php echo esc_attr($item['icon_class']); ?>">
+                                <i class="ti <?php echo esc_attr($item['ti']); ?>"></i>
+                            </div>
+                            <div>
+                                <div class="cmc-activity-item__text"><?php echo esc_html($item['text']); ?></div>
+                                <div class="cmc-activity-item__time"><?php echo esc_html($item['time_label']); ?></div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
 
         </div>
 
+        <?php
+    }
+
+    // -------------------------------------------------------
+    // HELPERS
+    // -------------------------------------------------------
+
+    private function analytics(): AnalyticsService
+    {
+        return Application::getInstance()->make(AnalyticsService::class);
+    }
+
+    /**
+     * @param array{value:string, direction:string, change_label:string} $stat
+     */
+    private function renderStatCard(string $label, array $stat, string $icon, string $color): void
+    {
+        $directionClass = "cmc-stat-card__change--{$stat['direction']}";
+        $directionIcon  = match ($stat['direction']) {
+            'up'   => 'ti-arrow-up',
+            'down' => 'ti-arrow-down',
+            default => 'ti-minus',
+        };
+        ?>
+        <div class="cmc-stat-card">
+            <div class="cmc-stat-card__header">
+                <span class="cmc-stat-card__label"><?php echo esc_html($label); ?></span>
+                <span class="cmc-stat-card__icon cmc-stat-card__icon--<?php echo esc_attr($color); ?>">
+                    <i class="ti <?php echo esc_attr($icon); ?>"></i>
+                </span>
+            </div>
+            <div class="cmc-stat-card__value"><?php echo esc_html($stat['value']); ?></div>
+            <div class="cmc-stat-card__change <?php echo esc_attr($directionClass); ?>">
+                <i class="ti <?php echo esc_attr($directionIcon); ?>" style="font-size:11px;"></i>
+                <?php echo esc_html($stat['change_label']); ?>
+            </div>
+        </div>
         <?php
     }
 }

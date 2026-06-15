@@ -4,7 +4,6 @@
    Import AFTER base.css
    ========================================================================== */
 
-
 /* ==========================================================================
    1. CARD
    Base container for all panel sections
@@ -61,7 +60,6 @@
   color: var(--cmc-primary-600);
 }
 
-
 /* ==========================================================================
    2. STAT CARD
    Dashboard KPI widget
@@ -100,12 +98,30 @@
 }
 
 /* Icon color variants */
-.cmc-stat-card__icon--purple  { background: var(--cmc-primary-50);     color: var(--cmc-primary-500); }
-.cmc-stat-card__icon--orange  { background: var(--cmc-accent-light);    color: var(--cmc-accent); }
-.cmc-stat-card__icon--green   { background: var(--cmc-success-light);   color: var(--cmc-success); }
-.cmc-stat-card__icon--blue    { background: var(--cmc-info-light);      color: var(--cmc-info); }
-.cmc-stat-card__icon--red     { background: var(--cmc-danger-light);    color: var(--cmc-danger); }
-.cmc-stat-card__icon--yellow  { background: var(--cmc-warning-light);   color: var(--cmc-warning); }
+.cmc-stat-card__icon--purple {
+  background: var(--cmc-primary-50);
+  color: var(--cmc-primary-500);
+}
+.cmc-stat-card__icon--orange {
+  background: var(--cmc-accent-light);
+  color: var(--cmc-accent);
+}
+.cmc-stat-card__icon--green {
+  background: var(--cmc-success-light);
+  color: var(--cmc-success);
+}
+.cmc-stat-card__icon--blue {
+  background: var(--cmc-info-light);
+  color: var(--cmc-info);
+}
+.cmc-stat-card__icon--red {
+  background: var(--cmc-danger-light);
+  color: var(--cmc-danger);
+}
+.cmc-stat-card__icon--yellow {
+  background: var(--cmc-warning-light);
+  color: var(--cmc-warning);
+}
 
 .cmc-stat-card__value {
   font-size: 26px;
@@ -122,10 +138,15 @@
   font-size: var(--cmc-font-size-xs);
 }
 
-.cmc-stat-card__change--up   { color: var(--cmc-success); }
-.cmc-stat-card__change--down { color: var(--cmc-danger); }
-.cmc-stat-card__change--flat { color: var(--cmc-text-muted); }
-
+.cmc-stat-card__change--up {
+  color: var(--cmc-success);
+}
+.cmc-stat-card__change--down {
+  color: var(--cmc-danger);
+}
+.cmc-stat-card__change--flat {
+  color: var(--cmc-text-muted);
+}
 
 /* ==========================================================================
    3. BUTTON
@@ -147,11 +168,8 @@
   cursor: pointer;
   border: 1px solid transparent;
   font-family: var(--cmc-font);
-  transition:
-    background var(--cmc-transition),
-    color var(--cmc-transition),
-    border-color var(--cmc-transition),
-    transform 100ms ease-out;
+  transition: background var(--cmc-transition), color var(--cmc-transition),
+    border-color var(--cmc-transition), transform 100ms ease-out;
   user-select: none;
   white-space: nowrap;
 }
@@ -162,7 +180,7 @@
 
 /* Primary */
 .cmc-btn--primary {
-  background: var(--cmc-primary-500) ;
+  background: var(--cmc-primary-500);
   color: #fff !important;
 }
 
@@ -258,19 +276,20 @@
 }
 
 .cmc-btn.is-loading::after {
-  content: '';
+  content: "";
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255,255,255,0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: #fff;
   border-radius: 50%;
   animation: cmc-spin 0.6s linear infinite;
 }
 
 @keyframes cmc-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
-
 
 /* ==========================================================================
    4. BADGE
@@ -290,13 +309,35 @@
   white-space: nowrap;
 }
 
-.cmc-badge--active  { background: var(--cmc-success-light); color: #16A34A; }
-.cmc-badge--draft   { background: var(--cmc-surface-2); color: var(--cmc-text-muted); border: 1px solid var(--cmc-border); }
-.cmc-badge--flash   { background: var(--cmc-accent-light); color: var(--cmc-accent); }
-.cmc-badge--primary { background: var(--cmc-primary-50); color: var(--cmc-primary-500); }
-.cmc-badge--danger  { background: var(--cmc-danger-light); color: var(--cmc-danger); }
-.cmc-badge--warning { background: var(--cmc-warning-light); color: #B45309; }
-.cmc-badge--info    { background: var(--cmc-info-light); color: #1D4ED8; }
+.cmc-badge--active {
+  background: var(--cmc-success-light);
+  color: #16a34a;
+}
+.cmc-badge--draft {
+  background: var(--cmc-surface-2);
+  color: var(--cmc-text-muted);
+  border: 1px solid var(--cmc-border);
+}
+.cmc-badge--flash {
+  background: var(--cmc-accent-light);
+  color: var(--cmc-accent);
+}
+.cmc-badge--primary {
+  background: var(--cmc-primary-50);
+  color: var(--cmc-primary-500);
+}
+.cmc-badge--danger {
+  background: var(--cmc-danger-light);
+  color: var(--cmc-danger);
+}
+.cmc-badge--warning {
+  background: var(--cmc-warning-light);
+  color: #b45309;
+}
+.cmc-badge--info {
+  background: var(--cmc-info-light);
+  color: #1d4ed8;
+}
 
 /* Dot indicator inside badge */
 .cmc-badge__dot {
@@ -306,7 +347,6 @@
   background: currentColor;
   display: inline-block;
 }
-
 
 /* ==========================================================================
    5. FORM ELEMENTS
@@ -328,7 +368,7 @@
 }
 
 .cmc-label--required::after {
-  content: ' *';
+  content: " *";
   color: var(--cmc-danger);
 }
 
@@ -357,8 +397,7 @@
   color: var(--cmc-text-heading);
   direction: rtl;
   outline: none;
-  transition:
-    border-color var(--cmc-transition),
+  transition: border-color var(--cmc-transition),
     box-shadow var(--cmc-transition);
 }
 
@@ -496,8 +535,7 @@
   cursor: pointer;
   flex-shrink: 0;
   position: relative;
-  transition:
-    background var(--cmc-transition),
+  transition: background var(--cmc-transition),
     border-color var(--cmc-transition);
 }
 
@@ -507,7 +545,7 @@
 }
 
 .cmc-checkbox__input:checked::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 2px;
   right: 4px;
@@ -523,7 +561,6 @@
   font-size: var(--cmc-font-size-base);
   color: var(--cmc-text-body);
 }
-
 
 /* ==========================================================================
    6. TABLE
@@ -557,8 +594,12 @@
   letter-spacing: 0.04em;
 }
 
-.cmc-table th:first-child { border-radius: 0 var(--cmc-radius-sm) var(--cmc-radius-sm) 0; }
-.cmc-table th:last-child  { border-radius: var(--cmc-radius-sm) 0 0 var(--cmc-radius-sm); }
+.cmc-table th:first-child {
+  border-radius: 0 var(--cmc-radius-sm) var(--cmc-radius-sm) 0;
+}
+.cmc-table th:last-child {
+  border-radius: var(--cmc-radius-sm) 0 0 var(--cmc-radius-sm);
+}
 
 .cmc-table td {
   padding: var(--cmc-space-3) var(--cmc-space-4);
@@ -580,11 +621,26 @@
 }
 
 /* Table cell variants */
-.cmc-table__cell--bold   { font-weight: 600; color: var(--cmc-text-heading); }
-.cmc-table__cell--muted  { color: var(--cmc-text-muted); font-size: var(--cmc-font-size-sm); }
-.cmc-table__cell--center { text-align: center; }
-.cmc-table__cell--price  { font-weight: 700; color: var(--cmc-primary-500); }
-.cmc-table__cell--strike { text-decoration: line-through; color: var(--cmc-text-disabled); font-size: var(--cmc-font-size-sm); }
+.cmc-table__cell--bold {
+  font-weight: 600;
+  color: var(--cmc-text-heading);
+}
+.cmc-table__cell--muted {
+  color: var(--cmc-text-muted);
+  font-size: var(--cmc-font-size-sm);
+}
+.cmc-table__cell--center {
+  text-align: center;
+}
+.cmc-table__cell--price {
+  font-weight: 700;
+  color: var(--cmc-primary-500);
+}
+.cmc-table__cell--strike {
+  text-decoration: line-through;
+  color: var(--cmc-text-disabled);
+  font-size: var(--cmc-font-size-sm);
+}
 
 /* Row actions (appear on hover) */
 .cmc-table__row-actions {
@@ -598,7 +654,6 @@
 .cmc-table tbody tr:hover .cmc-table__row-actions {
   opacity: 1;
 }
-
 
 /* ==========================================================================
    7. PROGRESS BAR
@@ -638,11 +693,18 @@
 }
 
 /* Fill color variants */
-.cmc-progress__fill--accent   { background: var(--cmc-accent); }
-.cmc-progress__fill--success  { background: var(--cmc-success); }
-.cmc-progress__fill--warning  { background: var(--cmc-warning); }
-.cmc-progress__fill--danger   { background: var(--cmc-danger); }
-
+.cmc-progress__fill--accent {
+  background: var(--cmc-accent);
+}
+.cmc-progress__fill--success {
+  background: var(--cmc-success);
+}
+.cmc-progress__fill--warning {
+  background: var(--cmc-warning);
+}
+.cmc-progress__fill--danger {
+  background: var(--cmc-danger);
+}
 
 /* ==========================================================================
    8. CAMPAIGN CARD (list item)
@@ -673,9 +735,18 @@
   flex-shrink: 0;
 }
 
-.cmc-camp-item__thumb--flash   { background: var(--cmc-accent-light);  color: var(--cmc-accent); }
-.cmc-camp-item__thumb--primary { background: var(--cmc-primary-50);    color: var(--cmc-primary-500); }
-.cmc-camp-item__thumb--muted   { background: var(--cmc-surface-2);     color: var(--cmc-text-muted); }
+.cmc-camp-item__thumb--flash {
+  background: var(--cmc-accent-light);
+  color: var(--cmc-accent);
+}
+.cmc-camp-item__thumb--primary {
+  background: var(--cmc-primary-50);
+  color: var(--cmc-primary-500);
+}
+.cmc-camp-item__thumb--muted {
+  background: var(--cmc-surface-2);
+  color: var(--cmc-text-muted);
+}
 
 .cmc-camp-item__body {
   flex: 1;
@@ -703,7 +774,6 @@
   color: var(--cmc-text-muted);
   margin-top: 3px;
 }
-
 
 /* ==========================================================================
    9. ACTIVITY FEED
@@ -734,11 +804,26 @@
   margin-top: 1px;
 }
 
-.cmc-activity-item__icon--flash   { background: var(--cmc-accent-light);   color: var(--cmc-accent); }
-.cmc-activity-item__icon--success { background: var(--cmc-success-light);  color: var(--cmc-success); }
-.cmc-activity-item__icon--info    { background: var(--cmc-info-light);     color: var(--cmc-info); }
-.cmc-activity-item__icon--primary { background: var(--cmc-primary-50);    color: var(--cmc-primary-500); }
-.cmc-activity-item__icon--warning { background: var(--cmc-warning-light); color: var(--cmc-warning); }
+.cmc-activity-item__icon--flash {
+  background: var(--cmc-accent-light);
+  color: var(--cmc-accent);
+}
+.cmc-activity-item__icon--success {
+  background: var(--cmc-success-light);
+  color: var(--cmc-success);
+}
+.cmc-activity-item__icon--info {
+  background: var(--cmc-info-light);
+  color: var(--cmc-info);
+}
+.cmc-activity-item__icon--primary {
+  background: var(--cmc-primary-50);
+  color: var(--cmc-primary-500);
+}
+.cmc-activity-item__icon--warning {
+  background: var(--cmc-warning-light);
+  color: var(--cmc-warning);
+}
 
 .cmc-activity-item__text {
   font-size: var(--cmc-font-size-sm);
@@ -751,7 +836,6 @@
   color: var(--cmc-text-disabled);
   margin-top: 3px;
 }
-
 
 /* ==========================================================================
    10. EMPTY STATE
@@ -795,7 +879,6 @@
   margin-bottom: var(--cmc-space-5);
 }
 
-
 /* ==========================================================================
    11. MODAL
    Overlay dialog
@@ -812,9 +895,7 @@
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
-  transition:
-    opacity var(--cmc-transition),
-    visibility var(--cmc-transition);
+  transition: opacity var(--cmc-transition), visibility var(--cmc-transition);
 }
 
 .cmc-modal-overlay.is-open {
@@ -893,7 +974,6 @@
   flex-shrink: 0;
 }
 
-
 /* ==========================================================================
    12. TABS
    Horizontal tab navigation
@@ -918,9 +998,7 @@
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  transition:
-    color var(--cmc-transition),
-    border-color var(--cmc-transition);
+  transition: color var(--cmc-transition), border-color var(--cmc-transition);
   white-space: nowrap;
 }
 
@@ -933,7 +1011,6 @@
   border-bottom-color: var(--cmc-primary-500);
   font-weight: 700;
 }
-
 
 /* ==========================================================================
    13. ALERT / NOTICE
@@ -957,18 +1034,35 @@
   margin-top: 1px;
 }
 
-.cmc-alert__body { flex: 1; }
+.cmc-alert__body {
+  flex: 1;
+}
 
 .cmc-alert__title {
   font-weight: 700;
   margin-bottom: 3px;
 }
 
-.cmc-alert--info    { background: var(--cmc-info-light);    border-color: #bfdbfe; color: #1e40af; }
-.cmc-alert--success { background: var(--cmc-success-light); border-color: #bbf7d0; color: #15803d; }
-.cmc-alert--warning { background: var(--cmc-warning-light); border-color: #fde68a; color: #92400e; }
-.cmc-alert--danger  { background: var(--cmc-danger-light);  border-color: #fecaca; color: #b91c1c; }
-
+.cmc-alert--info {
+  background: var(--cmc-info-light);
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+.cmc-alert--success {
+  background: var(--cmc-success-light);
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+.cmc-alert--warning {
+  background: var(--cmc-warning-light);
+  border-color: #fde68a;
+  color: #92400e;
+}
+.cmc-alert--danger {
+  background: var(--cmc-danger-light);
+  border-color: #fecaca;
+  color: #b91c1c;
+}
 
 /* ==========================================================================
    14. DROPDOWN MENU
@@ -993,9 +1087,7 @@
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px);
-  transition:
-    opacity var(--cmc-transition),
-    visibility var(--cmc-transition),
+  transition: opacity var(--cmc-transition), visibility var(--cmc-transition),
     transform var(--cmc-transition);
   direction: rtl;
   overflow: hidden;
@@ -1036,6 +1128,18 @@
   margin: var(--cmc-space-1) 0;
 }
 
+.cmc-dropdown__menu--top {
+  top: auto;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  transform: translateY(8px);
+}
+
+.cmc-dropdown__menu--top.is-open {
+  transform: translateY(0);
+}
 
 /* ==========================================================================
    15. TOAST NOTIFICATION
@@ -1058,16 +1162,14 @@
   gap: var(--cmc-space-3);
   padding: var(--cmc-space-3) var(--cmc-space-5);
   background: var(--cmc-sidebar-bg);
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
   border-radius: var(--cmc-radius-md);
   box-shadow: var(--cmc-shadow-lg);
   font-size: var(--cmc-font-size-base);
   pointer-events: all;
   transform: translateY(16px);
   opacity: 0;
-  transition:
-    transform var(--cmc-transition),
-    opacity var(--cmc-transition);
+  transition: transform var(--cmc-transition), opacity var(--cmc-transition);
   min-width: 240px;
   direction: rtl;
 }
@@ -1077,9 +1179,21 @@
   opacity: 1;
 }
 
-.cmc-toast__icon { font-size: 17px; flex-shrink: 0; }
-.cmc-toast__text { flex: 1; font-weight: 500; }
+.cmc-toast__icon {
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.cmc-toast__text {
+  flex: 1;
+  font-weight: 500;
+}
 
-.cmc-toast--success .cmc-toast__icon { color: var(--cmc-success); }
-.cmc-toast--danger  .cmc-toast__icon { color: var(--cmc-danger); }
-.cmc-toast--warning .cmc-toast__icon { color: var(--cmc-warning); }
+.cmc-toast--success .cmc-toast__icon {
+  color: var(--cmc-success);
+}
+.cmc-toast--danger .cmc-toast__icon {
+  color: var(--cmc-danger);
+}
+.cmc-toast--warning .cmc-toast__icon {
+  color: var(--cmc-warning);
+}

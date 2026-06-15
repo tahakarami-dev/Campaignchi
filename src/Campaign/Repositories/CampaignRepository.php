@@ -230,6 +230,58 @@ class CampaignRepository
         return $next ? strtotime($next) : null;
     }
 
+    /**
+     * تعداد کمپین‌هایی که از یک تاریخ مشخص به بعد ساخته شده‌اند.
+     * برای محاسبه‌ی "X کمپین جدید این هفته" در داشبورد.
+     *
+     * @param string $datetime فرمت MySQL DATETIME
+     */
+    public function countCreatedSince(string $datetime): int
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cmc_campaigns';
+
+        return (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$table} WHERE created_at >= %s",
+            $datetime
+        ));
+    }
+
+    /**
+     * آخرین کمپین‌هایی که تغییر کرده‌اند (برای فید فعالیت‌های اخیر).
+     *
+     * @return Campaign[]
+     */
+    public function getRecentlyChanged(int $limit = 5): array
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cmc_campaigns';
+
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM {$table} ORDER BY updated_at DESC LIMIT %d",
+            $limit
+        ));
+
+        return array_map([Campaign::class, 'fromRow'], $rows ?: []);
+    }
+
+    public function getNonDraftCampaigns(): array
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cmc_campaigns';
+
+        $rows = $wpdb->get_results(
+            "SELECT * FROM {$table}
+             WHERE status != 'draft'
+             ORDER BY (type = 'flash_sale') DESC, id DESC"
+        );
+
+        return array_map([Campaign::class, 'fromRow'], $rows ?: []);
+    }
+
     // -------------------------------------------------------
     // WRITE
     // -------------------------------------------------------

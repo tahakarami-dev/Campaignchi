@@ -86,21 +86,21 @@ class Application
      * Register all module service providers.
      * Order matters: Core first, then Admin, Pricing, then Frontend.
      */
-    private function registerProviders(): void
-    {
-        $providers = [
-            \Msi\Campaignchi\Admin\AdminServiceProvider::class,
-            \Msi\Campaignchi\Campaign\Pricing\PricingServiceProvider::class,
-            \Msi\Campaignchi\Frontend\FrontendServiceProvider::class,
-        ];
+ private function registerProviders(): void
+{
+    $providers = [
+        \Msi\Campaignchi\Admin\AdminServiceProvider::class,
+        \Msi\Campaignchi\Campaign\Pricing\PricingServiceProvider::class,
+        \Msi\Campaignchi\Analytics\AnalyticsServiceProvider::class,
+        \Msi\Campaignchi\Frontend\FrontendServiceProvider::class,
+    ];
 
-        foreach ($providers as $providerClass) {
-            $provider = new $providerClass($this->container);
-            $provider->register();
-            $this->providers[] = $provider;
-        }
+    foreach ($providers as $providerClass) {
+        $provider = new $providerClass($this->container);
+        $provider->register();
+        $this->providers[] = $provider;
     }
-
+}
     /**
      * Boot all registered providers after all are registered.
      */

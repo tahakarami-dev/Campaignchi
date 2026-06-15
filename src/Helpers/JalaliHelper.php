@@ -64,7 +64,7 @@ class JalaliHelper
      * @param string      $separator جداکننده تاریخ (پیشفرض /)
      * @return string تاریخ شمسی با اعداد فارسی یا '—' در صورت خالی بودن
      */
-    public static function toDisplay(?string $datetime, bool $withTime = true, string $separator = '/'): string
+    public static function toDisplay(?string $datetime, bool $withTime = false, string $separator = '/'): string
     {
         if (empty($datetime) || $datetime === '0000-00-00 00:00:00') {
             return '—';
@@ -95,11 +95,71 @@ class JalaliHelper
     }
 
     /**
+     * نمایش کامل تاریخ شمسی همراه با نام روز هفته — برای هدر/زیرعنوان صفحات.
+     *
+     * مثال خروجی: 'دوشنبه، ۲۵ خرداد ۱۴۰۵'
+     *
+     * اگر $datetime داده نشود، «اکنون» بر اساس تایم‌زون سایت در نظر
+     * گرفته می‌شود (با current_time('timestamp') که هم‌فرمت با
+     * current_time('mysql') است — همان منطقی که در CampaignResolver
+     * برای محاسبه‌ی دقیق TTL استفاده شد).
+     *
+     * @param string|null $datetime رشته تاریخ میلادی (Y-m-d یا Y-m-d H:i:s) یا null برای «اکنون»
+     * @return string
+     */
+    public static function toFullDisplay(?string $datetime = null): string
+    {
+        $ts = $datetime !== null ? strtotime($datetime) : current_time('timestamp');
+
+        if ($ts === false) {
+            return '—';
+        }
+
+        $gy = (int) date('Y', $ts);
+        $gm = (int) date('m', $ts);
+        $gd = (int) date('d', $ts);
+        $gw = (int) date('w', $ts); // 0 (یکشنبه) تا 6 (شنبه) — مستقل از تقویم شمسی/میلادی
+
+        [$jy, $jm, $jd] = self::gregorianToJalali($gy, $gm, $gd);
+
+        return sprintf(
+            '%s، %s %s %s',
+            self::weekdayName($gw),
+            self::toPersianNums((string) $jd),
+            self::monthName($jm),
+            self::toPersianNums((string) $jy)
+        );
+    }
+
+    /**
+     * نام فارسی روز هفته بر اساس خروجی date('w', $ts)
+     * (۰ = یکشنبه ... ۶ = شنبه — نام‌های روزهای هفته مستقل از تقویم
+     * شمسی/میلادی هستند، چون شمسی هم از همان چرخه‌ی هفت‌روزه استفاده می‌کند)
+     *
+     * @param int $gw خروجی date('w') — 0 تا 6
+     * @return string
+     */
+    public static function weekdayName(int $gw): string
+    {
+        $names = [
+            0 => 'یکشنبه',
+            1 => 'دوشنبه',
+            2 => 'سه‌شنبه',
+            3 => 'چهارشنبه',
+            4 => 'پنجشنبه',
+            5 => 'جمعه',
+            6 => 'شنبه',
+        ];
+
+        return $names[$gw] ?? '';
+    }
+
+    /**
      * نام ماه شمسی
      */
     public static function monthName(int $jm): string
     {
-        $names = ['', 'فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+        $names = ['', 'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
         return $names[$jm] ?? '';
     }
 
@@ -109,8 +169,16 @@ class JalaliHelper
     public static function toPersianNums(string $str): string
     {
         return strtr($str, [
-            '0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴',
-            '5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹',
+            '0' => '۰',
+            '1' => '۱',
+            '2' => '۲',
+            '3' => '۳',
+            '4' => '۴',
+            '5' => '۵',
+            '6' => '۶',
+            '7' => '۷',
+            '8' => '۸',
+            '9' => '۹',
         ]);
     }
 }
