@@ -503,10 +503,6 @@ class CampaignsPage extends AbstractPage
                             <span style="color:var(--cmc-text-muted)"><?php esc_html_e('تخفیف:', 'campaignchi'); ?></span>
                             <span id="cmc-sum-discount" style="font-weight:600;color:var(--cmc-accent)">—</span>
                         </div>
-                        <div class="cmc-row cmc-row--between">
-                            <span style="color:var(--cmc-text-muted)"><?php esc_html_e('محصولات:', 'campaignchi'); ?></span>
-                            <span id="cmc-sum-products" style="font-weight:600">—</span>
-                        </div>
                     </div>
                 </div>
 
@@ -537,8 +533,8 @@ class CampaignsPage extends AbstractPage
                 font-family:var(--cmc-font); font-size:12px; font-weight:600;
                 color:var(--cmc-text-muted); transition:all var(--cmc-transition);
             }
-            .cmc-dt-btn:first-child { border-radius:var(--cmc-radius-md) 0 0 var(--cmc-radius-md); }
-            .cmc-dt-btn:last-child  { border-radius:0 var(--cmc-radius-md) var(--cmc-radius-md) 0; border-right:none; }
+            .cmc-dt-btn:first-child { border-radius: var(--cmc-radius-md); }
+            .cmc-dt-btn:last-child  { border-radius:var(--cmc-radius-md) }
             .cmc-dt-btn.is-active   { background:var(--cmc-primary-500); color:#fff; border-color:var(--cmc-primary-500); }
 
             #cmc-picker-tabs .cmc-tab { font-size:12px; padding:8px 12px; gap:5px; }
