@@ -1,11 +1,17 @@
 /**
  * CMC Campaigns Module — JavaScript
- * Version: 2.1.0
+ * Version: 2.2.0
  *
  * Fixes:
  *  - product_ids و brand_ids دیگه double-stringify نمیشن
  *  - CMCDatePicker.init() فقط یکبار و بعد از DOM ready صدا زده میشه
  *  - هیچ alert/confirm مرورگری استفاده نمیشه
+ *
+ * v2.2.0:
+ *  - وقتی نوع کمپین «پیشنهاد شگفت‌انگیز» (amazing_offer) باشد،
+ *    کارت «زمان‌بندی» مخفی می‌شود و مقادیر تاریخ شروع/پایان
+ *    (نمایشی + hidden) پاک می‌شوند — چه با کلیک کاربر روی دکمه‌های
+ *    نوع کمپین، چه هنگام بارگذاری فرم ویرایش.
  */
 
 "use strict";
@@ -155,6 +161,37 @@
   // 2. FORM TOGGLES
   // ============================================================
 
+  /**
+   * نمایش/پنهان‌سازی کارت «زمان‌بندی» بر اساس نوع کمپین.
+   *
+   * - flash_sale       → کارت نمایش داده می‌شود (تخفیف محدود به زمان)
+   * - amazing_offer    → کارت مخفی می‌شود و مقادیر تاریخ شروع/پایان
+   *                       (هم input نمایشی پیکر، هم hidden input ISO)
+   *                       پاک می‌شوند تا داده‌ی بی‌معنی برای این نوع
+   *                       کمپین ذخیره نشود.
+   *
+   * @param {string} type 'flash_sale' | 'amazing_offer'
+   */
+  function updateScheduleVisibility(type) {
+    const card = $("cmc-schedule-card");
+    if (!card) return;
+
+    const isAmazingOffer = type === "amazing_offer";
+    card.style.display = isAmazingOffer ? "none" : "";
+
+    if (isAmazingOffer) {
+      const startsHidden = $("cmc-field-starts-at");
+      const endsHidden = $("cmc-field-ends-at");
+      const startsDisplay = $("cmc-field-starts-at-display");
+      const endsDisplay = $("cmc-field-ends-at-display");
+
+      if (startsHidden) startsHidden.value = "";
+      if (endsHidden) endsHidden.value = "";
+      if (startsDisplay) startsDisplay.value = "";
+      if (endsDisplay) endsDisplay.value = "";
+    }
+  }
+
   function initFormToggles() {
     document.querySelectorAll(".cmc-type-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -164,6 +201,7 @@
         btn.classList.add("is-active");
         const f = $("cmc-field-type");
         if (f) f.value = btn.dataset.value;
+        updateScheduleVisibility(btn.dataset.value);
         updateSummary();
       });
     });
@@ -181,6 +219,10 @@
     });
 
     $("cmc-field-discount")?.addEventListener("input", updateSummary);
+
+    // وضعیت اولیه‌ی کارت زمان‌بندی بر اساس مقدار فعلی نوع کمپین
+    // (در حالت ایجاد کمپین جدید، مقدار پیشفرض "flash_sale" است)
+    updateScheduleVisibility($("cmc-field-type")?.value ?? "flash_sale");
   }
 
   // ============================================================
@@ -731,6 +773,12 @@
         .forEach((b) =>
           b.classList.toggle("is-active", b.dataset.value === c.discount_type)
         );
+
+      // نمایش/پنهان‌سازی کارت زمان‌بندی بر اساس نوع کمپین واقعی که از
+      // سرور آمده. اگر نوع amazing_offer باشد، کارت مخفی و مقادیر
+      // تاریخ شروع/پایان (که چند سطر بالاتر در picker ست شده بودند)
+      // پاک می‌شوند.
+      updateScheduleVisibility(c.type ?? "flash_sale");
 
       // محصولات انتخابی (manual)
       if (res.products?.length) {

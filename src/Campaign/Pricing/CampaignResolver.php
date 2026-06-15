@@ -157,6 +157,25 @@ class CampaignResolver
      * start or end, and cap the cache to expire exactly then — so
      * discounts switch on/off on schedule (within MIN_CACHE_TTL
      * seconds of accuracy), not whenever a fixed TTL happens to run out.
+     *
+     * ⚠️ FIX باگ ۲ (تایم‌زون):
+     * `getNextTransitionTimestamp()` مقدار `starts_at`/`ends_at` را که در
+     * دیتابیس به‌صورت رشته‌ی DATETIME (هم‌فرمت با current_time('mysql')،
+     * یعنی "زمان محلی سایت") ذخیره شده، با strtotime() به Unix timestamp
+     * تبدیل می‌کند. چون PHP پیش‌فرض UTC است، strtotime این رشته را
+     * "زمان محلی سایت" را به‌اشتباه "UTC" تفسیر می‌کند — یعنی همان حقه‌ای
+     * که خود current_time('mysql') برای ساخت رشته انجام می‌دهد.
+     *
+     * بنابراین برای این‌که $diff درست محاسبه شود، باید "اکنون" را هم با
+     * همان حقه به‌دست بیاوریم: current_time('timestamp') دقیقاً معادل
+     * strtotime(current_time('mysql')) است.
+     *
+     * قبلاً اینجا از time() (یعنی UTC واقعی) استفاده می‌شد. در سایت‌هایی
+     * که timezone آن‌ها UTC نیست (مثلاً Asia/Tehran، آفست +۳:۳۰)، این
+     * اختلاف باعث می‌شد $diff همیشه عددی بزرگ‌تر از MAX_CACHE_TTL شود و
+     * در نتیجه TTL همیشه روی مقدار ثابت ۵ دقیقه (MAX_CACHE_TTL) بنشیند —
+     * یعنی دقیقاً همان رفتار "تاخیر تا ۵ دقیقه‌ای" که قرار بود این مکانیزم
+     * حذفش کند، دوباره برمی‌گشت.
      */
     private function calculateCacheTtl(): int
     {
@@ -166,7 +185,8 @@ class CampaignResolver
             return self::MAX_CACHE_TTL;
         }
 
-        $diff = $next - time();
+        $now  = current_time('timestamp'); // فرمت سازگار با getNextTransitionTimestamp
+        $diff = $next - $now;
 
         return max(self::MIN_CACHE_TTL, min($diff, self::MAX_CACHE_TTL));
     }

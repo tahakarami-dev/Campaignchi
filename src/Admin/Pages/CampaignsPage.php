@@ -310,8 +310,14 @@ class CampaignsPage extends AbstractPage
                     </div>
                 </div>
 
-                <!-- زمان‌بندی -->
-                <div class="cmc-card">
+                <!--
+                    زمان‌بندی
+                    ⚠️ فقط برای کمپین‌های "فلش سیل" (flash_sale) معنی دارد.
+                    برای "پیشنهاد شگفت‌انگیز" (amazing_offer) با JS
+                    (updateScheduleVisibility در campaigns.js) مخفی می‌شود
+                    و مقادیر تاریخ پاک می‌گردند.
+                -->
+                <div class="cmc-card" id="cmc-schedule-card">
                     <div class="cmc-card__header">
                         <div class="cmc-card__title"><?php esc_html_e('زمان‌بندی', 'campaignchi'); ?></div>
                         <span style="font-size:var(--cmc-font-size-xs);color:var(--cmc-text-muted)"><?php esc_html_e('اختیاری', 'campaignchi'); ?></span>

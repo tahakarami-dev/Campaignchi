@@ -153,15 +153,21 @@ class CampaignController
         $this->json([
             'success'  => true,
             'campaign' => [
-                'id'            => $campaign->id,
-                'title'         => $campaign->title,
-                'type'          => $campaign->type,
-                'status'        => $campaign->status,
-                'discount'      => $campaign->discount,
-                'discount_type' => $campaign->discountType,
-                'starts_at'     => $campaign->startsAt,
-                'ends_at'       => $campaign->endsAt,
-                'description'   => $campaign->description,
+                'id'             => $campaign->id,
+                'title'          => $campaign->title,
+                'type'           => $campaign->type,
+                'status'         => $campaign->status,
+                'discount'       => $campaign->discount,
+                'discount_type'  => $campaign->discountType,
+                // ⚠️ FIX باگ ۱: قبلاً این فیلد در پاسخ وجود نداشت و JS مجبور
+                // می‌شد همیشه روی "manual" fallback بزند — حتی اگر کمپین
+                // واقعاً با selection_mode = "all"/"category"/... ذخیره شده بود.
+                // نتیجه: تب اشتباه فعال می‌شد، محصولات/قوانین انتخابی رندر
+                // نمی‌شدند و خلاصه‌ی فرم «انتخاب نشده» نشان می‌داد.
+                'selection_mode' => $campaign->selectionMode,
+                'starts_at'      => $campaign->startsAt,
+                'ends_at'        => $campaign->endsAt,
+                'description'    => $campaign->description,
             ],
             'products' => $products,
             'rules'    => $rules,
