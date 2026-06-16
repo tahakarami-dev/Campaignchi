@@ -21,10 +21,16 @@ use Msi\Campaignchi\Helpers\JalaliHelper;
  *
  * نکته‌ی مهم تایم‌زون:
  * در همه‌ی این کلاس، "الان" همیشه با time() (UTC واقعی) محاسبه می‌شود،
- * چون $order->get_date_created()->getTimestamp() و strtotime() روی
- * ستون‌های DATETIME دیتابیس هم UTC واقعی برمی‌گردانند. استفاده از
- * current_time('timestamp') اینجا غلط است چون آن مقدار "الان + آفست
- * تایم‌زون سایت" است و باعث جابه‌جایی ساعت در human_time_diff می‌شود.
+ * چون $order->get_date_created()->getTimestamp() همیشه UTC واقعی است و
+ * created_at/updated_at کمپین‌ها هم از CampaignRepository به‌صورت GMT
+ * (current_time('mysql', true)) نوشته می‌شوند — پس strtotime() روی آن‌ها
+ * هم UTC واقعی برمی‌گرداند. استفاده از current_time('timestamp') اینجا
+ * غلط است چون آن مقدار "الان + آفست تایم‌زون سایت" است.
+ *
+ * starts_at/ends_at کمپین‌ها قاعده‌ی متفاوتی دارند: این‌ها مقادیر "naive"
+ * هستند که ادمین از تاریخ‌گیر شمسی وارد کرده (زمان محلی سایت، بدون GMT)
+ * و باید همیشه با current_time('mysql') (نه GMT) مقایسه شوند — همان‌طور
+ * که در CampaignRepository::getLiveCampaigns() انجام می‌شود.
  *
  * @package Msi\Campaignchi\Analytics\Services
  */
@@ -32,6 +38,21 @@ class AnalyticsService
 {
     /** وضعیت سفارش‌هایی که "فروش قطعی" محسوب می‌شوند */
     private const ORDER_STATUSES = ['processing', 'completed'];
+
+    /** Transient key for the cached, priority-sorted list of non-draft campaigns + resolved product IDs */
+    private const CAMPAIGN_CANDIDATES_CACHE_KEY = 'cmc_campaign_candidates_v1';
+
+    /** How long the campaign-candidates cache may live between active invalidations */
+    private const CAMPAIGN_CANDIDATES_CACHE_TTL = 10 * MINUTE_IN_SECONDS;
+
+    /**
+     * Safety-net TTL for "today"'s cached order/revenue/product data.
+     * Real-time freshness comes from active invalidation via
+     * flushTodayCache() (hooked to WooCommerce order status changes) —
+     * this short TTL only protects against an invalidation hook being
+     * missed for some unusual integration that bypasses normal WC hooks.
+     */
+    private const TODAY_CACHE_TTL = MINUTE_IN_SECONDS;
 
     /** @var array<int, array{campaign: Campaign, product_ids: array}>|null */
     private ?array $campaignCandidates = null;
@@ -79,8 +100,14 @@ class AnalyticsService
 
     private function activeCampaignsStat(): array
     {
-        $liveCount   = count($this->campaigns->getLiveCampaigns());
-        $weekAgo     = (new \DateTime('now', wp_timezone()))->modify('-7 days')->format('Y-m-d H:i:s');
+        $liveCount = count($this->campaigns->getLiveCampaigns());
+
+        // ⚠️ BUG FIX: created_at is now stored in GMT (see
+        // CampaignRepository::create()), so the comparison threshold must
+        // also be GMT. gmdate() on a relative strtotime() offset keeps both
+        // sides of the "created in the last 7 days" query in the same
+        // timezone convention, regardless of the site's UTC offset.
+        $weekAgo     = gmdate('Y-m-d H:i:s', strtotime('-7 days'));
         $newThisWeek = $this->campaigns->countCreatedSince($weekAgo);
 
         $direction = $newThisWeek > 0 ? 'up' : 'flat';
@@ -99,7 +126,7 @@ class AnalyticsService
     }
 
     // =========================================================
-    // 2) WEEKLY CHART — نمودار فروش کمپین، ۷ روز اخیر
+    // 2) WEEKLY CHART — نمودار فروش کمپین، هفته جاری (شنبه تا جمعه)
     // =========================================================
 
     /**
@@ -107,10 +134,27 @@ class AnalyticsService
      */
     public function getWeeklyChart(): array
     {
+        $tz  = wp_timezone();
+        $now = new \DateTime('now', $tz);
+
+        // ⚠️ BUG FIX: the Persian calendar week starts on Saturday (شنبه).
+        // PHP's date('w') returns 0=Sunday..6=Saturday, so "days elapsed
+        // since last Saturday" = (current_dow + 1) % 7. Walking back that
+        // many days from "today" always lands on the Saturday that opens
+        // the current Persian week.
+        $daysSinceSaturday = ((int) $now->format('w') + 1) % 7;
+        $saturday          = (clone $now)->modify("-{$daysSinceSaturday} days");
+
         $days = [];
 
-        for ($i = 6; $i >= 0; $i--) {
-            $range = $this->dayRange($i);
+        // Build Saturday → Friday in exactly that order. The admin panel is
+        // RTL, so the FIRST item pushed into this array renders on the
+        // RIGHT edge of the chart and the LAST item on the LEFT — meaning
+        // Saturday ends up on the right and Friday on the left, matching
+        // the requested Persian-week layout.
+        for ($i = 0; $i < 7; $i++) {
+            $date  = (clone $saturday)->modify("+{$i} days");
+            $range = $this->dayRangeForDate($date);
             $stats = $this->getCampaignOrderStats($range);
 
             $days[] = [
@@ -123,7 +167,7 @@ class AnalyticsService
         $max = max(array_column($days, 'value'));
         $max = $max > 0 ? $max : 1;
 
-        $today = (new \DateTime('now', wp_timezone()))->format('Y-m-d');
+        $today = $now->format('Y-m-d');
 
         $bars = [];
         foreach ($days as $d) {
@@ -260,7 +304,7 @@ class AnalyticsService
      */
     public function getTopProducts(int $limit = 3): array
     {
-        $data = $this->getTodayCampaignOrdersData();
+        $data = $this->getDailyCampaignData($this->dayRange(0));
         $top  = array_slice($data['products'], 0, $limit);
 
         $result = [];
@@ -305,10 +349,10 @@ class AnalyticsService
             ];
         }
 
-        $orderData = $this->getTodayCampaignOrdersData();
+        $dailyData = $this->getDailyCampaignData($this->dayRange(0));
 
         // ۵ سفارش "اخیرترین" (لیست از قبل بر اساس تاریخ نزولی است)
-        foreach (array_slice($orderData['orders'], 0, 5) as $order) {
+        foreach (array_slice($dailyData['order_activities'], 0, 5) as $order) {
             $activities[] = [
                 'icon_class' => 'cmc-activity-item__icon--success',
                 'ti'         => 'ti-check',
@@ -324,12 +368,16 @@ class AnalyticsService
         usort($activities, fn($a, $b) => $b['time'] <=> $a['time']);
         $activities = array_slice($activities, 0, $limit);
 
-        // ⚠️ FIX باگ ساعت:
-        // قبلاً اینجا current_time('timestamp') پاس داده می‌شد که برابر است با
-        // "time() + آفست تایم‌زون سایت". چون $activity['time'] (هم از سفارش‌ها
-        // هم از strtotime(updated_at)) از قبل UTC واقعی است، مقایسه با آن مقدار
-        // شیفت‌دار باعث می‌شد فاصله‌ی زمانی به‌اندازه‌ی آفست تایم‌زون سایت
-        // (مثلاً چند ساعت) بزرگ‌تر از واقعیت نشان داده شود. با time() درست می‌شود.
+        // ⚠️ BUG FIX (root cause of "recent activity shows way too late"):
+        // campaign->updatedAt is now ALWAYS stored in GMT by
+        // CampaignRepository::create()/update()/updateStatus(), so
+        // strtotime() on it returns a true UTC timestamp — exactly like
+        // WooCommerce's $order->get_date_created()->getTimestamp(). That
+        // means time() (true UTC "now") is the correct reference here.
+        // Previously created_at/updated_at relied on MySQL's own
+        // CURRENT_TIMESTAMP, whose timezone is hosting-dependent — mixing
+        // that ambiguous value with time() is what caused the elapsed time
+        // to be off by the site's UTC offset.
         $now = time();
 
         foreach ($activities as &$activity) {
@@ -373,22 +421,32 @@ class AnalyticsService
     }
 
     // =========================================================
-    // INTERNAL — Order analysis (cached)
+    // INTERNAL — Order analysis (cached, single-pass)
     // =========================================================
 
     /**
-     * تحلیل سفارش‌های "امروز" که حداقل یک آیتم کمپینی دارند.
-     * نتیجه برای getTopProducts و getRecentActivity به اشتراک گذاشته می‌شود.
+     * Single-pass computation of every campaign-related order metric for
+     * ONE calendar day: revenue, order count, per-product breakdown, and
+     * the raw order activity log.
+     *
+     * ⚠️ PERFORMANCE FIX: this method replaces what used to be TWO separate
+     * methods (getCampaignOrderStats's inline loop + a now-removed
+     * getTodayCampaignOrdersData()) that each ran their own wc_get_orders()
+     * query and looped over every order item for the SAME day — once just
+     * for revenue/order count, once for the product/activity breakdown.
+     * Merging them into one query + one loop, cached under a single
+     * transient, roughly halves the DB/CPU cost of a cold dashboard load.
      *
      * @return array{
+     *   revenue: float,
+     *   orders: int,
      *   products: array<int, array{id:int, qty:int, campaign_title:string}>,
-     *   orders:   array<int, array{order_id:int, time:int}>
+     *   order_activities: array<int, array{order_id:int, time:int}>
      * }
      */
-    private function getTodayCampaignOrdersData(): array
+    private function getDailyCampaignData(array $range): array
     {
-        $range    = $this->dayRange(0);
-        $cacheKey = 'cmc_today_campaign_orders_' . $range['date'];
+        $cacheKey = 'cmc_daily_campaign_data_' . $range['date'];
 
         $cached = get_transient($cacheKey);
         if ($cached !== false) {
@@ -405,6 +463,8 @@ class AnalyticsService
 
         $candidates = $this->getCampaignCandidates();
 
+        $revenue         = 0.0;
+        $orderCount      = 0;
         $products        = [];
         $orderActivities = [];
 
@@ -425,6 +485,7 @@ class AnalyticsService
                 }
 
                 $hasCampaignItem = true;
+                $revenue += (float) $item->get_total();
 
                 if (!isset($products[$productId])) {
                     $products[$productId] = [
@@ -438,6 +499,7 @@ class AnalyticsService
             }
 
             if ($hasCampaignItem) {
+                $orderCount++;
                 $orderActivities[] = [
                     'order_id' => $order->get_id(),
                     'time'     => $order->get_date_created()->getTimestamp(),
@@ -447,90 +509,65 @@ class AnalyticsService
 
         usort($products, fn($a, $b) => $b['qty'] <=> $a['qty']);
 
-        $data = ['products' => array_values($products), 'orders' => $orderActivities];
+        $data = [
+            'revenue'          => $revenue,
+            'orders'           => $orderCount,
+            'products'         => array_values($products),
+            'order_activities' => $orderActivities,
+        ];
 
-        set_transient($cacheKey, $data, 5 * MINUTE_IN_SECONDS);
+        $today = (new \DateTime('now', wp_timezone()))->format('Y-m-d');
+        $ttl   = $range['date'] === $today ? self::TODAY_CACHE_TTL : HOUR_IN_SECONDS;
+
+        set_transient($cacheKey, $data, $ttl);
 
         return $data;
     }
 
     /**
-     * فروش و تعداد سفارش‌های مرتبط با کمپین در یک بازه‌ی روزانه.
-     *
-     * هر آیتم سفارش بر اساس "آیا در همان تاریخ، زیر یک کمپین بوده"
-     * بررسی می‌شود (campaignCoversDate) — نه وضعیت فعلی کمپین.
-     * این یعنی فروش روزهای گذشته‌ی یک کمپین که الان «پایان‌یافته»
-     * شده، همچنان در نمودار آن روز محاسبه می‌شود.
+     * Revenue + order count for a single day. Thin wrapper kept for
+     * readability at call sites that only need the aggregate numbers
+     * (stat cards, weekly chart) — internally backed by the single-pass,
+     * cached getDailyCampaignData().
      *
      * @return array{revenue: float, orders: int}
      */
     private function getCampaignOrderStats(array $range): array
     {
-        $cacheKey = 'cmc_campaign_order_stats_' . $range['date'];
+        $data = $this->getDailyCampaignData($range);
 
-        $cached = get_transient($cacheKey);
-        if ($cached !== false) {
-            return $cached;
-        }
+        return ['revenue' => $data['revenue'], 'orders' => $data['orders']];
+    }
 
-        $orders = wc_get_orders([
-            'status'       => self::ORDER_STATUSES,
-            'date_created' => $range['start'] . '...' . $range['end'],
-            'orderby'      => 'date',
-            'order'        => 'DESC',
-            'limit'        => -1,
-        ]);
-
-        $candidates = $this->getCampaignCandidates();
-
-        $revenue    = 0.0;
-        $orderCount = 0;
-
-        foreach ($orders as $order) {
-            $hasCampaignItem = false;
-
-            foreach ($order->get_items() as $item) {
-                $product = $item->get_product();
-                if (!$product) {
-                    continue;
-                }
-
-                $productId = $product->get_parent_id() ?: $product->get_id();
-                $campaign  = $this->findCampaignForProductOnDate($productId, $range['date'], $candidates);
-
-                if (!$campaign) {
-                    continue;
-                }
-
-                $hasCampaignItem = true;
-                $revenue += (float) $item->get_total();
-            }
-
-            if ($hasCampaignItem) {
-                $orderCount++;
-            }
-        }
-
-        $result = ['revenue' => $revenue, 'orders' => $orderCount];
-
+    /**
+     * Force-refresh today's cached analytics on the next read.
+     *
+     * ⚠️ PERFORMANCE/FRESHNESS FIX: hooked to WooCommerce order status
+     * changes (see AnalyticsServiceProvider::flushTodayCache()) so the
+     * dashboard reflects a brand-new sale immediately, instead of waiting
+     * up to TODAY_CACHE_TTL seconds — while still avoiding a full
+     * order-table scan on every single dashboard page view in between.
+     */
+    public function flushTodayCache(): void
+    {
         $today = (new \DateTime('now', wp_timezone()))->format('Y-m-d');
-        $ttl   = $range['date'] === $today ? 5 * MINUTE_IN_SECONDS : HOUR_IN_SECONDS;
-
-        set_transient($cacheKey, $result, $ttl);
-
-        return $result;
+        delete_transient('cmc_daily_campaign_data_' . $today);
     }
 
     // =========================================================
     // HISTORICAL CAMPAIGN MATCHING
-    // ⚠️ بخش کلیدی برای الزام شماره ۴: همه‌ی محاسبات (چه امروز،
-    // چه روزهای گذشته‌ی نمودار) فقط شامل محصولاتی می‌شوند که در
-    // همان تاریخ زیر یک کمپین (active/scheduled/ended) بوده‌اند.
+    // ⚠️ بخش کلیدی: همه‌ی محاسبات (چه امروز، چه روزهای دیگر هفته) فقط
+    // شامل محصولاتی می‌شوند که در همان تاریخ زیر یک کمپین بوده‌اند.
     // =========================================================
 
     /**
      * لیست تمام کمپین‌های غیر-پیش‌نویس به همراه محصولات resolve‌شده‌ی هر کدام.
-     * یک‌بار در طول عمر این سرویس (per request) ساخته می‌شود.
+     *
+     * ⚠️ PERFORMANCE FIX: علاوه بر memoize شدن per-request (همان رفتار قبلی)،
+     * این نتیجه حالا در یک transient هم کش می‌شود. resolve() برای حالت‌های
+     * category/tag/attribute/brand چندین کوئری تاکسونومی (get_objects_in_term)
+     * اجرا می‌کند؛ بدون این کش، این کوئری‌ها روی هر بار لود داشبورد (و هر
+     * بار محاسبه‌ی هر روز از هفته) از نو اجرا می‌شدند.
      *
      * @return array<int, array{campaign: Campaign, product_ids: array}>
      */
@@ -538,6 +575,11 @@ class AnalyticsService
     {
         if ($this->campaignCandidates !== null) {
             return $this->campaignCandidates;
+        }
+
+        $cached = get_transient(self::CAMPAIGN_CANDIDATES_CACHE_KEY);
+        if (is_array($cached)) {
+            return $this->campaignCandidates = $cached;
         }
 
         $candidates = [];
@@ -549,7 +591,7 @@ class AnalyticsService
             ];
         }
 
-        // اولویت مثل CampaignRepository::getLiveCampaigns(): فلش‌سیل اول، بعد جدیدترین
+        // اولویت: فلش‌سیل اول، بعد جدیدترین
         usort($candidates, function (array $a, array $b): int {
             $aFlash = $a['campaign']->type === 'flash_sale' ? 1 : 0;
             $bFlash = $b['campaign']->type === 'flash_sale' ? 1 : 0;
@@ -561,7 +603,20 @@ class AnalyticsService
             return $b['campaign']->id - $a['campaign']->id;
         });
 
+        set_transient(self::CAMPAIGN_CANDIDATES_CACHE_KEY, $candidates, self::CAMPAIGN_CANDIDATES_CACHE_TTL);
+
         return $this->campaignCandidates = $candidates;
+    }
+
+    /**
+     * Invalidate the cached campaign-candidates list immediately.
+     * Hooked (see AnalyticsServiceProvider::boot()) to campaign changes
+     * and product taxonomy/save events, since both can change which
+     * products a campaign resolves to.
+     */
+    public static function flushCampaignCandidatesCache(): void
+    {
+        delete_transient(self::CAMPAIGN_CANDIDATES_CACHE_KEY);
     }
 
     /**
@@ -593,13 +648,15 @@ class AnalyticsService
     }
 
     /**
-     * آیا یک کمپین، در تاریخ مشخص (Y-m-d)، در حال اجرا محسوب می‌شده؟
+     * آیا یک کمپین، در تاریخ مشخص (Y-m-d، تایم‌زون سایت)، در حال اجرا محسوب می‌شده؟
      *
      * - flash_sale: بازه‌ی [starts_at, ends_at] چک می‌شود (بدون مرز = باز).
+     *   این مقادیر naive/site-local هستند (از تاریخ‌گیر شمسی)، پس مقایسه
+     *   مستقیم رشته‌ای صحیح است.
      * - amazing_offer: تاریخ شروع/پایان مشخصی ندارد، پس تخمینی است:
-     *     - active    → پوشش از همان ابتدا تا الان (فرض: از قبل هم فعال بوده)
+     *     - active    → پوشش از همان ابتدا تا الان
      *     - ended     → پوشش تا تاریخ updated_at (تخمین تاریخ پایان)
-     *     - scheduled → از updated_at به بعد (به‌ندرت برای این نوع رخ می‌دهد)
+     *     - scheduled → از updated_at به بعد
      */
     private function campaignCoversDate(Campaign $campaign, string $date): bool
     {
@@ -619,7 +676,13 @@ class AnalyticsService
         }
 
         // amazing_offer
-        $updatedDate = substr($campaign->updatedAt, 0, 10);
+        // ⚠️ BUG FIX: updated_at is now stored in GMT (see
+        // CampaignRepository), while $date is a site-local calendar date
+        // (derived from wp_timezone()). get_date_from_gmt() converts the
+        // GMT value back to the site's local date before comparing, so
+        // the boundary stays correct near local midnight regardless of
+        // the site's UTC offset.
+        $updatedDate = get_date_from_gmt($campaign->updatedAt, 'Y-m-d');
 
         return match ($campaign->status) {
             'active'    => true,
@@ -641,9 +704,22 @@ class AnalyticsService
      */
     private function dayRange(int $daysAgo): array
     {
-        $tz   = wp_timezone();
-        $date = new \DateTime('now', $tz);
+        $date = new \DateTime('now', wp_timezone());
         $date->modify("-{$daysAgo} days");
+
+        return $this->dayRangeForDate($date);
+    }
+
+    /**
+     * Same as dayRange() but for an arbitrary date (past OR future),
+     * needed by getWeeklyChart() to build the full Saturday→Friday week
+     * even on days where part of the week hasn't happened yet.
+     *
+     * @return array{date:string, start:int, end:int}
+     */
+    private function dayRangeForDate(\DateTimeInterface $date): array
+    {
+        $tz      = wp_timezone();
         $dateStr = $date->format('Y-m-d');
 
         $start = (new \DateTime($dateStr . ' 00:00:00', $tz))->getTimestamp();
@@ -715,11 +791,19 @@ class AnalyticsService
         return JalaliHelper::toPersianNums(number_format($value, 0));
     }
 
+    /**
+     * Full Persian weekday name for a given Y-m-d date string.
+     *
+     * ⚠️ BUG FIX: previously returned 2-3 letter abbreviations from a local
+     * lookup table. Now delegates to JalaliHelper::weekdayName(), which
+     * returns the complete name (شنبه, یکشنبه, دوشنبه, ...) and uses the
+     * exact same 0=Sunday..6=Saturday convention as PHP's date('w'), so no
+     * extra mapping is needed.
+     */
     private function weekdayLabel(string $dateStr): string
     {
-        $labels = [0 => 'یک', 1 => 'دو', 2 => 'سه', 3 => 'چه', 4 => 'پن', 5 => 'جم', 6 => 'شن'];
-        $w      = (int) (new \DateTime($dateStr, wp_timezone()))->format('w');
+        $w = (int) (new \DateTime($dateStr, wp_timezone()))->format('w');
 
-        return $labels[$w];
+        return JalaliHelper::weekdayName($w);
     }
 }
