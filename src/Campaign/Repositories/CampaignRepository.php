@@ -234,7 +234,11 @@ class CampaignRepository
      * تعداد کمپین‌هایی که از یک تاریخ مشخص به بعد ساخته شده‌اند.
      * برای محاسبه‌ی "X کمپین جدید این هفته" در داشبورد.
      *
-     * @param string $datetime فرمت MySQL DATETIME
+     * ⚠️ نکته‌ی تایم‌زون: $datetime باید همان قراردادی باشد که create()
+     * برای created_at استفاده می‌کند — یعنی GMT (current_time('mysql', true)).
+     * کالر (AnalyticsService::activeCampaignsStat) این موضوع را رعایت می‌کند.
+     *
+     * @param string $datetime فرمت MySQL DATETIME (GMT)
      */
     public function countCreatedSince(string $datetime): int
     {
@@ -300,6 +304,21 @@ class CampaignRepository
 
         $table = $wpdb->prefix . 'cmc_campaigns';
 
+        // ⚠️ BUG FIX (dashboard "recent activity" showing wrong elapsed time):
+        // created_at / updated_at used to be left out of this INSERT and were
+        // filled in by the column's "DEFAULT CURRENT_TIMESTAMP" behavior in
+        // MySQL. MySQL's CURRENT_TIMESTAMP reflects the DATABASE SERVER's own
+        // configured time_zone — which is hosting-dependent and is NOT
+        // guaranteed to be UTC or to match the WordPress site timezone.
+        //
+        // AnalyticsService::getRecentActivity() compares this value (via
+        // strtotime()) against time() (true UTC) to compute "X minutes ago".
+        // If the DB server's clock isn't true UTC, that comparison silently
+        // drifts by the server's UTC offset — which is exactly what produced
+        // the "times show way too late" bug. Writing the value explicitly in
+        // GMT here removes that hosting-dependent ambiguity entirely.
+        $nowGmt = current_time('mysql', true);
+
         $wpdb->insert($table, [
             'title'          => $dto->title,
             'status'         => $dto->status,
@@ -310,7 +329,9 @@ class CampaignRepository
             'starts_at'      => $dto->startsAt,
             'ends_at'        => $dto->endsAt,
             'description'    => $dto->description,
-        ], ['%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s']);
+            'created_at'     => $nowGmt,
+            'updated_at'     => $nowGmt,
+        ], ['%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s']);
 
         if (!$wpdb->insert_id) {
             throw new \RuntimeException('[CMC] Failed to insert campaign.');
@@ -341,6 +362,9 @@ class CampaignRepository
 
         $table = $wpdb->prefix . 'cmc_campaigns';
 
+        // Same reasoning as create(): always stamp updated_at explicitly in
+        // GMT instead of relying on the column's "ON UPDATE CURRENT_TIMESTAMP"
+        // trigger, so it stays a reliable, hosting-independent true-UTC value.
         $wpdb->update(
             $table,
             [
@@ -353,9 +377,10 @@ class CampaignRepository
                 'starts_at'      => $dto->startsAt,
                 'ends_at'        => $dto->endsAt,
                 'description'    => $dto->description,
+                'updated_at'     => current_time('mysql', true),
             ],
             ['id' => $id],
-            ['%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s'],
+            ['%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s', '%s'],
             ['%d']
         );
 
@@ -381,9 +406,13 @@ class CampaignRepository
 
         $wpdb->update(
             $wpdb->prefix . 'cmc_campaigns',
-            ['status' => $status],
+            [
+                'status'     => $status,
+                // Keep updated_at consistent with create()/update() — always GMT.
+                'updated_at' => current_time('mysql', true),
+            ],
             ['id' => $id],
-            ['%s'],
+            ['%s', '%s'],
             ['%d']
         );
 
@@ -443,10 +472,6 @@ class CampaignRepository
      *     'brand_ids'       => int[],
      *     'attribute_rules' => [ ['taxonomy' => string, 'term_id' => int], ... ],
      *   ]
-     *
-     * ⚠️ FIX باگ ۲: قبلاً این متد آرایه‌ی خام ردیف‌های جدول رو برمی‌گرداند
-     * که با ساختار مورد انتظار JS (rules.category_ids, rules.tag_ids, ...)
-     * مطابقت نداشت و همیشه undefined می‌شد.
      *
      * @param int $campaignId
      * @return array
