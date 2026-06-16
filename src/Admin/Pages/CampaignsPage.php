@@ -152,19 +152,27 @@ class CampaignsPage extends AbstractPage
                                         </span>
                                     </td>
 
-                                    <!-- تاریخ شروع — شمسی فارسی -->
+                                    <!-- تاریخ شروع — شمسی فارسی (naive site-local، بدون تبدیل تایم‌زون) -->
                                     <td class="cmc-table__cell--muted">
                                         <?php echo esc_html(JalaliHelper::toDisplay($campaign->startsAt)); ?>
                                     </td>
 
-                                    <!-- تاریخ پایان — شمسی فارسی -->
+                                    <!-- تاریخ پایان — شمسی فارسی (naive site-local، بدون تبدیل تایم‌زون) -->
                                     <td class="cmc-table__cell--muted">
                                         <?php echo esc_html(JalaliHelper::toDisplay($campaign->endsAt)); ?>
                                     </td>
 
-                                    <!-- تاریخ ایجاد — شمسی فارسی -->
+                                    <!--
+                                        تاریخ ایجاد — شمسی فارسی.
+                                        ⚠️ BUG FIX: created_at حالا به‌صورت GMT ذخیره می‌شود
+                                        (به CampaignRepository::create() مراجعه کنید). برخلاف
+                                        starts_at/ends_at (که naive و site-local هستند)، این مقدار
+                                        باید قبل از نمایش با get_date_from_gmt() به زمان محلی سایت
+                                        تبدیل شود — در غیر این صورت ادمین زمان UTC را به‌جای زمان
+                                        واقعی محلی خودش می‌بیند.
+                                    -->
                                     <td class="cmc-table__cell--muted hide-mobile">
-                                        <?php echo esc_html(JalaliHelper::toDisplay($campaign->createdAt)); ?>
+                                        <?php echo esc_html(JalaliHelper::toDisplay(get_date_from_gmt($campaign->createdAt))); ?>
                                     </td>
 
                                     <td>

@@ -81,7 +81,12 @@ class DashboardPage extends AbstractPage
                 <div class="cmc-card__header">
                     <div>
                         <div class="cmc-card__title"><?php esc_html_e('فروش کمپین', 'campaignchi'); ?></div>
-                        <div class="cmc-card__subtitle"><?php esc_html_e('۷ روز اخیر', 'campaignchi'); ?></div>
+                        <!--
+                            ⚠️ FIX: chart is now anchored to the Persian calendar
+                            week (شنبه تا جمعه), not a generic rolling 7-day
+                            window — subtitle updated to match getWeeklyChart().
+                        -->
+                        <div class="cmc-card__subtitle"><?php esc_html_e('هفته جاری (شنبه تا جمعه)', 'campaignchi'); ?></div>
                     </div>
                     <a href="<?php echo esc_url(\Msi\Campaignchi\Admin\AdminRouter::url('reports')); ?>" class="cmc-card__action">
                         <?php esc_html_e('گزارش کامل', 'campaignchi'); ?>
