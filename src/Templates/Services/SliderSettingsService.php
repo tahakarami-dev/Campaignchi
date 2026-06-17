@@ -39,6 +39,7 @@ class SliderSettingsService
     /** Boolean-typed setting keys — kept in one place so sanitize()/normalize() agree on the list. */
     private const BOOLEAN_KEYS = [
         'autoplay', 'loop', 'arrows', 'dots', 'show_countdown', 'show_stock', 'dark_mode', 'master_enabled',
+        'classic_badge_enabled',
     ];
 
     /**
@@ -66,6 +67,15 @@ class SliderSettingsService
             'badge_text'        => '', // empty = auto-generated "X% تخفیف"
             'title'             => '', // empty = use the campaign's own title
             'master_enabled'    => true,
+            // Styling for the classic discount badge rendered by
+            // PricingServiceProvider::renderBadge() on default WooCommerce
+            // shop-loop cards and the single product page — independent
+            // from the slider's own colors, since a site owner may want
+            // a different accent for the catalog-wide badge than for the
+            // slider widget.
+            'classic_badge_enabled'    => true,
+            'classic_badge_bg_color'   => '#FF6B35',
+            'classic_badge_text_color' => '#FFFFFF',
         ];
     }
 
@@ -176,6 +186,12 @@ class SliderSettingsService
         }
         if (isset($input['badge_text'])) {
             $out['badge_text'] = sanitize_text_field((string) $input['badge_text']);
+        }
+        if (isset($input['classic_badge_bg_color'])) {
+            $out['classic_badge_bg_color'] = $this->sanitizeHex((string) $input['classic_badge_bg_color'], '#FF6B35');
+        }
+        if (isset($input['classic_badge_text_color'])) {
+            $out['classic_badge_text_color'] = $this->sanitizeHex((string) $input['classic_badge_text_color'], '#FFFFFF');
         }
 
         foreach (self::BOOLEAN_KEYS as $key) {

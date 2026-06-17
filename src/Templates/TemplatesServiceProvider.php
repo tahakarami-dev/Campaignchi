@@ -111,6 +111,18 @@ class TemplatesServiceProvider extends ServiceProvider
         wp_enqueue_style('cmc-swiper', 'https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css', [], '8.0.0');
         wp_enqueue_script('cmc-swiper', 'https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js', [], '8.0.0', true);
 
+        // ⚠️ ISOLATION FIX: Swiper's UMD bundle always defines the SAME
+        // global `window.Swiper`, regardless of who loaded it. Many WP
+        // themes/plugins bundle their own copy of Swiper too — if theirs
+        // loads after ours, `window.Swiper` silently becomes THEIR version
+        // (possibly a different, incompatible one) for the rest of the
+        // page, and vice versa. Capturing our own reference immediately
+        // after OUR script tag executes, into a private global
+        // (`window.CMCSwiperLib`), means frontend-slider.js never depends
+        // on whatever `window.Swiper` happens to point to later — it is
+        // fully decoupled from any other Swiper copy on the page.
+        wp_add_inline_script('cmc-swiper', 'window.CMCSwiperLib = window.CMCSwiperLib || window.Swiper;', 'after');
+
         // NOTE: this plugin's bootstrap (campaignchi.php) defines CMC_URL /
         // CMC_VERSION — there is no CAMPAIGNCHI_URL/CAMPAIGNCHI_VERSION
         // constant anywhere in the codebase. Using the real constants here.

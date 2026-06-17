@@ -31,6 +31,9 @@
             show_countdown: $('cmc-a-show-countdown').checked ? '1' : '0',
             show_stock: $('cmc-a-show-stock').checked ? '1' : '0',
             cta_text: $('cmc-a-cta-text').value,
+            classic_badge_enabled: $('cmc-a-classic-badge-enabled').checked ? '1' : '0',
+            classic_badge_bg_color: $('cmc-a-classic-badge-bg').value,
+            classic_badge_text_color: $('cmc-a-classic-badge-text').value,
         };
     }
 

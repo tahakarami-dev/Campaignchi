@@ -226,12 +226,27 @@ class PricingServiceProvider extends ServiceProvider
      * which are converted to a percentage dynamically based on THIS
      * product's regular price (a fixed amount means a different %
      * on every product).
+     *
+     * Colors come from the same global "ظاهر" (Appearance) settings used
+     * by the Campaign Slider feature (classic_badge_bg_color /
+     * classic_badge_text_color / classic_badge_enabled), so a site owner
+     * has one single place to control both the slider's accent and this
+     * classic catalog-wide badge. Applied as an inline style with
+     * `!important` so a theme's own generic span/badge resets can never
+     * silently override the chosen colors.
      */
     public function renderBadge(): void
     {
         global $product;
 
         if (!($product instanceof \WC_Product)) {
+            return;
+        }
+
+        $settings = $this->container->make(\Msi\Campaignchi\Templates\Services\SliderSettingsService::class)
+            ->getGlobalSettings();
+
+        if (empty($settings['classic_badge_enabled'])) {
             return;
         }
 
@@ -258,7 +273,9 @@ class PricingServiceProvider extends ServiceProvider
         $label = JalaliHelper::toPersianNums((string) $percent) . '٪';
 
         printf(
-            '<span class="cmc-flash-badge"><i class="ti ti-bolt"></i> %s</span>',
+            '<span class="cmc-flash-badge" style="background:%1$s !important;color:%2$s !important;"><i class="ti ti-bolt"></i> %3$s</span>',
+            esc_attr($settings['classic_badge_bg_color']),
+            esc_attr($settings['classic_badge_text_color']),
             esc_html(sprintf(__('%s تخفیف', 'campaignchi'), $label))
         );
     }

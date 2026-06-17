@@ -28,6 +28,52 @@
 }
 
 /* -------------------------------------------------------------------- */
+/* ISOLATION — defend against generic theme/global CSS leaking in.       */
+/* Many themes set unscoped rules like `a{text-decoration:underline}`,   */
+/* `ul,li{margin:...}`, `button{border-radius:...}` etc. The properties  */
+/* reset here are ones our OWN skins never set differently (so !important*/
+/* can't shadow our own legitimate styling) — background/border/box-     */
+/* shadow on <a>/<button> are deliberately NOT touched here, since every */
+/* skin's CTA/media anchors and the nav buttons set those intentionally; */
+/* their higher selector specificity already beats a theme's bare        */
+/* `a{...}`/`button{...}` rule under normal (non-!important) cascade.    */
+/* -------------------------------------------------------------------- */
+
+.cmc-slider a {
+    text-decoration: none !important;
+    color: inherit;
+}
+
+.cmc-slider img {
+    max-width: 100%;
+    height: auto;
+    border: none;
+    vertical-align: middle;
+}
+
+.cmc-slider button {
+    font-family: var(--cmc-font) !important;
+    cursor: pointer;
+}
+
+.cmc-slider ul,
+.cmc-slider ol,
+.cmc-slider li {
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+.cmc-slider h1,
+.cmc-slider h2,
+.cmc-slider h3,
+.cmc-slider h4,
+.cmc-slider p {
+    margin: 0;
+    font-family: var(--cmc-font) !important;
+}
+
+/* -------------------------------------------------------------------- */
 /* Header: type badge, title, countdown, navigation                    */
 /* -------------------------------------------------------------------- */
 

@@ -32,7 +32,15 @@
      * (written by SliderRenderer::render()) and initialize it.
      */
     function initSwiper(wrapper) {
-        if (typeof window.Swiper === 'undefined') {
+        // ⚠️ ISOLATION FIX: use our own captured reference
+        // (window.CMCSwiperLib, set right after our script loads — see
+        // TemplatesServiceProvider::enqueueFrontendAssets()) instead of the
+        // shared window.Swiper global, so a theme or another plugin
+        // loading a different Swiper build can never break our slider by
+        // overwriting window.Swiper after us (or being broken by us).
+        var SwiperLib = window.CMCSwiperLib || window.Swiper;
+
+        if (typeof SwiperLib === 'undefined') {
             return;
         }
 
@@ -74,7 +82,7 @@
             };
         }
 
-        wrapper._cmcSwiper = new window.Swiper(swiperEl, config);
+        wrapper._cmcSwiper = new SwiperLib(swiperEl, config);
     }
 
     /**

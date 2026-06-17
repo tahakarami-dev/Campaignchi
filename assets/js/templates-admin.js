@@ -167,8 +167,13 @@
                 $('cmc-f-template').value = templateId;
             }
 
-            $('cmc-slider-builder-modal').classList.add('is-open');
-            CMC.modal.open('cmc-slider-builder-modal');
+            // ⚠️ BUG FIX: CMC.modal.open()/close() expect a real CSS selector
+            // (e.g. '#cmc-slider-builder-modal'), not a bare id string —
+            // document.querySelector('cmc-slider-builder-modal') without the
+            // '#' is a tag-name selector that matches nothing, so this call
+            // was silently doing nothing. Using the correct '#'-prefixed
+            // selector here.
+            CMC.modal.open('#cmc-slider-builder-modal');
             requestPreview();
         });
     }
@@ -183,8 +188,7 @@
             window.CMCSlider.destroyAll(pane);
         }
 
-        CMC.modal.close('cmc-slider-builder-modal');
-        document.getElementById('cmc-slider-builder-modal').classList.remove('is-open');
+        CMC.modal.close('#cmc-slider-builder-modal');
     }
 
     /* ---------------------------------------------------------------- */
@@ -264,11 +268,31 @@
     }
 
     function deleteSlider(id) {
-        CMC.confirm('آیا از حذف این اسلایدر مطمئن هستید؟', function () {
-            CMC.ajax('cmc_delete_slider', { id: id }).then(function () {
-                CMC.toast('اسلایدر حذف شد.', 'success');
-                refreshTable();
-            });
+        // ⚠️ BUG FIX: CMC.confirm() takes a single options object
+        // ({title, body, sub, okLabel, okClass, onConfirm}) — it was being
+        // called here with two positional arguments (a string + a
+        // callback), which it has no parameter to receive. The callback
+        // was silently discarded (delete never ran), and destructuring
+        // `sub` off a plain string picked up the real, inherited
+        // `String.prototype.sub()` method instead of the intended empty
+        // default — which is exactly why the modal showed
+        // "function sub() { [native code] }".
+        CMC.confirm({
+            title: 'حذف اسلایدر',
+            body: 'این اسلایدر برای همیشه حذف می‌شود.',
+            sub: 'اگر شورت‌کد آن جایی در سایت استفاده شده باشد، از کار می‌افتد.',
+            okLabel: 'بله، حذف کن',
+            okClass: 'cmc-btn--danger',
+            onConfirm: function () {
+                CMC.ajax('cmc_delete_slider', { id: id })
+                    .then(function () {
+                        CMC.toast('اسلایدر حذف شد.', 'success');
+                        refreshTable();
+                    })
+                    .catch(function () {
+                        CMC.toast('خطا در حذف اسلایدر.', 'error');
+                    });
+            },
         });
     }
 

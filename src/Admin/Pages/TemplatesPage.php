@@ -26,6 +26,18 @@ use Msi\Campaignchi\Templates\TemplateRegistry;
  *      "use saved preset" dropdown, so editing one here updates it
  *      everywhere it's used, instantly.
  *
+ * ⚠️ Every modal/form/table/button element below reuses the REAL,
+ * already-styled design-system components documented in
+ * cmc-admin-panel.md (.cmc-modal-overlay/.cmc-modal, .cmc-form-group,
+ * .cmc-input, .cmc-select, .cmc-toggle, .cmc-table, .cmc-empty, the
+ * .cmc-btn family...). A previous version of this page invented its own
+ * competing classes (.cmc-icon-btn, .cmc-field, .cmc-modal__dialog, ...)
+ * that were never actually defined anywhere — which is exactly why the
+ * builder modal rendered unstyled/broken. Only genuinely new UI that has
+ * no existing equivalent (the template gallery cards, the shortcode tag,
+ * the live-preview panel) gets its own small, clearly-scoped CSS in
+ * renderStyles().
+ *
  * All interactivity (toggles, modal, live preview, save/delete/copy) is
  * handled by assets/js/templates-admin.js — this class only renders markup
  * and bootstrap data.
@@ -34,8 +46,6 @@ use Msi\Campaignchi\Templates\TemplateRegistry;
  */
 class TemplatesPage extends AbstractPage
 {
-    // ⚠️ BUG FIX: same issue as AppearancePage — AbstractPage requires
-    // both title() and render() to be implemented; only render() existed.
     public function title(): string
     {
         return __('قالب‌ها', 'campaignchi');
@@ -50,23 +60,27 @@ class TemplatesPage extends AbstractPage
         $enabledTemplates = $settings->getEnabledTemplates();
         $allSliders       = $sliders->all();
         ?>
-        <div class="cmc-page">
-            <div class="cmc-page__header">
-                <h1><?php esc_html_e('قالب‌ها', 'campaignchi'); ?></h1>
-                <p class="cmc-page__subtitle">
+        <div class="cmc-row cmc-row--between cmc-mb-5">
+            <div>
+                <h2 style="font-size:var(--cmc-font-size-xl);font-weight:700;color:var(--cmc-text-heading);margin:0">
+                    <?php esc_html_e('قالب‌ها', 'campaignchi'); ?>
+                </h2>
+                <p style="color:var(--cmc-text-muted);font-size:var(--cmc-font-size-sm);margin:4px 0 0">
                     <?php esc_html_e('یکی از ۵ قالب اسلایدر کمپین را انتخاب کنید، آن را شخصی‌سازی کنید و یک شورت‌کد یا ویجت المنتور آماده دریافت کنید.', 'campaignchi'); ?>
                 </p>
             </div>
+        </div>
 
-            <?php $this->renderGallery($enabledTemplates); ?>
+        <?php $this->renderGallery($enabledTemplates); ?>
 
-            <div class="cmc-alert cmc-alert--info" style="margin:20px 0;">
-                <i class="ti ti-info-circle"></i>
+        <div class="cmc-alert cmc-alert--info cmc-mb-5">
+            <i class="ti ti-info-circle cmc-alert__icon"></i>
+            <div class="cmc-alert__body">
                 <?php esc_html_e('هر اسلایدر ذخیره‌شده در جدول زیر، در ویجت «اسلایدر کمپین کمپین‌چی» داخل المنتور هم به‌صورت یک گزینه‌ی «استفاده از پریست» قابل انتخاب است.', 'campaignchi'); ?>
             </div>
-
-            <?php $this->renderSlidersTable($allSliders); ?>
         </div>
+
+        <?php $this->renderSlidersTable($allSliders); ?>
 
         <?php $this->renderBuilderModal(); ?>
 
@@ -93,18 +107,20 @@ class TemplatesPage extends AbstractPage
                     <div class="cmc-template-card__body">
                         <div class="cmc-template-card__head">
                             <h3><?php echo esc_html($template->label()); ?></h3>
-                            <label class="cmc-mini-switch" title="<?php esc_attr_e('فعال/غیرفعال در انتخابگرها', 'campaignchi'); ?>">
+                            <label class="cmc-toggle cmc-toggle--sm" title="<?php esc_attr_e('فعال/غیرفعال در انتخابگرها', 'campaignchi'); ?>">
                                 <input type="checkbox"
-                                       class="cmc-template-enable-toggle"
+                                       class="cmc-toggle__input cmc-template-enable-toggle"
                                        data-template="<?php echo esc_attr($template->id()); ?>"
                                        <?php checked($isEnabled); ?>>
+                                <div class="cmc-toggle__track"><div class="cmc-toggle__thumb"></div></div>
                             </label>
                         </div>
                         <p><?php echo esc_html($template->description()); ?></p>
 
                         <button type="button"
-                                class="cmc-btn cmc-btn--secondary cmc-template-use-btn"
+                                class="cmc-btn cmc-btn--secondary cmc-btn--sm cmc-template-use-btn"
                                 data-template="<?php echo esc_attr($template->id()); ?>"
+                                style="width:100%"
                                 <?php disabled(!$isEnabled); ?>>
                             <i class="ti ti-plus"></i>
                             <?php esc_html_e('ساخت اسلایدر با این قالب', 'campaignchi'); ?>
@@ -120,194 +136,235 @@ class TemplatesPage extends AbstractPage
     private function renderSlidersTable(array $sliders): void
     {
         ?>
-        <div class="cmc-card">
-            <div class="cmc-card__header">
-                <h2><?php esc_html_e('اسلایدرهای ذخیره‌شده', 'campaignchi'); ?></h2>
+        <div class="cmc-card cmc-card--flush">
+            <div class="cmc-card__header" style="padding:var(--cmc-space-5) var(--cmc-space-5) 0;">
+                <div class="cmc-card__title"><?php esc_html_e('اسلایدرهای ذخیره‌شده', 'campaignchi'); ?></div>
             </div>
 
             <?php if (empty($sliders)): ?>
-                <div class="cmc-empty-state">
-                    <i class="ti ti-carousel-horizontal"></i>
-                    <p><?php esc_html_e('هنوز هیچ اسلایدری نساخته‌اید. از یکی از قالب‌های بالا شروع کنید.', 'campaignchi'); ?></p>
+                <div class="cmc-empty">
+                    <div class="cmc-empty__icon"><i class="ti ti-carousel-horizontal"></i></div>
+                    <div class="cmc-empty__title"><?php esc_html_e('هنوز هیچ اسلایدری نساخته‌اید', 'campaignchi'); ?></div>
+                    <div class="cmc-empty__desc"><?php esc_html_e('از یکی از قالب‌های بالا شروع کنید.', 'campaignchi'); ?></div>
                 </div>
             <?php else: ?>
-                <table class="cmc-table">
-                    <thead>
-                        <tr>
-                            <th><?php esc_html_e('عنوان', 'campaignchi'); ?></th>
-                            <th><?php esc_html_e('قالب', 'campaignchi'); ?></th>
-                            <th><?php esc_html_e('شورت‌کد', 'campaignchi'); ?></th>
-                            <th><?php esc_html_e('عملیات', 'campaignchi'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($sliders as $slider): ?>
-                            <?php
-                            $template   = TemplateRegistry::get($slider['template']);
-                            $shortcode  = sprintf('[%s id="%d"]', CampaignSliderShortcode::TAG, $slider['id']);
-                            ?>
+                <div class="cmc-table-wrap">
+                    <table class="cmc-table">
+                        <thead>
                             <tr>
-                                <td><?php echo esc_html($slider['title']); ?></td>
-                                <td>
-                                    <span class="cmc-badge"><?php echo esc_html($template ? $template->label() : $slider['template']); ?></span>
-                                </td>
-                                <td>
-                                    <code class="cmc-shortcode-tag"><?php echo esc_html($shortcode); ?></code>
-                                    <button type="button" class="cmc-icon-btn cmc-slider-copy-btn" data-shortcode="<?php echo esc_attr($shortcode); ?>" title="<?php esc_attr_e('کپی شورت‌کد', 'campaignchi'); ?>">
-                                        <i class="ti ti-copy"></i>
-                                    </button>
-                                </td>
-                                <td class="cmc-table__actions">
-                                    <button type="button" class="cmc-icon-btn cmc-slider-edit-btn" data-id="<?php echo esc_attr((string) $slider['id']); ?>" title="<?php esc_attr_e('ویرایش', 'campaignchi'); ?>">
-                                        <i class="ti ti-pencil"></i>
-                                    </button>
-                                    <button type="button" class="cmc-icon-btn cmc-icon-btn--danger cmc-slider-delete-btn" data-id="<?php echo esc_attr((string) $slider['id']); ?>" title="<?php esc_attr_e('حذف', 'campaignchi'); ?>">
-                                        <i class="ti ti-trash"></i>
-                                    </button>
-                                </td>
+                                <th><?php esc_html_e('عنوان', 'campaignchi'); ?></th>
+                                <th><?php esc_html_e('قالب', 'campaignchi'); ?></th>
+                                <th><?php esc_html_e('شورت‌کد', 'campaignchi'); ?></th>
+                                <th></th>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($sliders as $slider): ?>
+                                <?php
+                                $template  = TemplateRegistry::get($slider['template']);
+                                $shortcode = sprintf('[%s id="%d"]', CampaignSliderShortcode::TAG, $slider['id']);
+                                ?>
+                                <tr>
+                                    <td class="cmc-table__cell--bold"><?php echo esc_html($slider['title']); ?></td>
+                                    <td>
+                                        <span class="cmc-badge cmc-badge--primary"><?php echo esc_html($template ? $template->label() : $slider['template']); ?></span>
+                                    </td>
+                                    <td>
+                                        <code class="cmc-shortcode-tag"><?php echo esc_html($shortcode); ?></code>
+                                        <button type="button" class="cmc-btn cmc-btn--ghost cmc-btn--icon cmc-btn--sm cmc-slider-copy-btn" data-shortcode="<?php echo esc_attr($shortcode); ?>" title="<?php esc_attr_e('کپی شورت‌کد', 'campaignchi'); ?>">
+                                            <i class="ti ti-copy"></i>
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <div class="cmc-table__row-actions">
+                                            <button type="button" class="cmc-btn cmc-btn--ghost cmc-btn--icon cmc-btn--sm cmc-slider-edit-btn" data-id="<?php echo esc_attr((string) $slider['id']); ?>" title="<?php esc_attr_e('ویرایش', 'campaignchi'); ?>">
+                                                <i class="ti ti-pencil"></i>
+                                            </button>
+                                            <button type="button" class="cmc-btn cmc-btn--ghost cmc-btn--icon cmc-btn--sm cmc-slider-delete-btn" data-id="<?php echo esc_attr((string) $slider['id']); ?>" title="<?php esc_attr_e('حذف', 'campaignchi'); ?>">
+                                                <i class="ti ti-trash" style="color:var(--cmc-danger)"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             <?php endif; ?>
         </div>
         <?php
     }
 
+    /**
+     * Builder modal — rebuilt on top of the REAL .cmc-modal-overlay /
+     * .cmc-modal structure (see components.css). The form is a single
+     * vertical stack using .cmc-form-group/.cmc-label/.cmc-input/
+     * .cmc-select + real .cmc-toggle switches; the live preview is now a
+     * full-width horizontal section BELOW the form (not a side column),
+     * per explicit feedback that the previous side-by-side layout looked
+     * broken.
+     */
     private function renderBuilderModal(): void
     {
         ?>
-        <div class="cmc-modal" id="cmc-slider-builder-modal">
-            <div class="cmc-modal__backdrop"></div>
-            <div class="cmc-modal__dialog cmc-modal__dialog--wide">
+        <div class="cmc-modal-overlay" id="cmc-slider-builder-modal">
+            <div class="cmc-modal cmc-modal--wide">
                 <div class="cmc-modal__header">
-                    <h3><?php esc_html_e('ساخت / ویرایش اسلایدر', 'campaignchi'); ?></h3>
-                    <button type="button" class="cmc-icon-btn" id="cmc-slider-modal-close-btn"><i class="ti ti-x"></i></button>
+                    <span class="cmc-modal__title"><?php esc_html_e('ساخت / ویرایش اسلایدر', 'campaignchi'); ?></span>
+                    <button type="button" class="cmc-modal__close" id="cmc-slider-modal-close-btn"><i class="ti ti-x"></i></button>
                 </div>
 
-                <div class="cmc-modal__body cmc-builder-grid">
-                    <div class="cmc-builder-form">
-                        <div class="cmc-field">
-                            <label for="cmc-f-title"><?php esc_html_e('عنوان اسلایدر', 'campaignchi'); ?></label>
-                            <input type="text" id="cmc-f-title" placeholder="<?php esc_attr_e('مثلاً: اسلایدر فلش‌سیل صفحه اصلی', 'campaignchi'); ?>">
+                <div class="cmc-modal__body">
+
+                    <div class="cmc-form-group cmc-mb-4">
+                        <label class="cmc-label cmc-label--required" for="cmc-f-title"><?php esc_html_e('عنوان اسلایدر', 'campaignchi'); ?></label>
+                        <input type="text" id="cmc-f-title" class="cmc-input" placeholder="<?php esc_attr_e('مثلاً: اسلایدر فلش‌سیل صفحه اصلی', 'campaignchi'); ?>">
+                    </div>
+
+                    <div class="cmc-grid cmc-grid--3 cmc-mb-4">
+                        <div class="cmc-form-group">
+                            <label class="cmc-label" for="cmc-f-template"><?php esc_html_e('قالب', 'campaignchi'); ?></label>
+                            <select id="cmc-f-template" class="cmc-select">
+                                <?php foreach (TemplateRegistry::all() as $template): ?>
+                                    <option value="<?php echo esc_attr($template->id()); ?>"><?php echo esc_html($template->label()); ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
 
-                        <div class="cmc-form-grid">
-                            <div class="cmc-field">
-                                <label for="cmc-f-template"><?php esc_html_e('قالب', 'campaignchi'); ?></label>
-                                <select id="cmc-f-template">
-                                    <?php foreach (TemplateRegistry::all() as $template): ?>
-                                        <option value="<?php echo esc_attr($template->id()); ?>"><?php echo esc_html($template->label()); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-
-                            <div class="cmc-field">
-                                <label for="cmc-f-campaign"><?php esc_html_e('کمپین', 'campaignchi'); ?></label>
-                                <select id="cmc-f-campaign">
-                                    <option value="0"><?php esc_html_e('— انتخاب خودکار (بالاترین اولویت) —', 'campaignchi'); ?></option>
-                                </select>
-                            </div>
-
-                            <div class="cmc-field">
-                                <label for="cmc-f-limit"><?php esc_html_e('تعداد محصولات', 'campaignchi'); ?></label>
-                                <input type="number" id="cmc-f-limit" min="1" max="20" value="8">
-                            </div>
-
-                            <div class="cmc-field">
-                                <label for="cmc-f-order"><?php esc_html_e('ترتیب نمایش', 'campaignchi'); ?></label>
-                                <select id="cmc-f-order">
-                                    <option value="priority"><?php esc_html_e('اولویت پیش‌فرض کمپین', 'campaignchi'); ?></option>
-                                    <option value="newest"><?php esc_html_e('جدیدترین', 'campaignchi'); ?></option>
-                                    <option value="random"><?php esc_html_e('تصادفی', 'campaignchi'); ?></option>
-                                </select>
-                            </div>
-
-                            <div class="cmc-field">
-                                <label for="cmc-f-autoplay-speed"><?php esc_html_e('سرعت پخش خودکار (ms)', 'campaignchi'); ?></label>
-                                <input type="number" id="cmc-f-autoplay-speed" min="1000" max="15000" step="500" value="4000">
-                            </div>
-
-                            <div class="cmc-field">
-                                <label for="cmc-f-primary-color"><?php esc_html_e('رنگ اصلی', 'campaignchi'); ?></label>
-                                <input type="color" id="cmc-f-primary-color" value="#6C47FF">
-                            </div>
-
-                            <div class="cmc-field">
-                                <label for="cmc-f-accent-color"><?php esc_html_e('رنگ تاکیدی', 'campaignchi'); ?></label>
-                                <input type="color" id="cmc-f-accent-color" value="#FF6B35">
-                            </div>
-
-                            <div class="cmc-field">
-                                <label for="cmc-f-radius"><?php esc_html_e('گردی گوشه‌ها', 'campaignchi'); ?></label>
-                                <input type="number" id="cmc-f-radius" min="0" max="40" value="16">
-                            </div>
-
-                            <div class="cmc-field">
-                                <label for="cmc-f-cta-text"><?php esc_html_e('متن دکمه CTA', 'campaignchi'); ?></label>
-                                <input type="text" id="cmc-f-cta-text" placeholder="<?php esc_attr_e('مشاهده محصول', 'campaignchi'); ?>">
-                            </div>
-
-                            <div class="cmc-field">
-                                <label for="cmc-f-badge-text"><?php esc_html_e('متن بج تخفیف (دلخواه)', 'campaignchi'); ?></label>
-                                <input type="text" id="cmc-f-badge-text" placeholder="<?php esc_attr_e('خالی = درصد خودکار', 'campaignchi'); ?>">
-                            </div>
+                        <div class="cmc-form-group">
+                            <label class="cmc-label" for="cmc-f-campaign"><?php esc_html_e('کمپین', 'campaignchi'); ?></label>
+                            <select id="cmc-f-campaign" class="cmc-select">
+                                <option value="0"><?php esc_html_e('— انتخاب خودکار (بالاترین اولویت) —', 'campaignchi'); ?></option>
+                            </select>
                         </div>
 
-                        <div class="cmc-toggle-grid">
-                            <label class="cmc-switch-row cmc-switch-row--compact"><span><?php esc_html_e('پخش خودکار', 'campaignchi'); ?></span><input type="checkbox" id="cmc-f-autoplay" checked></label>
-                            <label class="cmc-switch-row cmc-switch-row--compact"><span><?php esc_html_e('چرخه پیوسته', 'campaignchi'); ?></span><input type="checkbox" id="cmc-f-loop" checked></label>
-                            <label class="cmc-switch-row cmc-switch-row--compact"><span><?php esc_html_e('فلش‌های ناوبری', 'campaignchi'); ?></span><input type="checkbox" id="cmc-f-arrows" checked></label>
-                            <label class="cmc-switch-row cmc-switch-row--compact"><span><?php esc_html_e('نقاط ناوبری', 'campaignchi'); ?></span><input type="checkbox" id="cmc-f-dots" checked></label>
-                            <label class="cmc-switch-row cmc-switch-row--compact"><span><?php esc_html_e('شمارش معکوس', 'campaignchi'); ?></span><input type="checkbox" id="cmc-f-show-countdown" checked></label>
-                            <label class="cmc-switch-row cmc-switch-row--compact"><span><?php esc_html_e('نوار موجودی', 'campaignchi'); ?></span><input type="checkbox" id="cmc-f-show-stock" checked></label>
-                            <label class="cmc-switch-row cmc-switch-row--compact"><span><?php esc_html_e('حالت تیره', 'campaignchi'); ?></span><input type="checkbox" id="cmc-f-dark-mode"></label>
+                        <div class="cmc-form-group">
+                            <label class="cmc-label" for="cmc-f-order"><?php esc_html_e('ترتیب نمایش', 'campaignchi'); ?></label>
+                            <select id="cmc-f-order" class="cmc-select">
+                                <option value="priority"><?php esc_html_e('اولویت پیش‌فرض کمپین', 'campaignchi'); ?></option>
+                                <option value="newest"><?php esc_html_e('جدیدترین', 'campaignchi'); ?></option>
+                                <option value="random"><?php esc_html_e('تصادفی', 'campaignchi'); ?></option>
+                            </select>
+                        </div>
+
+                        <div class="cmc-form-group">
+                            <label class="cmc-label" for="cmc-f-limit"><?php esc_html_e('تعداد محصولات', 'campaignchi'); ?></label>
+                            <input type="number" id="cmc-f-limit" class="cmc-input" min="1" max="20" value="8">
+                        </div>
+
+                        <div class="cmc-form-group">
+                            <label class="cmc-label" for="cmc-f-autoplay-speed"><?php esc_html_e('سرعت پخش خودکار (ms)', 'campaignchi'); ?></label>
+                            <input type="number" id="cmc-f-autoplay-speed" class="cmc-input" min="1000" max="15000" step="500" value="4000">
+                        </div>
+
+                        <div class="cmc-form-group">
+                            <label class="cmc-label" for="cmc-f-radius"><?php esc_html_e('گردی گوشه‌ها', 'campaignchi'); ?></label>
+                            <input type="number" id="cmc-f-radius" class="cmc-input" min="0" max="40" value="16">
+                        </div>
+
+                        <div class="cmc-form-group">
+                            <label class="cmc-label" for="cmc-f-primary-color"><?php esc_html_e('رنگ اصلی', 'campaignchi'); ?></label>
+                            <input type="color" id="cmc-f-primary-color" class="cmc-input cmc-color-input" value="#6C47FF">
+                        </div>
+
+                        <div class="cmc-form-group">
+                            <label class="cmc-label" for="cmc-f-accent-color"><?php esc_html_e('رنگ تاکیدی', 'campaignchi'); ?></label>
+                            <input type="color" id="cmc-f-accent-color" class="cmc-input cmc-color-input" value="#FF6B35">
+                        </div>
+
+                        <div class="cmc-form-group">
+                            <label class="cmc-label" for="cmc-f-cta-text"><?php esc_html_e('متن دکمه CTA', 'campaignchi'); ?></label>
+                            <input type="text" id="cmc-f-cta-text" class="cmc-input" placeholder="<?php esc_attr_e('مشاهده محصول', 'campaignchi'); ?>">
+                        </div>
+
+                        <div class="cmc-form-group" style="grid-column:span 2">
+                            <label class="cmc-label" for="cmc-f-badge-text"><?php esc_html_e('متن بج تخفیف (دلخواه)', 'campaignchi'); ?></label>
+                            <input type="text" id="cmc-f-badge-text" class="cmc-input" placeholder="<?php esc_attr_e('خالی = درصد خودکار', 'campaignchi'); ?>">
                         </div>
                     </div>
 
-                    <div class="cmc-builder-preview">
-                        <div class="cmc-builder-preview__label"><?php esc_html_e('پیش‌نمایش زنده', 'campaignchi'); ?></div>
-                        <div id="cmc-slider-preview-pane" class="cmc-builder-preview__pane"></div>
+                    <hr class="cmc-divider">
+
+                    <div class="cmc-grid cmc-grid--3 cmc-mb-4">
+                        <?php $this->renderToggleField('cmc-f-autoplay', __('پخش خودکار', 'campaignchi'), true); ?>
+                        <?php $this->renderToggleField('cmc-f-loop', __('چرخه پیوسته', 'campaignchi'), true); ?>
+                        <?php $this->renderToggleField('cmc-f-arrows', __('فلش‌های ناوبری', 'campaignchi'), true); ?>
+                        <?php $this->renderToggleField('cmc-f-dots', __('نقاط ناوبری', 'campaignchi'), true); ?>
+                        <?php $this->renderToggleField('cmc-f-show-countdown', __('شمارش معکوس', 'campaignchi'), true); ?>
+                        <?php $this->renderToggleField('cmc-f-show-stock', __('نوار موجودی', 'campaignchi'), true); ?>
+                        <?php $this->renderToggleField('cmc-f-dark-mode', __('حالت تیره', 'campaignchi'), false); ?>
                     </div>
+
+                    <hr class="cmc-divider">
+
+                    <!-- ⚠️ Live preview: a full-width horizontal section BELOW
+                         the form, not a side column — per explicit feedback
+                         that the previous 2-column layout looked broken. -->
+                    <div class="cmc-builder-preview-section">
+                        <div class="cmc-builder-preview-section__label">
+                            <i class="ti ti-eye"></i>
+                            <?php esc_html_e('پیش‌نمایش زنده', 'campaignchi'); ?>
+                        </div>
+                        <div id="cmc-slider-preview-pane" class="cmc-builder-preview-section__pane"></div>
+                    </div>
+
                 </div>
 
                 <div class="cmc-modal__footer">
-                    <button type="button" class="cmc-btn cmc-btn--ghost" id="cmc-slider-cancel-btn"><?php esc_html_e('انصراف', 'campaignchi'); ?></button>
-                    <button type="button" class="cmc-btn cmc-btn--primary" id="cmc-slider-save-btn"><?php esc_html_e('ذخیره اسلایدر', 'campaignchi'); ?></button>
+                    <button type="button" class="cmc-btn cmc-btn--secondary" id="cmc-slider-cancel-btn"><?php esc_html_e('انصراف', 'campaignchi'); ?></button>
+                    <button type="button" class="cmc-btn cmc-btn--primary" id="cmc-slider-save-btn">
+                        <i class="ti ti-device-floppy"></i>
+                        <?php esc_html_e('ذخیره اسلایدر', 'campaignchi'); ?>
+                    </button>
                 </div>
             </div>
         </div>
         <?php
     }
 
+    /** A labeled real .cmc-toggle switch, used for every behavior flag in the builder form. */
+    private function renderToggleField(string $id, string $label, bool $checkedByDefault): void
+    {
+        ?>
+        <label class="cmc-toggle">
+            <input type="checkbox" class="cmc-toggle__input" id="<?php echo esc_attr($id); ?>" <?php checked($checkedByDefault); ?>>
+            <div class="cmc-toggle__track"><div class="cmc-toggle__thumb"></div></div>
+            <span class="cmc-toggle__label"><?php echo esc_html($label); ?></span>
+        </label>
+        <?php
+    }
+
+    /**
+     * Only genuinely NEW UI (no existing equivalent in base.css/components.css)
+     * gets its own CSS here: the template gallery cards, the shortcode tag,
+     * the modal width modifier, the color-input modifier, and the
+     * full-width live-preview section.
+     */
     private function renderStyles(): void
     {
         ?>
         <style>
-            .cmc-template-gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; margin:20px 0; }
-            .cmc-template-card { border:1px solid #e9eaee; border-radius:16px; overflow:hidden; background:#fff; transition:opacity .15s ease; }
+            .cmc-template-gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; margin:0 0 28px; }
+            .cmc-template-card { border:1px solid var(--cmc-border); border-radius:var(--cmc-radius-lg); overflow:hidden; background:var(--cmc-surface); transition:opacity 150ms ease; }
             .cmc-template-card.is-disabled { opacity:.5; }
             .cmc-template-card__swatch { height:90px; display:flex; align-items:center; justify-content:center; font-size:30px; color:#fff; }
-            .cmc-template-card__body { padding:14px 16px; }
+            .cmc-template-card__body { padding:var(--cmc-space-4) var(--cmc-space-4) var(--cmc-space-4); display:flex; flex-direction:column; gap:8px; }
             .cmc-template-card__head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-            .cmc-template-card__head h3 { font-size:15px; margin:0; }
-            .cmc-template-card__body p { font-size:12.5px; color:#7d8390; margin:8px 0 14px; line-height:1.7; min-height:54px; }
-            .cmc-mini-switch input { transform:scale(0.85); }
+            .cmc-template-card__head h3 { font-size:var(--cmc-font-size-md); font-weight:700; color:var(--cmc-text-heading); margin:0; }
+            .cmc-template-card__body p { font-size:var(--cmc-font-size-sm); color:var(--cmc-text-muted); line-height:1.7; min-height:56px; margin:0; }
 
-            .cmc-empty-state { text-align:center; padding:50px 20px; color:#9aa0ac; }
-            .cmc-empty-state i { font-size:34px; display:block; margin-bottom:10px; }
+            .cmc-toggle--sm .cmc-toggle__track { width:32px; height:18px; }
+            .cmc-toggle--sm .cmc-toggle__thumb { width:12px; height:12px; }
+            .cmc-toggle--sm .cmc-toggle__input:checked + .cmc-toggle__track .cmc-toggle__thumb { transform:translateX(-14px); }
 
-            .cmc-shortcode-tag { background:#f4f5f7; padding:4px 8px; border-radius:6px; font-size:12px; direction:ltr; display:inline-block; }
+            .cmc-shortcode-tag { background:var(--cmc-surface-2); padding:4px 8px; border-radius:6px; font-size:12px; direction:ltr; display:inline-block; color:var(--cmc-text-heading); }
 
-            .cmc-builder-grid { display:grid; grid-template-columns:1.4fr 1fr; gap:24px; align-items:start; }
-            .cmc-builder-preview { background:#11151c; border-radius:14px; padding:16px; min-height:280px; }
-            .cmc-builder-preview__label { color:#9aa0ac; font-size:12px; margin-bottom:10px; }
-            .cmc-builder-preview__pane { min-height:220px; }
-            .cmc-modal__dialog--wide { max-width:980px; }
+            .cmc-color-input { padding:3px !important; height:38px; cursor:pointer; }
 
-            @media (max-width: 900px) {
-                .cmc-builder-grid { grid-template-columns:1fr; }
-            }
+            .cmc-modal--wide { max-width:880px; }
+
+            .cmc-builder-preview-section__label { display:flex; align-items:center; gap:6px; color:var(--cmc-text-muted); font-size:var(--cmc-font-size-sm); font-weight:600; margin-bottom:10px; }
+            .cmc-builder-preview-section__pane { background:#11151c; border-radius:var(--cmc-radius-lg); padding:18px; min-height:240px; overflow-x:auto; }
         </style>
         <?php
     }
