@@ -57,6 +57,10 @@ class PanelLayout
             <link rel="stylesheet" href="<?php echo esc_url(CMC_ASSETS_URL . 'css/panel.css'); ?>?v=<?php echo CMC_VERSION; ?>">
             <!-- تاریخ‌گیر شمسی اختصاصی -->
             <link rel="stylesheet" href="<?php echo esc_url(CMC_ASSETS_URL . 'css/datepicker.css'); ?>?v=<?php echo CMC_VERSION; ?>">
+            <?php if ($activeSlug === 'templates'): ?>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css">
+                <link rel="stylesheet" href="<?php echo esc_url(CAMPAIGNCHI_URL . 'assets/css/slider.css'); ?>">
+            <?php endif; ?>
 
             <style>
                 body {
@@ -223,9 +227,18 @@ class PanelLayout
             <script src="<?php echo esc_url(CMC_ASSETS_URL . 'js/panel.js'); ?>?v=<?php echo CMC_VERSION; ?>"></script>
             <script src="<?php echo esc_url(CMC_ASSETS_URL . 'js/datepicker.js'); ?>?v=<?php echo CMC_VERSION; ?>"></script>
 
+            <?php if ($activeSlug === 'templates'): ?>
+                <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+                <script src="<?php echo esc_url(CAMPAIGNCHI_URL . 'assets/js/frontend-slider.js'); ?>"></script>
+            <?php endif; ?>
+
             <?php
             // اسکریپت‌های مختص هر صفحه
-            $pageScripts = ['campaigns' => 'campaigns.js'];
+            $pageScripts = [
+                'campaigns'  => 'campaigns.js',
+                'appearance' => 'appearance-page.js',
+                'templates'  => 'templates-admin.js',
+            ];
             if (isset($pageScripts[$activeSlug])) :
             ?>
                 <script src="<?php echo esc_url(CMC_ASSETS_URL . 'js/' . $pageScripts[$activeSlug]); ?>?v=<?php echo CMC_VERSION; ?>"></script>

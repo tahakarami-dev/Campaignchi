@@ -25,7 +25,7 @@ class Installer
     private const DB_VERSION_KEY = 'cmc_db_version';
 
     /** @var string Current schema version */
-    private const DB_VERSION = '1.0.0';
+    private const DB_VERSION = '1.1maybeUpgrade.0';
 
     // -------------------------------------------------------
     // Activation
@@ -67,7 +67,7 @@ class Installer
      * Create or upgrade custom database tables.
      * Uses dbDelta() for safe schema management.
      */
-    private static function createTables(): void
+    public static function createTables(): void
     {
         global $wpdb;
 
@@ -129,11 +129,27 @@ class Installer
             KEY campaign_id (campaign_id)
         ) $charset;";
 
+        // Table: sliders
+        $sliders = "CREATE TABLE {$wpdb->prefix}cmc_sliders (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        title VARCHAR(190) NOT NULL,
+        template VARCHAR(40) NOT NULL,
+        campaign_id BIGINT UNSIGNED NULL,
+        settings LONGTEXT NULL,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NOT NULL,
+        PRIMARY KEY (id),
+        KEY template (template),
+        KEY campaign_id (campaign_id)
+        ) {$charset};";
+
+
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($campaigns);
         dbDelta($campaign_products);
         dbDelta($campaign_rules);
         dbDelta($campaign_stats);
+        dbDelta($sliders);
 
         update_option(self::DB_VERSION_KEY, self::DB_VERSION);
     }
@@ -200,5 +216,23 @@ class Installer
                 wp_unschedule_event($timestamp, $event);
             }
         }
+    }
+
+    /**
+     * Re-run table creation if the stored DB version is older than the
+     * current DB_VERSION. Needed so sites that already had Campaignchi
+     * active before this feature shipped still get the new cmc_sliders
+     * table, without requiring a deactivate/reactivate cycle.
+     */
+    public static function maybeUpgrade(): void
+    {
+        $stored = get_option(self::DB_VERSION_KEY);
+
+        if ($stored === self::DB_VERSION) {
+            return;
+        }
+
+        self::createTables();
+        update_option(self::DB_VERSION_KEY, self::DB_VERSION);
     }
 }
