@@ -25,7 +25,7 @@ class Installer
     private const DB_VERSION_KEY = 'cmc_db_version';
 
     /** @var string Current schema version */
-    private const DB_VERSION = '1.1maybeUpgrade.0';
+    private const DB_VERSION = '1.1.0'; // ⚠️ BUG FIX: was the corrupted literal '1.1maybeUpgrade.0', which would never equal itself across requests in a meaningful way and is just an invalid version string.
 
     // -------------------------------------------------------
     // Activation

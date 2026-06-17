@@ -7,6 +7,7 @@ namespace Msi\Campaignchi\Templates\Elementor;
 use Elementor\Controls_Manager;
 use Elementor\Widget_Base;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
+use Msi\Campaignchi\Core\Application;
 use Msi\Campaignchi\Templates\Repositories\SliderRepository;
 use Msi\Campaignchi\Templates\Renderers\SliderRenderer;
 use Msi\Campaignchi\Templates\Services\CampaignSliderDataService;
@@ -25,28 +26,25 @@ use Msi\Campaignchi\Templates\TemplateRegistry;
  * parity between the Elementor editor, its frontend output, and the
  * shortcode.
  *
- * This class is only ever loaded (via the PSR-4 autoloader) from inside
- * ElementorIntegration::registerWidget()/registerWidgetLegacy(), both of
- * which only run after Elementor itself has confirmed it is loaded — so
- * extending \Elementor\Widget_Base here can never fatal-error a site that
- * doesn't have Elementor installed.
+ * IMPORTANT — no constructor dependency injection here, on purpose:
+ * Elementor's own `Element_Base::get_new_instance($data, $args)` creates
+ * a FRESH instance of this exact class via `new static($data, $args)`
+ * every time it actually renders this widget on a real page — passing
+ * only those two arguments. If this constructor required any additional
+ * typed parameters (as an earlier version of this class did), that
+ * internal Elementor call would fail with "Too few arguments" the
+ * moment the widget is placed on a page (registration alone would still
+ * succeed, since WE control that one instantiation — only Elementor's
+ * own internal re-instantiation breaks). Every service this widget needs
+ * is therefore resolved lazily, on demand, via the Application container
+ * — the same pattern AppearancePage/TemplatesPage already use for the
+ * exact same reason (AdminRouter also instantiates pages with `new
+ * $pageClass()`, no constructor arguments).
  *
  * @package Msi\Campaignchi\Templates\Elementor
  */
 final class CampaignSliderWidget extends Widget_Base
 {
-    public function __construct(
-        private SliderSettingsService $settings,
-        private SliderRepository $sliders,
-        private CampaignSliderDataService $dataService,
-        private SliderRenderer $renderer,
-        private CampaignRepository $campaigns,
-        $data = [],
-        $args = null
-    ) {
-        parent::__construct($data, $args);
-    }
-
     public function get_name(): string
     {
         return 'campaignchi_slider';
@@ -87,7 +85,7 @@ final class CampaignSliderWidget extends Widget_Base
         ]);
 
         $presetOptions = ['0' => __('— پیکربندی دستی (بدون پریست) —', 'campaignchi')];
-        foreach ($this->sliders->all() as $preset) {
+        foreach ($this->sliderRepository()->all() as $preset) {
             $presetOptions[(string) $preset['id']] = $preset['title'];
         }
 
@@ -113,7 +111,7 @@ final class CampaignSliderWidget extends Widget_Base
         ]);
 
         $campaignOptions = ['0' => __('— انتخاب خودکار (بالاترین اولویت) —', 'campaignchi')];
-        foreach ($this->campaigns->getNonDraftCampaigns() as $campaign) {
+        foreach ($this->campaignRepository()->getNonDraftCampaigns() as $campaign) {
             $campaignOptions[(string) $campaign->id] = $campaign->title;
         }
 
@@ -267,16 +265,16 @@ final class CampaignSliderWidget extends Widget_Base
         $presetId = absint($s['preset_id'] ?? '0');
 
         if ($presetId > 0) {
-            $preset = $this->sliders->find($presetId);
+            $preset = $this->sliderRepository()->find($presetId);
 
             if ($preset === null) {
                 $this->maybeRenderEditorNotice(__('پریست انتخاب‌شده دیگر وجود ندارد.', 'campaignchi'));
                 return;
             }
 
-            $template       = $preset['template'];
-            $campaignId     = $preset['campaign_id'];
-            $resolved       = $this->settings->resolve($preset['settings'], []);
+            $template   = $preset['template'];
+            $campaignId = $preset['campaign_id'];
+            $resolved   = $this->settingsService()->resolve($preset['settings'], []);
         } else {
             $template   = TemplateRegistry::has((string) ($s['template'] ?? '')) ? $s['template'] : 'flux';
             $campaignId = absint($s['campaign_id'] ?? '0') ?: null;
@@ -304,19 +302,19 @@ final class CampaignSliderWidget extends Widget_Base
                 'badge_text'     => $s['badge_text'] ?? null,
             ];
 
-            $resolved = $this->settings->resolve([], SliderAttributesNormalizer::normalize($raw));
+            $resolved = $this->settingsService()->resolve([], SliderAttributesNormalizer::normalize($raw));
         }
 
         $resolved['template'] = $template;
 
-        $data = $this->dataService->resolve($campaignId, (int) $resolved['limit'], (string) $resolved['order']);
+        $data = $this->dataService()->resolve($campaignId, (int) $resolved['limit'], (string) $resolved['order']);
 
         if ($data === null) {
             $this->maybeRenderEditorNotice(__('کمپین فعالی برای نمایش در این اسلایدر یافت نشد.', 'campaignchi'));
             return;
         }
 
-        echo $this->renderer->render($resolved, $data); // phpcs:ignore -- SliderRenderer output is already escaped.
+        echo $this->renderer()->render($resolved, $data); // phpcs:ignore -- SliderRenderer output is already escaped.
     }
 
     /** Only the Elementor editor (logged-in admins building the page) ever sees this — the live frontend stays silent. */
@@ -330,5 +328,35 @@ final class CampaignSliderWidget extends Widget_Base
             '<div style="margin:16px 0;padding:14px 18px;border:1px solid #f5c2c7;background:#fff3f4;color:#7a1f24;border-radius:10px;font-family:sans-serif;font-size:14px;direction:rtl;">%s</div>',
             esc_html($message)
         );
+    }
+
+    // ------------------------------------------------------------------
+    // Lazy service resolution — see class docblock for why these are NOT
+    // constructor-injected.
+    // ------------------------------------------------------------------
+
+    private function settingsService(): SliderSettingsService
+    {
+        return Application::getInstance()->make(SliderSettingsService::class);
+    }
+
+    private function sliderRepository(): SliderRepository
+    {
+        return Application::getInstance()->make(SliderRepository::class);
+    }
+
+    private function dataService(): CampaignSliderDataService
+    {
+        return Application::getInstance()->make(CampaignSliderDataService::class);
+    }
+
+    private function renderer(): SliderRenderer
+    {
+        return Application::getInstance()->make(SliderRenderer::class);
+    }
+
+    private function campaignRepository(): CampaignRepository
+    {
+        return Application::getInstance()->make(CampaignRepository::class);
     }
 }

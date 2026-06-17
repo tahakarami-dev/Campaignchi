@@ -1,0 +1,651 @@
+/* ==========================================================================
+   Campaignchi — Campaign Slider frontend styles
+   --------------------------------------------------------------------------
+   Completely self-contained: the public frontend never loads the admin
+   design-system file (base.css), so every custom property used here has
+   its own sensible fallback. Per-instance colors/radius are still injected
+   inline by SliderRenderer via --cmc-s-primary / --cmc-s-accent / --cmc-s-radius.
+
+   Markup reference (kept in sync with the 5 SliderTemplateInterface skins):
+     Flux:    .cmc-slide--flux > __media(a,bg-img > __badge) + __body(__name,__price,__stock-track>__stock-fill,__cta)
+     Minimal: .cmc-slide--minimal > __media(a,bg-img > __badge) + __body(__name,__price,__cta)
+     Glass:   .cmc-slide--glass > __inner(__media(a,bg-img), __badge, __name, __price, __cta)
+     Bold:    .cmc-slide--bold > __media(a,bg-img) + __body(div>__percent(span),__name,__price | __cta)
+     Compact: .cmc-slide--compact > __media(a,bg-img > __badge) + __body(__name, __row(__price,__cta))
+   ========================================================================== */
+
+.cmc-slider {
+    --cmc-font: 'Vazirmatn', Tahoma, sans-serif;
+    direction: rtl;
+    font-family: var(--cmc-font);
+    box-sizing: border-box;
+    margin: 24px 0;
+    position: relative;
+}
+
+.cmc-slider * {
+    box-sizing: border-box;
+}
+
+/* -------------------------------------------------------------------- */
+/* Header: type badge, title, countdown, navigation                    */
+/* -------------------------------------------------------------------- */
+
+.cmc-slider__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.cmc-slider__head-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.cmc-slider__type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    color: #fff;
+    background: var(--cmc-s-primary, #6C47FF);
+}
+
+.cmc-slider__type-badge--amazing_offer {
+    background: var(--cmc-s-accent, #FF6B35);
+}
+
+.cmc-slider__title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    color: #1a1d24;
+}
+
+.cmc-slider--dark .cmc-slider__title {
+    color: #f3f4f7;
+}
+
+.cmc-slider__countdown {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cmc-cd-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 38px;
+    background: #1a1d24;
+    color: #fff;
+    border-radius: 8px;
+    padding: 4px 6px;
+}
+
+.cmc-slider--dark .cmc-cd-block {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.cmc-cd-num {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.cmc-cd-label {
+    font-size: 9px;
+    opacity: 0.7;
+}
+
+.cmc-cd-sep {
+    font-weight: 700;
+    color: #1a1d24;
+}
+
+.cmc-slider--dark .cmc-cd-sep {
+    color: #f3f4f7;
+}
+
+.cmc-slider__countdown.is-ended .cmc-cd-block {
+    background: #9aa0ac;
+}
+
+.cmc-slider__nav {
+    display: flex;
+    gap: 8px;
+}
+
+.cmc-slider__nav-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid #e3e5ea;
+    background: #fff;
+    color: #1a1d24;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cmc-slider__nav-btn:hover {
+    background: var(--cmc-s-primary, #6C47FF);
+    color: #fff;
+    border-color: transparent;
+}
+
+.cmc-slider--dark .cmc-slider__nav-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #f3f4f7;
+}
+
+/* -------------------------------------------------------------------- */
+/* Swiper container                                                     */
+/* -------------------------------------------------------------------- */
+
+.cmc-slider__swiper {
+    overflow: hidden;
+    padding-bottom: 4px;
+}
+
+.cmc-slider__swiper .swiper-wrapper {
+    align-items: stretch;
+}
+
+.cmc-slider__swiper .swiper-pagination {
+    position: static;
+    margin-top: 14px;
+}
+
+.cmc-slider__swiper .swiper-pagination-bullet {
+    background: var(--cmc-s-primary, #6C47FF);
+    opacity: 0.3;
+}
+
+.cmc-slider__swiper .swiper-pagination-bullet-active {
+    opacity: 1;
+}
+
+/* Shared link-reset for every skin's anchors. */
+.cmc-slide a {
+    text-decoration: none;
+}
+
+/* ==========================================================================
+   Skin: Flux — full-bleed image, neon gradient badge, glow accents
+   ========================================================================== */
+
+.swiper-slide.cmc-slide--flux {
+    width: 240px;
+}
+
+.cmc-slide--flux {
+    border-radius: var(--cmc-s-radius, 16px);
+    overflow: hidden;
+    background: #11151c;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.cmc-slide--flux__media {
+    display: block;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.cmc-slide--flux__badge {
+    position: absolute;
+    top: 10px;
+    inset-inline-start: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--cmc-s-primary, #6C47FF), var(--cmc-s-accent, #FF6B35));
+    box-shadow: 0 0 16px var(--cmc-s-accent, #FF6B35);
+}
+
+.cmc-slide--flux__body {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.cmc-slide--flux__name {
+    color: #f3f4f7;
+    font-size: 14px;
+    font-weight: 600;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cmc-slide--flux__price {
+    color: #e7e9ee;
+    font-size: 14px;
+}
+
+.cmc-slide--flux__price del {
+    opacity: 0.5;
+}
+
+.cmc-slide--flux__price ins {
+    color: var(--cmc-s-accent, #FF6B35);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.cmc-slide--flux__stock-track {
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.cmc-slide--flux__stock-fill {
+    height: 100%;
+    background: var(--cmc-s-accent, #FF6B35);
+}
+
+.cmc-slide--flux__cta {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px;
+    border-radius: 10px;
+    background: var(--cmc-s-primary, #6C47FF);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Skin: Minimal — clean white commercial card
+   ========================================================================== */
+
+.swiper-slide.cmc-slide--minimal {
+    width: 220px;
+}
+
+.cmc-slide--minimal {
+    border-radius: var(--cmc-s-radius, 16px);
+    border: 1px solid #e9eaee;
+    background: #fff;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.cmc-slide--minimal__media {
+    display: block;
+    height: 150px;
+    background-size: cover;
+    background-position: center;
+    background-color: #f4f5f7;
+    position: relative;
+}
+
+.cmc-slide--minimal__badge {
+    position: absolute;
+    top: 10px;
+    inset-inline-start: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cmc-s-primary, #6C47FF);
+    background: #fff;
+    border: 1px solid var(--cmc-s-primary, #6C47FF);
+    padding: 3px 8px;
+    border-radius: 999px;
+}
+
+.cmc-slide--minimal__body {
+    padding: 12px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.cmc-slide--minimal__name {
+    color: #1a1d24;
+    font-size: 13px;
+    font-weight: 600;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cmc-slide--minimal__price {
+    font-size: 14px;
+    color: #1a1d24;
+}
+
+.cmc-slide--minimal__price del {
+    color: #9aa0ac;
+}
+
+.cmc-slide--minimal__price ins {
+    color: var(--cmc-s-primary, #6C47FF);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.cmc-slide--minimal__cta {
+    margin-top: auto;
+    text-align: center;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid var(--cmc-s-primary, #6C47FF);
+    color: var(--cmc-s-primary, #6C47FF);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Skin: Glass — glassmorphism / backdrop blur over a soft color gradient
+   ========================================================================== */
+
+.swiper-slide.cmc-slide--glass {
+    width: 230px;
+}
+
+.cmc-slide--glass {
+    border-radius: var(--cmc-s-radius, 16px);
+    overflow: hidden;
+    height: 100%;
+    padding: 10px;
+    background: linear-gradient(150deg, var(--cmc-s-primary, #6C47FF) 0%, var(--cmc-s-accent, #FF6B35) 100%);
+}
+
+.cmc-slide--glass__inner {
+    height: 100%;
+    border-radius: calc(var(--cmc-s-radius, 16px) - 4px);
+    background: color-mix(in srgb, #fff 18%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid color-mix(in srgb, #fff 30%, transparent);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cmc-slide--glass__media {
+    display: block;
+    height: 120px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 10px;
+}
+
+.cmc-slide--glass__badge {
+    align-self: flex-start;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: color-mix(in srgb, #000 25%, transparent);
+    padding: 3px 9px;
+    border-radius: 999px;
+}
+
+.cmc-slide--glass__name {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cmc-slide--glass__price {
+    color: #fff;
+    font-size: 13px;
+}
+
+.cmc-slide--glass__price ins {
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.cmc-slide--glass__price del {
+    opacity: 0.6;
+}
+
+.cmc-slide--glass__cta {
+    margin-top: auto;
+    text-align: center;
+    padding: 8px;
+    border-radius: 8px;
+    background: color-mix(in srgb, #fff 90%, transparent);
+    color: #1a1d24;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   Skin: Bold — high-contrast banner card, oversized percent-off number
+   ========================================================================== */
+
+.swiper-slide.cmc-slide--bold {
+    width: 260px;
+}
+
+.cmc-slide--bold {
+    border-radius: var(--cmc-s-radius, 16px);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    background: linear-gradient(160deg, var(--cmc-s-primary, #FF6B35) 0%, color-mix(in srgb, var(--cmc-s-primary, #FF6B35) 60%, #000) 100%);
+    color: #fff;
+}
+
+.cmc-slide--bold__media {
+    display: block;
+    flex-shrink: 0;
+    width: 90px;
+    background-size: cover;
+    background-position: center;
+}
+
+.cmc-slide--bold__body {
+    flex: 1;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+}
+
+.cmc-slide--bold__percent {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--cmc-s-accent, #6C47FF);
+    margin-bottom: 4px;
+}
+
+.cmc-slide--bold__percent span {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+.cmc-slide--bold__name {
+    display: block;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cmc-slide--bold__price {
+    font-size: 13px;
+}
+
+.cmc-slide--bold__price ins {
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.cmc-slide--bold__price del {
+    opacity: 0.55;
+}
+
+.cmc-slide--bold__cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+    padding: 9px;
+    border-radius: 10px;
+    background: var(--cmc-s-accent, #6C47FF);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   Skin: Compact — small, dense catalog card
+   ========================================================================== */
+
+.swiper-slide.cmc-slide--compact {
+    width: 160px;
+}
+
+.cmc-slide--compact {
+    border-radius: var(--cmc-s-radius, 16px);
+    border: 1px solid #e9eaee;
+    background: #fff;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.cmc-slide--compact__media {
+    display: block;
+    height: 110px;
+    background-size: cover;
+    background-position: center;
+    background-color: #f4f5f7;
+    position: relative;
+}
+
+.cmc-slide--compact__badge {
+    position: absolute;
+    top: 6px;
+    inset-inline-start: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--cmc-s-primary, #6C47FF);
+    padding: 2px 7px;
+    border-radius: 999px;
+}
+
+.cmc-slide--compact__body {
+    padding: 8px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.cmc-slide--compact__name {
+    color: #1a1d24;
+    font-size: 12px;
+    font-weight: 600;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cmc-slide--compact__row {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.cmc-slide--compact__price {
+    font-size: 12px;
+    color: #1a1d24;
+}
+
+.cmc-slide--compact__price ins {
+    color: var(--cmc-s-primary, #6C47FF);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.cmc-slide--compact__price del {
+    color: #9aa0ac;
+}
+
+.cmc-slide--compact__cta {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--cmc-s-primary, #6C47FF);
+    color: #fff;
+    font-size: 13px;
+}
+
+/* -------------------------------------------------------------------- */
+/* Responsive — narrower slide widths on small screens                  */
+/* -------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+    .swiper-slide.cmc-slide--flux    { width: 200px; }
+    .swiper-slide.cmc-slide--minimal { width: 180px; }
+    .swiper-slide.cmc-slide--glass   { width: 190px; }
+    .swiper-slide.cmc-slide--bold    { width: 220px; }
+    .swiper-slide.cmc-slide--compact { width: 130px; }
+
+    .cmc-slider__head {
+        align-items: flex-start;
+    }
+}

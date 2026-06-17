@@ -209,7 +209,18 @@ class TemplatesAjaxController
 
     private function verifyNonce(): void
     {
-        check_ajax_referer('cmc_admin');
+        // ⚠️ BUG FIX: the frontend CMC.ajax() helper (panel.js) always sends
+        // the nonce under the POST key 'nonce'. check_ajax_referer()'s
+        // default $query_arg (false) only looks at '_ajax_nonce'/'_wpnonce',
+        // so it would NEVER find it here — and with the default $stop=true
+        // it would wp_die() on every single request to this controller,
+        // breaking the entire Templates admin page. Passing 'nonce' as the
+        // second argument (and $stop=false, so we can return our own JSON
+        // error) mirrors the exact working pattern already used by
+        // \Msi\Campaignchi\Admin\Controllers\CampaignController::verifyNonce().
+        if (!check_ajax_referer('cmc_admin', 'nonce', false)) {
+            $this->json(['message' => __('درخواست نامعتبر.', 'campaignchi')], 403);
+        }
 
         if (!current_user_can('manage_options')) {
             $this->json(['message' => __('دسترسی غیرمجاز.', 'campaignchi')], 403);

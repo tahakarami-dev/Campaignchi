@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Templates\Elementor;
 
-use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
-use Msi\Campaignchi\Templates\Repositories\SliderRepository;
-use Msi\Campaignchi\Templates\Renderers\SliderRenderer;
-use Msi\Campaignchi\Templates\Services\CampaignSliderDataService;
-use Msi\Campaignchi\Templates\Services\SliderSettingsService;
-
 /**
  * Elementor Integration
  *
@@ -26,18 +20,14 @@ use Msi\Campaignchi\Templates\Services\SliderSettingsService;
  * intentional and mirrors the existing WooCommerce dependency check in
  * the plugin's bootstrap file.
  *
+ * No dependencies are injected here on purpose — see CampaignSliderWidget's
+ * docblock for why a Widget_Base subclass must resolve its own services
+ * lazily instead of via constructor injection.
+ *
  * @package Msi\Campaignchi\Templates\Elementor
  */
 final class ElementorIntegration
 {
-    public function __construct(
-        private SliderSettingsService $settings,
-        private SliderRepository $sliders,
-        private CampaignSliderDataService $dataService,
-        private SliderRenderer $renderer,
-        private CampaignRepository $campaigns
-    ) {}
-
     public function boot(): void
     {
         if (!did_action('elementor/loaded')) {
@@ -67,24 +57,12 @@ final class ElementorIntegration
     /** @param \Elementor\Widgets_Manager $widgetsManager */
     public function registerWidget($widgetsManager): void
     {
-        $widgetsManager->register(new CampaignSliderWidget(
-            $this->settings,
-            $this->sliders,
-            $this->dataService,
-            $this->renderer,
-            $this->campaigns
-        ));
+        $widgetsManager->register(new CampaignSliderWidget());
     }
 
     /** Legacy (pre-3.5) Elementor widget registration — no callback argument supplied. */
     public function registerWidgetLegacy(): void
     {
-        \Elementor\Plugin::instance()->widgets_manager->register(new CampaignSliderWidget(
-            $this->settings,
-            $this->sliders,
-            $this->dataService,
-            $this->renderer,
-            $this->campaigns
-        ));
+        \Elementor\Plugin::instance()->widgets_manager->register(new CampaignSliderWidget());
     }
 }

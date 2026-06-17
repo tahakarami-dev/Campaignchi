@@ -59,7 +59,7 @@ class PanelLayout
             <link rel="stylesheet" href="<?php echo esc_url(CMC_ASSETS_URL . 'css/datepicker.css'); ?>?v=<?php echo CMC_VERSION; ?>">
             <?php if ($activeSlug === 'templates'): ?>
                 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css">
-                <link rel="stylesheet" href="<?php echo esc_url(CAMPAIGNCHI_URL . 'assets/css/slider.css'); ?>">
+                <link rel="stylesheet" href="<?php echo esc_url(CMC_URL . 'assets/css/slider.css'); ?>">
             <?php endif; ?>
 
             <style>
@@ -229,7 +229,7 @@ class PanelLayout
 
             <?php if ($activeSlug === 'templates'): ?>
                 <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
-                <script src="<?php echo esc_url(CAMPAIGNCHI_URL . 'assets/js/frontend-slider.js'); ?>"></script>
+                <script src="<?php echo esc_url(CMC_URL . 'assets/js/frontend-slider.js'); ?>"></script>
             <?php endif; ?>
 
             <?php

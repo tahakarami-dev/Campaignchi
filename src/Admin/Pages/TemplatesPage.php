@@ -34,6 +34,13 @@ use Msi\Campaignchi\Templates\TemplateRegistry;
  */
 class TemplatesPage extends AbstractPage
 {
+    // ⚠️ BUG FIX: same issue as AppearancePage — AbstractPage requires
+    // both title() and render() to be implemented; only render() existed.
+    public function title(): string
+    {
+        return __('قالب‌ها', 'campaignchi');
+    }
+
     public function render(): void
     {
         $app      = Application::getInstance();

@@ -22,64 +22,68 @@ use Msi\Campaignchi\Templates\Shortcode\CampaignSliderShortcode;
  * templates, the shortcode, the Elementor widget, the admin AJAX
  * controller, and the unconditional frontend asset enqueue.
  *
+ * NOTE: the DI container is exposed by the abstract ServiceProvider base
+ * as `$this->container` (see Core\ServiceProvider::__construct()) — NOT
+ * `$this->app`. Every other provider in this codebase (AdminServiceProvider,
+ * PricingServiceProvider, AnalyticsServiceProvider) uses `$this->container`,
+ * so this provider follows the exact same convention.
+ *
  * @package Msi\Campaignchi\Templates
  */
 class TemplatesServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(SliderSettingsService::class, static fn () => new SliderSettingsService());
+        $this->container->singleton(SliderSettingsService::class, static fn () => new SliderSettingsService());
 
-        $this->app->singleton(SliderRepository::class, static fn () => new SliderRepository());
+        $this->container->singleton(SliderRepository::class, static fn () => new SliderRepository());
 
-        $this->app->singleton(SliderRenderer::class, static fn () => new SliderRenderer());
+        $this->container->singleton(SliderRenderer::class, static fn () => new SliderRenderer());
 
-        $this->app->singleton(
+        $this->container->singleton(
             CampaignSliderDataService::class,
-            static fn ($app) => new CampaignSliderDataService(
-                $app->make(CampaignRepository::class),
-                $app->make(CampaignProductResolver::class)
+            static fn ($c) => new CampaignSliderDataService(
+                $c->make(CampaignRepository::class),
+                $c->make(CampaignProductResolver::class)
             )
         );
 
-        $this->app->singleton(
+        $this->container->singleton(
             CampaignSliderShortcode::class,
-            static fn ($app) => new CampaignSliderShortcode(
-                $app->make(SliderSettingsService::class),
-                $app->make(SliderRepository::class),
-                $app->make(CampaignSliderDataService::class),
-                $app->make(SliderRenderer::class)
+            static fn ($c) => new CampaignSliderShortcode(
+                $c->make(SliderSettingsService::class),
+                $c->make(SliderRepository::class),
+                $c->make(CampaignSliderDataService::class),
+                $c->make(SliderRenderer::class)
             )
         );
 
-        $this->app->singleton(
+        $this->container->singleton(
             TemplatesAjaxController::class,
-            static fn ($app) => new TemplatesAjaxController(
-                $app->make(SliderSettingsService::class),
-                $app->make(SliderRepository::class),
-                $app->make(CampaignSliderDataService::class),
-                $app->make(SliderRenderer::class),
-                $app->make(CampaignRepository::class)
+            static fn ($c) => new TemplatesAjaxController(
+                $c->make(SliderSettingsService::class),
+                $c->make(SliderRepository::class),
+                $c->make(CampaignSliderDataService::class),
+                $c->make(SliderRenderer::class),
+                $c->make(CampaignRepository::class)
             )
         );
 
-        $this->app->singleton(
+        // ElementorIntegration takes no dependencies: CampaignSliderWidget
+        // resolves its own services lazily via Application::getInstance()
+        // — see the class docblock for why constructor injection is NOT
+        // safe for an \Elementor\Widget_Base subclass.
+        $this->container->singleton(
             ElementorIntegration::class,
-            static fn ($app) => new ElementorIntegration(
-                $app->make(SliderSettingsService::class),
-                $app->make(SliderRepository::class),
-                $app->make(CampaignSliderDataService::class),
-                $app->make(SliderRenderer::class),
-                $app->make(CampaignRepository::class)
-            )
+            static fn () => new ElementorIntegration()
         );
     }
 
     public function boot(): void
     {
-        $this->app->make(CampaignSliderShortcode::class)->register();
-        $this->app->make(TemplatesAjaxController::class)->register();
-        $this->app->make(ElementorIntegration::class)->boot();
+        $this->container->make(CampaignSliderShortcode::class)->register();
+        $this->container->make(TemplatesAjaxController::class)->register();
+        $this->container->make(ElementorIntegration::class)->boot();
 
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);
     }
@@ -107,7 +111,10 @@ class TemplatesServiceProvider extends ServiceProvider
         wp_enqueue_style('cmc-swiper', 'https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css', [], '8.0.0');
         wp_enqueue_script('cmc-swiper', 'https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js', [], '8.0.0', true);
 
-        wp_enqueue_style('cmc-slider', CAMPAIGNCHI_URL . 'assets/css/slider.css', ['cmc-swiper'], CAMPAIGNCHI_VERSION);
-        wp_enqueue_script('cmc-frontend-slider', CAMPAIGNCHI_URL . 'assets/js/frontend-slider.js', ['cmc-swiper'], CAMPAIGNCHI_VERSION, true);
+        // NOTE: this plugin's bootstrap (campaignchi.php) defines CMC_URL /
+        // CMC_VERSION — there is no CAMPAIGNCHI_URL/CAMPAIGNCHI_VERSION
+        // constant anywhere in the codebase. Using the real constants here.
+        wp_enqueue_style('cmc-slider', CMC_URL . 'assets/css/slider.css', ['cmc-swiper'], CMC_VERSION);
+        wp_enqueue_script('cmc-frontend-slider', CMC_URL . 'assets/js/frontend-slider.js', ['cmc-swiper'], CMC_VERSION, true);
     }
 }

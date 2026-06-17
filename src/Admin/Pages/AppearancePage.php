@@ -24,6 +24,16 @@ use Msi\Campaignchi\Templates\TemplateRegistry;
  */
 class AppearancePage extends AbstractPage
 {
+    // ⚠️ BUG FIX: AbstractPage declares title() as abstract alongside render().
+    // This class previously only implemented render(), which is a fatal
+    // error ("class must implement abstract method title()") the moment
+    // AdminRouter tries to instantiate it — i.e. the very first time anyone
+    // opens the "ظاهر" page in the admin panel.
+    public function title(): string
+    {
+        return __('ظاهر', 'campaignchi');
+    }
+
     public function render(): void
     {
         $settings = Application::getInstance()->make(SliderSettingsService::class);
