@@ -29,6 +29,21 @@
         return document.getElementById(id);
     }
 
+    /**
+     * Set a color <input> value programmatically AND dispatch a synthetic
+     * 'input' event, so the shared .cmc-color-field sync logic in panel.js
+     * (which only listens for real user 'input' events) also updates the
+     * field's hex text + swatch preview to match it — otherwise a
+     * JS-driven value assignment (reset/fill) would silently desync the
+     * visible hex text/swatch from the actual color input value.
+     */
+    function setColorValue(id, hex) {
+        var el = $(id);
+        if (!el) return;
+        el.value = hex;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
     /* ---------------------------------------------------------------- */
     /* Template gallery: enable / disable toggle                        */
     /* ---------------------------------------------------------------- */
@@ -102,8 +117,8 @@
         $('cmc-f-dots').checked = true;
         $('cmc-f-show-countdown').checked = true;
         $('cmc-f-show-stock').checked = true;
-        $('cmc-f-primary-color').value = '#6C47FF';
-        $('cmc-f-accent-color').value = '#FF6B35';
+        setColorValue('cmc-f-primary-color', '#6C47FF');
+        setColorValue('cmc-f-accent-color', '#FF6B35');
         $('cmc-f-radius').value = '16';
         $('cmc-f-dark-mode').checked = false;
         $('cmc-f-cta-text').value = '';
@@ -126,8 +141,8 @@
         $('cmc-f-dots').checked = s.dots !== false;
         $('cmc-f-show-countdown').checked = s.show_countdown !== false;
         $('cmc-f-show-stock').checked = s.show_stock !== false;
-        $('cmc-f-primary-color').value = s.primary_color || '#6C47FF';
-        $('cmc-f-accent-color').value = s.accent_color || '#FF6B35';
+        setColorValue('cmc-f-primary-color', s.primary_color || '#6C47FF');
+        setColorValue('cmc-f-accent-color', s.accent_color || '#FF6B35');
         $('cmc-f-radius').value = s.radius || 16;
         $('cmc-f-dark-mode').checked = !!s.dark_mode;
         $('cmc-f-cta-text').value = s.cta_text || '';

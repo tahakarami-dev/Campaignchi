@@ -1197,3 +1197,93 @@
 .cmc-toast--warning .cmc-toast__icon {
   color: var(--cmc-warning);
 }
+
+/* ==========================================================================
+   16. COLOR FIELD
+   A single, unified "input with an embedded color trigger" — reads as
+   ONE normal text field (.cmc-color-field__hex), styled with the exact
+   same height/border/--cmc-radius-md corner radius as every other
+   .cmc-input in the design system. A small circular swatch is nested
+   INSIDE that same input (absolutely positioned on its leading edge)
+   and hosts the invisible native <input type="color">, used to open
+   the OS color picker. Both elements are deliberately round, each in
+   its own way: the outer field uses the system's rounded-rectangle
+   radius, the inner swatch is a full circle.
+   Usage:
+     <div class="cmc-color-field">
+       <input type="text" class="cmc-color-field__hex" value="#6C47FF" maxlength="7">
+       <label class="cmc-color-field__swatch" style="background:#6C47FF">
+         <input type="color" class="cmc-color-field__input" value="#6C47FF">
+       </label>
+     </div>
+   ========================================================================== */
+
+.cmc-color-field {
+  position: relative;
+  width: 100%;
+}
+
+/* The single visible field — identical to .cmc-input in every way
+   (height, border, radius, focus ring), with extra trailing padding to
+   make room for the swatch nested on its leading (right, RTL) edge. */
+.cmc-color-field__hex {
+  width: 100%;
+  height: 44px;
+  padding: 0 var(--cmc-space-4);
+  padding-right: 44px;
+  background: var(--cmc-surface);
+  border: 1px solid var(--cmc-border);
+  border-radius: var(--cmc-radius-md);
+  font-family: var(--cmc-font);
+  font-size: var(--cmc-font-size-base);
+  color: var(--cmc-text-heading);
+  direction: ltr;
+  text-align: left;
+  outline: none;
+  text-transform: uppercase;
+  transition: border-color var(--cmc-transition),
+    box-shadow var(--cmc-transition);
+}
+
+.cmc-color-field__hex::placeholder {
+  color: var(--cmc-text-disabled);
+}
+
+.cmc-color-field__hex:hover {
+  border-color: #d1d5db;
+}
+
+.cmc-color-field__hex:focus {
+  border-color: var(--cmc-primary-500);
+  box-shadow: 0 0 0 3px rgba(108, 71, 255, 0.1);
+}
+
+/* Circular swatch + native color-picker trigger, nested INSIDE the
+   input itself (absolutely positioned on its right/leading edge). */
+.cmc-color-field__swatch {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--cmc-border);
+  box-shadow: inset 0 0 0 2px var(--cmc-surface);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+/* The native <input type="color"> stays invisible but clickable/keyboard-
+   accessible, stretched slightly beyond the swatch bounds so its own
+   focus ring never clips at the circle's edge. */
+.cmc-color-field__input {
+  position: absolute;
+  inset: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+}

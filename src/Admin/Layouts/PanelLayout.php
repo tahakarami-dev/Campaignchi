@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Msi\Campaignchi\Admin\Layouts;
 
 use Msi\Campaignchi\Admin\AdminRouter;
+use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
+use Msi\Campaignchi\Core\Application;
 use Msi\Campaignchi\Helpers\JalaliHelper;
 
 /**
@@ -31,6 +33,19 @@ class PanelLayout
         // یعنی «اکنون بر اساس تایم‌زون سایت» و آن را به شمسی تبدیل می‌کند.
         $dateLabel   = JalaliHelper::toFullDisplay();
         $isAdmin     = is_admin_bar_showing();
+
+        // ⚠️ DYNAMIC BADGE: the "کمپین‌ها" sidebar item used to show a
+        // hardcoded '۴' placeholder. It now reflects the real, live count
+        // of currently active/scheduled-and-live campaigns (same "live"
+        // definition the pricing engine and the dashboard stat card use —
+        // see CampaignRepository::getLiveCampaigns()). The badge is
+        // hidden entirely (null) when there are no live campaigns.
+        $liveCampaignsCount = count(
+            Application::getInstance()->make(CampaignRepository::class)->getLiveCampaigns()
+        );
+        $campaignsBadge = $liveCampaignsCount > 0
+            ? JalaliHelper::toPersianNums((string) $liveCampaignsCount)
+            : null;
 
 ?>
         <!DOCTYPE html>
@@ -116,7 +131,7 @@ class PanelLayout
 
                         <nav class="cmc-sidebar__nav" aria-label="<?php esc_attr_e('منوی اصلی', 'campaignchi'); ?>">
                             <?php $this->renderNavItem('dashboard',  'ti-layout-dashboard', 'داشبورد',   $activeSlug); ?>
-                            <?php $this->renderNavItem('campaigns',  'ti-bolt',             'کمپین‌ها',  $activeSlug, '۴'); ?>
+                            <?php $this->renderNavItem('campaigns',  'ti-bolt',             'کمپین‌ها',  $activeSlug, $campaignsBadge); ?>
 
                             <p class="cmc-nav__section"><?php esc_html_e('تنظیمات', 'campaignchi'); ?></p>
 

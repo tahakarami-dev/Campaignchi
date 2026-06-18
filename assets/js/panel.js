@@ -9,6 +9,8 @@
  *  4. Dropdown toggle
  *  5. Tabs
  *  6. AJAX helper (fetch + WP nonce)
+ *  7. Confirm modal utility
+ *  8. Color field sync (swatch + hex input)
  *
  * All identifiers prefixed with CMC to avoid conflicts with WP/WooCommerce.
  */
@@ -314,6 +316,49 @@ const CMC = (() => {
   }
 
   // ----------------------------------------------------------
+  // 8. COLOR FIELD SYNC
+  // Keeps a native <input type="color"> in sync with its sibling hex
+  // text input and swatch preview inside every .cmc-color-field
+  // (see components.css). Used by the Appearance and Templates pages.
+  // ----------------------------------------------------------
+  function initColorFields() {
+    document.querySelectorAll(".cmc-color-field").forEach((field) => {
+      const colorInput = field.querySelector(".cmc-color-field__input");
+      const hexInput = field.querySelector(".cmc-color-field__hex");
+      const swatch = field.querySelector(".cmc-color-field__swatch");
+
+      if (!colorInput || !hexInput || !swatch) return;
+
+      const applySwatch = (hex) => {
+        swatch.style.background = hex;
+      };
+
+      // Native color picker changed → reflect into the hex field + swatch
+      colorInput.addEventListener("input", () => {
+        const hex = colorInput.value.toUpperCase();
+        hexInput.value = hex;
+        applySwatch(hex);
+      });
+
+      // Hex field typed → validate and reflect into the color picker + swatch
+      hexInput.addEventListener("input", () => {
+        const value = hexInput.value.trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+          colorInput.value = value;
+          applySwatch(value);
+        }
+      });
+
+      // On blur, snap back to the last valid color if the typed value was invalid
+      hexInput.addEventListener("blur", () => {
+        if (!/^#[0-9a-fA-F]{6}$/.test(hexInput.value.trim())) {
+          hexInput.value = colorInput.value.toUpperCase();
+        }
+      });
+    });
+  }
+
+  // ----------------------------------------------------------
   // INIT — boot all modules on DOM ready
   // ----------------------------------------------------------
   function init() {
@@ -321,6 +366,7 @@ const CMC = (() => {
     modal.init();
     initDropdowns();
     initTabs();
+    initColorFields();
   }
 
   document.addEventListener("DOMContentLoaded", init);

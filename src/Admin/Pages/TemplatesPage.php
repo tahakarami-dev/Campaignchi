@@ -29,14 +29,14 @@ use Msi\Campaignchi\Templates\TemplateRegistry;
  * ⚠️ Every modal/form/table/button element below reuses the REAL,
  * already-styled design-system components documented in
  * cmc-admin-panel.md (.cmc-modal-overlay/.cmc-modal, .cmc-form-group,
- * .cmc-input, .cmc-select, .cmc-toggle, .cmc-table, .cmc-empty, the
- * .cmc-btn family...). A previous version of this page invented its own
- * competing classes (.cmc-icon-btn, .cmc-field, .cmc-modal__dialog, ...)
- * that were never actually defined anywhere — which is exactly why the
- * builder modal rendered unstyled/broken. Only genuinely new UI that has
- * no existing equivalent (the template gallery cards, the shortcode tag,
- * the live-preview panel) gets its own small, clearly-scoped CSS in
- * renderStyles().
+ * .cmc-input, .cmc-select, .cmc-toggle, .cmc-color-field, .cmc-table,
+ * .cmc-empty, the .cmc-btn family...). A previous version of this page
+ * invented its own competing classes (.cmc-icon-btn, .cmc-field,
+ * .cmc-modal__dialog, ...) that were never actually defined anywhere —
+ * which is exactly why the builder modal rendered unstyled/broken. Only
+ * genuinely new UI that has no existing equivalent (the template
+ * gallery cards, the shortcode tag, the live-preview panel) gets its
+ * own small, clearly-scoped CSS in renderStyles().
  *
  * All interactivity (toggles, modal, live preview, save/delete/copy) is
  * handled by assets/js/templates-admin.js — this class only renders markup
@@ -59,7 +59,7 @@ class TemplatesPage extends AbstractPage
 
         $enabledTemplates = $settings->getEnabledTemplates();
         $allSliders       = $sliders->all();
-        ?>
+?>
         <div class="cmc-row cmc-row--between cmc-mb-5">
             <div>
                 <h2 style="font-size:var(--cmc-font-size-xl);font-weight:700;color:var(--cmc-text-heading);margin:0">
@@ -89,13 +89,13 @@ class TemplatesPage extends AbstractPage
         </script>
 
         <?php $this->renderStyles(); ?>
-        <?php
+    <?php
     }
 
     /** @param string[] $enabledTemplates */
     private function renderGallery(array $enabledTemplates): void
     {
-        ?>
+    ?>
         <div class="cmc-template-gallery">
             <?php foreach (TemplateRegistry::all() as $template): ?>
                 <?php $isEnabled = in_array($template->id(), $enabledTemplates, true); ?>
@@ -109,19 +109,21 @@ class TemplatesPage extends AbstractPage
                             <h3><?php echo esc_html($template->label()); ?></h3>
                             <label class="cmc-toggle cmc-toggle--sm" title="<?php esc_attr_e('فعال/غیرفعال در انتخابگرها', 'campaignchi'); ?>">
                                 <input type="checkbox"
-                                       class="cmc-toggle__input cmc-template-enable-toggle"
-                                       data-template="<?php echo esc_attr($template->id()); ?>"
-                                       <?php checked($isEnabled); ?>>
-                                <div class="cmc-toggle__track"><div class="cmc-toggle__thumb"></div></div>
+                                    class="cmc-toggle__input cmc-template-enable-toggle"
+                                    data-template="<?php echo esc_attr($template->id()); ?>"
+                                    <?php checked($isEnabled); ?>>
+                                <div class="cmc-toggle__track">
+                                    <div class="cmc-toggle__thumb"></div>
+                                </div>
                             </label>
                         </div>
                         <p><?php echo esc_html($template->description()); ?></p>
 
                         <button type="button"
-                                class="cmc-btn cmc-btn--secondary cmc-btn--sm cmc-template-use-btn"
-                                data-template="<?php echo esc_attr($template->id()); ?>"
-                                style="width:100%"
-                                <?php disabled(!$isEnabled); ?>>
+                            class="cmc-btn cmc-btn--secondary cmc-btn--sm cmc-template-use-btn"
+                            data-template="<?php echo esc_attr($template->id()); ?>"
+                            style="width:100%"
+                            <?php disabled(!$isEnabled); ?>>
                             <i class="ti ti-plus"></i>
                             <?php esc_html_e('ساخت اسلایدر با این قالب', 'campaignchi'); ?>
                         </button>
@@ -129,13 +131,13 @@ class TemplatesPage extends AbstractPage
                 </div>
             <?php endforeach; ?>
         </div>
-        <?php
+    <?php
     }
 
     /** @param array<int, array<string,mixed>> $sliders */
     private function renderSlidersTable(array $sliders): void
     {
-        ?>
+    ?>
         <div class="cmc-card cmc-card--flush">
             <div class="cmc-card__header" style="padding:var(--cmc-space-5) var(--cmc-space-5) 0;">
                 <div class="cmc-card__title"><?php esc_html_e('اسلایدرهای ذخیره‌شده', 'campaignchi'); ?></div>
@@ -192,7 +194,7 @@ class TemplatesPage extends AbstractPage
                 </div>
             <?php endif; ?>
         </div>
-        <?php
+    <?php
     }
 
     /**
@@ -206,7 +208,7 @@ class TemplatesPage extends AbstractPage
      */
     private function renderBuilderModal(): void
     {
-        ?>
+    ?>
         <div class="cmc-modal-overlay" id="cmc-slider-builder-modal">
             <div class="cmc-modal cmc-modal--wide">
                 <div class="cmc-modal__header">
@@ -264,12 +266,12 @@ class TemplatesPage extends AbstractPage
 
                         <div class="cmc-form-group">
                             <label class="cmc-label" for="cmc-f-primary-color"><?php esc_html_e('رنگ اصلی', 'campaignchi'); ?></label>
-                            <input type="color" id="cmc-f-primary-color" class="cmc-input cmc-color-input" value="#6C47FF">
+                            <?php $this->renderColorField('cmc-f-primary-color', '#6C47FF'); ?>
                         </div>
 
                         <div class="cmc-form-group">
                             <label class="cmc-label" for="cmc-f-accent-color"><?php esc_html_e('رنگ تاکیدی', 'campaignchi'); ?></label>
-                            <input type="color" id="cmc-f-accent-color" class="cmc-input cmc-color-input" value="#FF6B35">
+                            <?php $this->renderColorField('cmc-f-accent-color', '#FF6B35'); ?>
                         </div>
 
                         <div class="cmc-form-group">
@@ -327,53 +329,163 @@ class TemplatesPage extends AbstractPage
                 </div>
             </div>
         </div>
-        <?php
+    <?php
     }
 
     /** A labeled real .cmc-toggle switch, used for every behavior flag in the builder form. */
     private function renderToggleField(string $id, string $label, bool $checkedByDefault): void
     {
-        ?>
+    ?>
         <label class="cmc-toggle">
             <input type="checkbox" class="cmc-toggle__input" id="<?php echo esc_attr($id); ?>" <?php checked($checkedByDefault); ?>>
-            <div class="cmc-toggle__track"><div class="cmc-toggle__thumb"></div></div>
+            <div class="cmc-toggle__track">
+                <div class="cmc-toggle__thumb"></div>
+            </div>
             <span class="cmc-toggle__label"><?php echo esc_html($label); ?></span>
         </label>
-        <?php
+    <?php
+    }
+
+    /**
+     * Render a single, unified "input with an embedded color trigger"
+     * (.cmc-color-field component, defined in components.css) — shared
+     * with AppearancePage so both screens present color pickers
+     * identically. The native <input type="color"> keeps the given $id
+     * unchanged, so existing JS (templates-admin.js's
+     * collectFormValues/resetForm/fillForm) that reads/writes its value
+     * directly by id keeps working unchanged.
+     */
+    private function renderColorField(string $id, string $value): void
+    {
+        $value = $this->sanitizeHexForDisplay($value);
+    ?>
+        <div class="cmc-color-field">
+            <input type="text" class="cmc-color-field__hex" value="<?php echo esc_attr($value); ?>" maxlength="7" spellcheck="false" aria-label="<?php esc_attr_e('کد رنگ', 'campaignchi'); ?>">
+            <label class="cmc-color-field__swatch" style="background:<?php echo esc_attr($value); ?>">
+                <input type="color" id="<?php echo esc_attr($id); ?>" class="cmc-color-field__input" value="<?php echo esc_attr($value); ?>">
+            </label>
+        </div>
+    <?php
+    }
+
+    /** Defensive fallback so a corrupted/unexpected value never breaks the swatch's inline style attribute. */
+    private function sanitizeHexForDisplay(string $value): string
+    {
+        return preg_match('/^#[0-9a-fA-F]{6}$/', $value) ? $value : '#000000';
     }
 
     /**
      * Only genuinely NEW UI (no existing equivalent in base.css/components.css)
      * gets its own CSS here: the template gallery cards, the shortcode tag,
-     * the modal width modifier, the color-input modifier, and the
-     * full-width live-preview section.
+     * the modal width modifier, and the full-width live-preview section.
      */
     private function renderStyles(): void
     {
-        ?>
+    ?>
         <style>
-            .cmc-template-gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; margin:0 0 28px; }
-            .cmc-template-card { border:1px solid var(--cmc-border); border-radius:var(--cmc-radius-lg); overflow:hidden; background:var(--cmc-surface); transition:opacity 150ms ease; }
-            .cmc-template-card.is-disabled { opacity:.5; }
-            .cmc-template-card__swatch { height:90px; display:flex; align-items:center; justify-content:center; font-size:30px; color:#fff; }
-            .cmc-template-card__body { padding:var(--cmc-space-4) var(--cmc-space-4) var(--cmc-space-4); display:flex; flex-direction:column; gap:8px; }
-            .cmc-template-card__head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-            .cmc-template-card__head h3 { font-size:var(--cmc-font-size-md); font-weight:700; color:var(--cmc-text-heading); margin:0; }
-            .cmc-template-card__body p { font-size:var(--cmc-font-size-sm); color:var(--cmc-text-muted); line-height:1.7; min-height:56px; margin:0; }
+            .cmc-template-gallery {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+                gap: 18px;
+                margin: 0 0 28px;
+            }
 
-            .cmc-toggle--sm .cmc-toggle__track { width:32px; height:18px; }
-            .cmc-toggle--sm .cmc-toggle__thumb { width:12px; height:12px; }
-            .cmc-toggle--sm .cmc-toggle__input:checked + .cmc-toggle__track .cmc-toggle__thumb { transform:translateX(-14px); }
+            .cmc-template-card {
+                border: 1px solid var(--cmc-border);
+                border-radius: var(--cmc-radius-lg);
+                overflow: hidden;
+                background: var(--cmc-surface);
+                transition: opacity 150ms ease;
+            }
 
-            .cmc-shortcode-tag { background:var(--cmc-surface-2); padding:4px 8px; border-radius:6px; font-size:12px; direction:ltr; display:inline-block; color:var(--cmc-text-heading); }
+            .cmc-template-card.is-disabled {
+                opacity: .5;
+            }
 
-            .cmc-color-input { padding:3px !important; height:38px; cursor:pointer; }
+            .cmc-template-card__swatch {
+                height: 90px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 30px;
+                color: #fff;
+            }
 
-            .cmc-modal--wide { max-width:880px; }
+            .cmc-template-card__body {
+                padding: var(--cmc-space-4) var(--cmc-space-4) var(--cmc-space-4);
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
 
-            .cmc-builder-preview-section__label { display:flex; align-items:center; gap:6px; color:var(--cmc-text-muted); font-size:var(--cmc-font-size-sm); font-weight:600; margin-bottom:10px; }
-            .cmc-builder-preview-section__pane { background:#11151c; border-radius:var(--cmc-radius-lg); padding:18px; min-height:240px; overflow-x:auto; }
+            .cmc-template-card__head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+            }
+
+            .cmc-template-card__head h3 {
+                font-size: var(--cmc-font-size-md);
+                font-weight: 700;
+                color: var(--cmc-text-heading);
+                margin: 0;
+            }
+
+            .cmc-template-card__body p {
+                font-size: var(--cmc-font-size-sm);
+                color: var(--cmc-text-muted);
+                line-height: 1.7;
+                min-height: 56px;
+                margin: 0;
+            }
+
+            .cmc-toggle--sm .cmc-toggle__track {
+                width: 32px;
+                height: 18px;
+            }
+
+            .cmc-toggle--sm .cmc-toggle__thumb {
+                width: 12px;
+                height: 12px;
+            }
+
+            .cmc-toggle--sm .cmc-toggle__input:checked+.cmc-toggle__track .cmc-toggle__thumb {
+                transform: translateX(-14px);
+            }
+
+            .cmc-shortcode-tag {
+                background: var(--cmc-surface-2);
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 12px;
+                direction: ltr;
+                display: inline-block;
+                color: var(--cmc-text-heading);
+            }
+
+            .cmc-modal--wide {
+                max-width: 880px;
+            }
+
+            .cmc-builder-preview-section__label {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                color: var(--cmc-text-muted);
+                font-size: var(--cmc-font-size-sm);
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+
+            .cmc-builder-preview-section__pane {
+                background: #11151c;
+                border-radius: var(--cmc-radius-lg);
+                padding: 18px;
+                min-height: 240px;
+                overflow-x: auto;
+            }
         </style>
-        <?php
+<?php
     }
 }
