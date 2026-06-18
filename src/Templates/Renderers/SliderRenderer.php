@@ -45,9 +45,17 @@ class SliderRenderer
         $uid = wp_unique_id('cmc-slider-');
 
         $campaignMeta = [
-            'title'      => !empty($settings['title']) ? $settings['title'] : $campaign->title,
-            'type'       => $campaign->type,
-            'type_label' => $campaign->typeLabel(),
+            'title' => !empty($settings['title']) ? $settings['title'] : $campaign->title,
+            'type'  => $campaign->type,
+            // ⚠️ Admin-customizable: settings['type_badge_text'] (global
+            // Appearance default → per-slider preset → shortcode/Elementor
+            // instance override, in that priority order via
+            // SliderSettingsService::resolve()) always wins when set;
+            // otherwise fall back to the campaign's own automatic type
+            // label ("فلش سیل" / "پیشنهاد شگفت‌انگیز").
+            'type_label' => !empty($settings['type_badge_text'])
+                ? (string) $settings['type_badge_text']
+                : $campaign->typeLabel(),
         ];
 
         ob_start();

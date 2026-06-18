@@ -65,6 +65,12 @@ class SliderSettingsService
             'dark_mode'         => false,
             'cta_text'          => __('مشاهده محصول', 'campaignchi'),
             'badge_text'        => '', // empty = auto-generated "X% تخفیف"
+            // Override text for the slider header's campaign-TYPE badge
+            // (e.g. "فلش سیل" / "پیشنهاد شگفت‌انگیز"). Empty = fall back to
+            // Campaign::typeLabel() automatically (see SliderRenderer).
+            // NOT to be confused with `badge_text` above, which overrides
+            // the per-product DISCOUNT badge shown on each individual slide.
+            'type_badge_text'   => '',
             'title'             => '', // empty = use the campaign's own title
             'master_enabled'    => true,
             // Styling for the classic discount badge rendered by
@@ -186,6 +192,9 @@ class SliderSettingsService
         }
         if (isset($input['badge_text'])) {
             $out['badge_text'] = sanitize_text_field((string) $input['badge_text']);
+        }
+        if (isset($input['type_badge_text'])) {
+            $out['type_badge_text'] = sanitize_text_field((string) $input['type_badge_text']);
         }
         if (isset($input['classic_badge_bg_color'])) {
             $out['classic_badge_bg_color'] = $this->sanitizeHex((string) $input['classic_badge_bg_color'], '#FF6B35');

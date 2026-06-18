@@ -2,19 +2,50 @@
    CMC Frontend CSS
    Loaded on public pages (product cards, countdown timers, sliders)
    Prefixed with .cmc- to avoid theme conflicts
+
+   ⚠️ HARDENING: every property below is !important so theme/plugin CSS can
+   never override these small, isolated widgets (classic countdown + flash
+   badge), the same hardening applied to slider.css.
    ========================================================================== */
 
 /* Countdown timer */
-.cmc-countdown { display: inline-flex; align-items: center; gap: 4px; direction: ltr; }
-.cmc-countdown__block { display: flex; flex-direction: column; align-items: center; }
-.cmc-countdown__num { font-size: 20px; font-weight: 700; color: #6C47FF; line-height: 1; }
-.cmc-countdown__label { font-size: 10px; color: #9CA3AF; }
-.cmc-countdown__sep { font-size: 18px; font-weight: 700; color: #6C47FF; margin-bottom: 8px; }
+.cmc-countdown {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  direction: ltr !important;
+}
+.cmc-countdown__block {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+.cmc-countdown__num {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #6C47FF !important;
+  line-height: 1 !important;
+}
+.cmc-countdown__label {
+  font-size: 10px !important;
+  color: #9CA3AF !important;
+}
+.cmc-countdown__sep {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #6C47FF !important;
+  margin-bottom: 8px !important;
+}
 
 /* Flash badge */
 .cmc-flash-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: #FF6B35; color: #fff;
-  font-size: 11px; font-weight: 700;
-  padding: 3px 8px; border-radius: 999px;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  background: #FF6B35 !important;
+  color: #fff !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 3px 8px !important;
+  border-radius: 999px !important;
 }

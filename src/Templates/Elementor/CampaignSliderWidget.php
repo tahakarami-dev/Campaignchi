@@ -217,6 +217,15 @@ final class CampaignSliderWidget extends Widget_Base
             'placeholder' => __('خالی = درصد تخفیف به‌صورت خودکار', 'campaignchi'),
         ]);
 
+        // ⚠️ NEW: lets the campaign-type badge shown in the slider header
+        // (e.g. "فلش سیل" / "پیشنهاد شگفت‌انگیز") be customized per widget
+        // instance, same as the shortcode's `type_badge_text` attribute.
+        $this->add_control('type_badge_text', [
+            'label'       => __('متن بج نوع کمپین (دلخواه)', 'campaignchi'),
+            'type'        => Controls_Manager::TEXT,
+            'placeholder' => __('خالی = نام نوع کمپین به‌صورت خودکار', 'campaignchi'),
+        ]);
+
         $this->end_controls_section();
     }
 
@@ -300,6 +309,9 @@ final class CampaignSliderWidget extends Widget_Base
                 'dark_mode'      => ($s['dark_mode'] ?? '') === 'yes',
                 'cta_text'       => $s['cta_text'] ?? null,
                 'badge_text'     => $s['badge_text'] ?? null,
+                // ⚠️ NEW: pass the campaign-type badge override through, same
+                // as every other text field above.
+                'type_badge_text' => $s['type_badge_text'] ?? null,
             ];
 
             $resolved = $this->settingsService()->resolve([], SliderAttributesNormalizer::normalize($raw));

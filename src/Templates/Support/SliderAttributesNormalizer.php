@@ -28,7 +28,7 @@ final class SliderAttributesNormalizer
     private const OVERRIDE_KEYS = [
         'limit', 'order', 'autoplay', 'autoplay_speed', 'loop', 'arrows', 'dots',
         'show_countdown', 'show_stock', 'primary_color', 'accent_color', 'radius',
-        'dark_mode', 'cta_text', 'badge_text', 'title',
+        'dark_mode', 'cta_text', 'badge_text', 'type_badge_text', 'title',
     ];
 
     /**

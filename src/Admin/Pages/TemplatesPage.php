@@ -281,6 +281,14 @@ class TemplatesPage extends AbstractPage
                             <label class="cmc-label" for="cmc-f-badge-text"><?php esc_html_e('متن بج تخفیف (دلخواه)', 'campaignchi'); ?></label>
                             <input type="text" id="cmc-f-badge-text" class="cmc-input" placeholder="<?php esc_attr_e('خالی = درصد خودکار', 'campaignchi'); ?>">
                         </div>
+
+                        <!-- ⚠️ NEW: per-slider override for the header's campaign-type
+                             badge text (e.g. "فلش سیل" / "پیشنهاد شگفت‌انگیز"). Empty =
+                             inherit from the global Appearance default / campaign type. -->
+                        <div class="cmc-form-group" style="grid-column:span 2">
+                            <label class="cmc-label" for="cmc-f-type-badge-text"><?php esc_html_e('متن بج نوع کمپین (دلخواه)', 'campaignchi'); ?></label>
+                            <input type="text" id="cmc-f-type-badge-text" class="cmc-input" placeholder="<?php esc_attr_e('خالی = نام نوع کمپین به‌صورت خودکار', 'campaignchi'); ?>">
+                        </div>
                     </div>
 
                     <hr class="cmc-divider">

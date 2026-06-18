@@ -22,7 +22,7 @@
         'cmc-f-title', 'cmc-f-template', 'cmc-f-campaign', 'cmc-f-limit', 'cmc-f-order',
         'cmc-f-autoplay', 'cmc-f-autoplay-speed', 'cmc-f-loop', 'cmc-f-arrows', 'cmc-f-dots',
         'cmc-f-show-countdown', 'cmc-f-show-stock', 'cmc-f-primary-color', 'cmc-f-accent-color',
-        'cmc-f-radius', 'cmc-f-dark-mode', 'cmc-f-cta-text', 'cmc-f-badge-text',
+        'cmc-f-radius', 'cmc-f-dark-mode', 'cmc-f-cta-text', 'cmc-f-badge-text', 'cmc-f-type-badge-text',
     ];
 
     function $(id) {
@@ -108,6 +108,7 @@
         $('cmc-f-dark-mode').checked = false;
         $('cmc-f-cta-text').value = '';
         $('cmc-f-badge-text').value = '';
+        $('cmc-f-type-badge-text').value = '';
     }
 
     function fillForm(preset) {
@@ -131,6 +132,7 @@
         $('cmc-f-dark-mode').checked = !!s.dark_mode;
         $('cmc-f-cta-text').value = s.cta_text || '';
         $('cmc-f-badge-text').value = s.badge_text || '';
+        $('cmc-f-type-badge-text').value = s.type_badge_text || '';
     }
 
     function collectFormValues() {
@@ -153,6 +155,8 @@
             dark_mode: $('cmc-f-dark-mode').checked ? '1' : '0',
             cta_text: $('cmc-f-cta-text').value,
             badge_text: $('cmc-f-badge-text').value,
+            // ⚠️ NEW: per-slider override for the header's campaign-type badge text.
+            type_badge_text: $('cmc-f-type-badge-text').value,
         };
     }
 

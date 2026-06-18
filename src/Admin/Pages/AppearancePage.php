@@ -14,13 +14,13 @@ use Msi\Campaignchi\Templates\TemplateRegistry;
  * Global, site-wide defaults for the Campaign Slider feature: the master
  * on/off switch, the default skin used by bare `[campaignchi_slider]`
  * shortcodes, every cosmetic/behavioral default (colors, radius,
- * autoplay, toggles, CTA text), and the colors of the classic discount
- * badge shown on default WooCommerce shop-loop cards and the single
- * product page. These values are the global fallback layer in
- * SliderSettingsService::resolve() — any saved preset or inline
- * shortcode/widget attribute that does not explicitly set a given field
- * will pick up whatever is configured here, automatically and
- * retroactively (no need to edit every existing slider one by one).
+ * autoplay, toggles, CTA text, campaign-type badge text), and the colors
+ * of the classic discount badge shown on default WooCommerce shop-loop
+ * cards and the single product page. These values are the global
+ * fallback layer in SliderSettingsService::resolve() — any saved preset
+ * or inline shortcode/widget attribute that does not explicitly set a
+ * given field will pick up whatever is configured here, automatically
+ * and retroactively (no need to edit every existing slider one by one).
  *
  * ⚠️ Markup here intentionally reuses ONLY the real, already-styled
  * design-system components (.cmc-form-group, .cmc-label, .cmc-input,
@@ -125,6 +125,16 @@ class AppearancePage extends AbstractPage
                     <div class="cmc-form-group" style="grid-column:span 2">
                         <label class="cmc-label" for="cmc-a-cta-text"><?php esc_html_e('متن دکمه CTA پیش‌فرض', 'campaignchi'); ?></label>
                         <input type="text" id="cmc-a-cta-text" class="cmc-input" value="<?php echo esc_attr($global['cta_text']); ?>">
+                    </div>
+
+                    <!-- ⚠️ NEW: customizable text for the slider header's campaign-type
+                         badge (e.g. "فلش سیل" / "پیشنهاد شگفت‌انگیز"). Empty = keep the
+                         automatic label coming from the campaign's own type. -->
+                    <div class="cmc-form-group" style="grid-column:span 2">
+                        <label class="cmc-label" for="cmc-a-type-badge-text"><?php esc_html_e('متن بج نوع کمپین (دلخواه)', 'campaignchi'); ?></label>
+                        <input type="text" id="cmc-a-type-badge-text" class="cmc-input"
+                            value="<?php echo esc_attr($global['type_badge_text']); ?>"
+                            placeholder="<?php esc_attr_e('خالی = نام نوع کمپین به‌صورت خودکار (فلش سیل / پیشنهاد شگفت‌انگیز)', 'campaignchi'); ?>">
                     </div>
                 </div>
 

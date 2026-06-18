@@ -86,6 +86,9 @@ class CampaignSliderShortcode
                 'dark_mode'         => null,
                 'cta_text'          => null,
                 'badge_text'        => null,
+                // Overrides the slider header's campaign-type badge text
+                // (e.g. [campaignchi_slider type_badge_text="ویژه امروز"]).
+                'type_badge_text'   => null,
                 'title'             => null,
             ],
             $atts,

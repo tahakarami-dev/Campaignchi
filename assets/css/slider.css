@@ -6,6 +6,16 @@
    its own sensible fallback. Per-instance colors/radius are still injected
    inline by SliderRenderer via --cmc-s-primary / --cmc-s-accent / --cmc-s-radius.
 
+   ⚠️ HARDENING — every visual declaration below is marked !important.
+   Themes and other plugins frequently ship broad, unscoped selectors
+   (e.g. `a{...}`, `img{...}`, `button{...}`, `ul,li{...}`) that would
+   otherwise leak into this slider and silently break its layout, spacing,
+   or colors. Since normal cascade order alone is not a reliable enough
+   guarantee (some themes enqueue their CSS with tricks of their own,
+   including their own !important rules), !important here is what
+   actually guarantees every Campaignchi slider looks identical regardless
+   of the active theme or any other plugin's CSS.
+
    Markup reference (kept in sync with the 5 SliderTemplateInterface skins):
      Flux:    .cmc-slide--flux > __media(a,bg-img > __badge) + __body(__name,__price,__stock-track>__stock-fill,__cta)
      Minimal: .cmc-slide--minimal > __media(a,bg-img > __badge) + __body(__name,__price,__cta)
@@ -16,44 +26,40 @@
 
 .cmc-slider {
     --cmc-font: 'Vazirmatn', Tahoma, sans-serif;
-    direction: rtl;
-    font-family: var(--cmc-font);
-    box-sizing: border-box;
-    margin: 24px 0;
-    position: relative;
+    direction: rtl !important;
+    font-family: var(--cmc-font) !important;
+    box-sizing: border-box !important;
+    margin: 24px 0 !important;
+    position: relative !important;
 }
 
 .cmc-slider * {
-    box-sizing: border-box;
+    box-sizing: border-box !important;
 }
 
 /* -------------------------------------------------------------------- */
 /* ISOLATION — defend against generic theme/global CSS leaking in.       */
-/* Many themes set unscoped rules like `a{text-decoration:underline}`,   */
-/* `ul,li{margin:...}`, `button{border-radius:...}` etc. The properties  */
-/* reset here are ones our OWN skins never set differently (so !important*/
-/* can't shadow our own legitimate styling) — background/border/box-     */
-/* shadow on <a>/<button> are deliberately NOT touched here, since every */
-/* skin's CTA/media anchors and the nav buttons set those intentionally; */
-/* their higher selector specificity already beats a theme's bare        */
-/* `a{...}`/`button{...}` rule under normal (non-!important) cascade.    */
+/* Every property a theme is likely to reset (text-decoration, list      */
+/* styles, button cursor/font, heading margins, image sizing) is locked  */
+/* down with !important so a bare `a{...}`/`ul,li{...}`/`button{...}`    */
+/* theme rule can never visually break the slider.                       */
 /* -------------------------------------------------------------------- */
 
 .cmc-slider a {
     text-decoration: none !important;
-    color: inherit;
+    color: inherit !important;
 }
 
 .cmc-slider img {
-    max-width: 100%;
-    height: auto;
-    border: none;
-    vertical-align: middle;
+    max-width: 100% !important;
+    height: auto !important;
+    border: none !important;
+    vertical-align: middle !important;
 }
 
 .cmc-slider button {
     font-family: var(--cmc-font) !important;
-    cursor: pointer;
+    cursor: pointer !important;
 }
 
 .cmc-slider ul,
@@ -69,7 +75,7 @@
 .cmc-slider h3,
 .cmc-slider h4,
 .cmc-slider p {
-    margin: 0;
+    margin: 0 !important;
     font-family: var(--cmc-font) !important;
 }
 
@@ -78,122 +84,138 @@
 /* -------------------------------------------------------------------- */
 
 .cmc-slider__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 16px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
 }
 
 .cmc-slider__head-title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
 }
 
+/* Campaign-type badge — its TEXT is now admin-customizable via
+   settings['type_badge_text'] (see SliderRenderer::render()); this rule
+   only controls its visual style, not its content. */
 .cmc-slider__type-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 999px;
-    color: #fff;
-    background: var(--cmc-s-primary, #6C47FF);
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 4px 10px !important;
+    border-radius: 999px !important;
+    color: #fff !important;
+    background: var(--cmc-s-primary, #6C47FF) !important;
 }
 
 .cmc-slider__type-badge--amazing_offer {
-    background: var(--cmc-s-accent, #FF6B35);
+    background: var(--cmc-s-accent, #FF6B35) !important;
 }
 
 .cmc-slider__title {
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0;
-    color: #1a1d24;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    color: #1a1d24 !important;
 }
 
 .cmc-slider--dark .cmc-slider__title {
-    color: #f3f4f7;
+    color: #f3f4f7 !important;
 }
 
 .cmc-slider__countdown {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    /* ⚠️ FIX: force LTR layout for the countdown blocks. `.cmc-slider`
+       above sets `direction: rtl`, which — with no override — places the
+       FIRST DOM child (day) on the RIGHT and the LAST DOM child (second)
+       on the LEFT, so reading left → right you'd see Second, Minute,
+       Hour, Day (reversed). Forcing `direction: ltr` here makes the
+       natural DOM order (day, hour, minute, second) render in that same
+       order from left to right — the standard "biggest unit first"
+       digital-countdown convention. The Persian unit labels (روز/ساعت/...)
+       still render correctly inside, since Unicode bidi handles RTL text
+       runs correctly even inside an LTR-direction container — this is the
+       exact same technique already used for the time picker in
+       datepicker.css (`.cmc-dp__time-fields`). */
+    direction: ltr !important;
 }
 
 .cmc-cd-block {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 38px;
-    background: #1a1d24;
-    color: #fff;
-    border-radius: 8px;
-    padding: 4px 6px;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    min-width: 38px !important;
+    background: #1a1d24 !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    padding: 4px 6px !important;
 }
 
 .cmc-slider--dark .cmc-cd-block {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.08) !important;
 }
 
 .cmc-cd-num {
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1.2;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
 }
 
 .cmc-cd-label {
-    font-size: 9px;
-    opacity: 0.7;
+    font-size: 9px !important;
+    opacity: 0.7 !important;
 }
 
 .cmc-cd-sep {
-    font-weight: 700;
-    color: #1a1d24;
+    font-weight: 700 !important;
+    color: #1a1d24 !important;
 }
 
 .cmc-slider--dark .cmc-cd-sep {
-    color: #f3f4f7;
+    color: #f3f4f7 !important;
 }
 
 .cmc-slider__countdown.is-ended .cmc-cd-block {
-    background: #9aa0ac;
+    background: #9aa0ac !important;
 }
 
 .cmc-slider__nav {
-    display: flex;
-    gap: 8px;
+    display: flex !important;
+    gap: 8px !important;
 }
 
 .cmc-slider__nav-btn {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    border: 1px solid #e3e5ea;
-    background: #fff;
-    color: #1a1d24;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 50% !important;
+    border: 1px solid #e3e5ea !important;
+    background: #fff !important;
+    color: #1a1d24 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: background 0.15s ease, color 0.15s ease !important;
 }
 
 .cmc-slider__nav-btn:hover {
-    background: var(--cmc-s-primary, #6C47FF);
-    color: #fff;
-    border-color: transparent;
+    background: var(--cmc-s-primary, #6C47FF) !important;
+    color: #fff !important;
+    border-color: transparent !important;
 }
 
 .cmc-slider--dark .cmc-slider__nav-btn {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.12);
-    color: #f3f4f7;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #f3f4f7 !important;
 }
 
 /* -------------------------------------------------------------------- */
@@ -201,31 +223,45 @@
 /* -------------------------------------------------------------------- */
 
 .cmc-slider__swiper {
-    overflow: hidden;
-    padding-bottom: 4px;
+    overflow: hidden !important;
+    padding-bottom: 4px !important;
 }
 
 .cmc-slider__swiper .swiper-wrapper {
-    align-items: stretch;
+    align-items: stretch !important;
+}
+
+/* ⚠️ EQUAL-HEIGHT FIX: with `slidesPerView: 'auto'`, Swiper does not
+   always resolve a definite height on `.swiper-slide` by itself, which
+   can prevent the flex "stretch" cross-axis alignment above from doing
+   its job. Forcing `height: auto` + `align-self: stretch` here makes
+   every slide stretch to match the TALLEST slide in its row — so all
+   product cards always end up exactly the same height, regardless of
+   how much or how little text/content each individual product has. Each
+   skin's own root element (e.g. .cmc-slide--flux) then fills that height
+   via its own `height: 100%`. */
+.cmc-slider__swiper .swiper-slide {
+    height: auto !important;
+    align-self: stretch !important;
 }
 
 .cmc-slider__swiper .swiper-pagination {
-    position: static;
-    margin-top: 14px;
+    position: static !important;
+    margin-top: 14px !important;
 }
 
 .cmc-slider__swiper .swiper-pagination-bullet {
-    background: var(--cmc-s-primary, #6C47FF);
-    opacity: 0.3;
+    background: var(--cmc-s-primary, #6C47FF) !important;
+    opacity: 0.3 !important;
 }
 
 .cmc-slider__swiper .swiper-pagination-bullet-active {
-    opacity: 1;
+    opacity: 1 !important;
 }
 
 /* Shared link-reset for every skin's anchors. */
 .cmc-slide a {
-    text-decoration: none;
+    text-decoration: none !important;
 }
 
 /* ==========================================================================
@@ -233,100 +269,100 @@
    ========================================================================== */
 
 .swiper-slide.cmc-slide--flux {
-    width: 240px;
+    width: 240px !important;
 }
 
 .cmc-slide--flux {
-    border-radius: var(--cmc-s-radius, 16px);
-    overflow: hidden;
-    background: #11151c;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+    border-radius: var(--cmc-s-radius, 16px) !important;
+    overflow: hidden !important;
+    background: #11151c !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
 }
 
 .cmc-slide--flux__media {
-    display: block;
-    height: 200px;
-    background-size: cover;
-    background-position: center;
-    position: relative;
+    display: block !important;
+    height: 200px !important;
+    background-size: cover !important;
+    background-position: center !important;
+    position: relative !important;
 }
 
 .cmc-slide--flux__badge {
-    position: absolute;
-    top: 10px;
-    inset-inline-start: 10px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #fff;
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, var(--cmc-s-primary, #6C47FF), var(--cmc-s-accent, #FF6B35));
-    box-shadow: 0 0 16px var(--cmc-s-accent, #FF6B35);
+    position: absolute !important;
+    top: 10px !important;
+    inset-inline-start: 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    padding: 5px 10px !important;
+    border-radius: 999px !important;
+    background: linear-gradient(135deg, var(--cmc-s-primary, #6C47FF), var(--cmc-s-accent, #FF6B35)) !important;
+    box-shadow: 0 0 16px var(--cmc-s-accent, #FF6B35) !important;
 }
 
 .cmc-slide--flux__body {
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex: 1;
+    padding: 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    flex: 1 !important;
 }
 
 .cmc-slide--flux__name {
-    color: #f3f4f7;
-    font-size: 14px;
-    font-weight: 600;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    color: #f3f4f7 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
 }
 
 .cmc-slide--flux__price {
-    color: #e7e9ee;
-    font-size: 14px;
+    color: #e7e9ee !important;
+    font-size: 14px !important;
 }
 
 .cmc-slide--flux__price del {
-    opacity: 0.5;
+    opacity: 0.5 !important;
 }
 
 .cmc-slide--flux__price ins {
-    color: var(--cmc-s-accent, #FF6B35);
-    font-weight: 700;
-    text-decoration: none;
+    color: var(--cmc-s-accent, #FF6B35) !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
 }
 
 .cmc-slide--flux__stock-track {
-    height: 4px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    overflow: hidden;
+    height: 4px !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    overflow: hidden !important;
 }
 
 .cmc-slide--flux__stock-fill {
-    height: 100%;
-    background: var(--cmc-s-accent, #FF6B35);
+    height: 100% !important;
+    background: var(--cmc-s-accent, #FF6B35) !important;
 }
 
 .cmc-slide--flux__cta {
-    margin-top: auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 9px;
-    border-radius: 10px;
-    background: var(--cmc-s-primary, #6C47FF);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
+    margin-top: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 9px !important;
+    border-radius: 10px !important;
+    background: var(--cmc-s-primary, #6C47FF) !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
 }
 
 /* ==========================================================================
@@ -334,83 +370,83 @@
    ========================================================================== */
 
 .swiper-slide.cmc-slide--minimal {
-    width: 220px;
+    width: 220px !important;
 }
 
 .cmc-slide--minimal {
-    border-radius: var(--cmc-s-radius, 16px);
-    border: 1px solid #e9eaee;
-    background: #fff;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+    border-radius: var(--cmc-s-radius, 16px) !important;
+    border: 1px solid #e9eaee !important;
+    background: #fff !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
 }
 
 .cmc-slide--minimal__media {
-    display: block;
-    height: 150px;
-    background-size: cover;
-    background-position: center;
-    background-color: #f4f5f7;
-    position: relative;
+    display: block !important;
+    height: 150px !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-color: #f4f5f7 !important;
+    position: relative !important;
 }
 
 .cmc-slide--minimal__badge {
-    position: absolute;
-    top: 10px;
-    inset-inline-start: 10px;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--cmc-s-primary, #6C47FF);
-    background: #fff;
-    border: 1px solid var(--cmc-s-primary, #6C47FF);
-    padding: 3px 8px;
-    border-radius: 999px;
+    position: absolute !important;
+    top: 10px !important;
+    inset-inline-start: 10px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: var(--cmc-s-primary, #6C47FF) !important;
+    background: #fff !important;
+    border: 1px solid var(--cmc-s-primary, #6C47FF) !important;
+    padding: 3px 8px !important;
+    border-radius: 999px !important;
 }
 
 .cmc-slide--minimal__body {
-    padding: 12px 14px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex: 1;
+    padding: 12px 14px 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    flex: 1 !important;
 }
 
 .cmc-slide--minimal__name {
-    color: #1a1d24;
-    font-size: 13px;
-    font-weight: 600;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    color: #1a1d24 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
 }
 
 .cmc-slide--minimal__price {
-    font-size: 14px;
-    color: #1a1d24;
+    font-size: 14px !important;
+    color: #1a1d24 !important;
 }
 
 .cmc-slide--minimal__price del {
-    color: #9aa0ac;
+    color: #9aa0ac !important;
 }
 
 .cmc-slide--minimal__price ins {
-    color: var(--cmc-s-primary, #6C47FF);
-    font-weight: 700;
-    text-decoration: none;
+    color: var(--cmc-s-primary, #6C47FF) !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
 }
 
 .cmc-slide--minimal__cta {
-    margin-top: auto;
-    text-align: center;
-    padding: 8px;
-    border-radius: 10px;
-    border: 1px solid var(--cmc-s-primary, #6C47FF);
-    color: var(--cmc-s-primary, #6C47FF);
-    font-size: 13px;
-    font-weight: 600;
+    margin-top: auto !important;
+    text-align: center !important;
+    padding: 8px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--cmc-s-primary, #6C47FF) !important;
+    color: var(--cmc-s-primary, #6C47FF) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
 }
 
 /* ==========================================================================
@@ -418,82 +454,82 @@
    ========================================================================== */
 
 .swiper-slide.cmc-slide--glass {
-    width: 230px;
+    width: 230px !important;
 }
 
 .cmc-slide--glass {
-    border-radius: var(--cmc-s-radius, 16px);
-    overflow: hidden;
-    height: 100%;
-    padding: 10px;
-    background: linear-gradient(150deg, var(--cmc-s-primary, #6C47FF) 0%, var(--cmc-s-accent, #FF6B35) 100%);
+    border-radius: var(--cmc-s-radius, 16px) !important;
+    overflow: hidden !important;
+    height: 100% !important;
+    padding: 10px !important;
+    background: linear-gradient(150deg, var(--cmc-s-primary, #6C47FF) 0%, var(--cmc-s-accent, #FF6B35) 100%) !important;
 }
 
 .cmc-slide--glass__inner {
-    height: 100%;
-    border-radius: calc(var(--cmc-s-radius, 16px) - 4px);
-    background: color-mix(in srgb, #fff 18%, transparent);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid color-mix(in srgb, #fff 30%, transparent);
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    height: 100% !important;
+    border-radius: calc(var(--cmc-s-radius, 16px) - 4px) !important;
+    background: color-mix(in srgb, #fff 18%, transparent) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border: 1px solid color-mix(in srgb, #fff 30%, transparent) !important;
+    padding: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
 }
 
 .cmc-slide--glass__media {
-    display: block;
-    height: 120px;
-    background-size: cover;
-    background-position: center;
-    border-radius: 10px;
+    display: block !important;
+    height: 120px !important;
+    background-size: cover !important;
+    background-position: center !important;
+    border-radius: 10px !important;
 }
 
 .cmc-slide--glass__badge {
-    align-self: flex-start;
-    font-size: 11px;
-    font-weight: 700;
-    color: #fff;
-    background: color-mix(in srgb, #000 25%, transparent);
-    padding: 3px 9px;
-    border-radius: 999px;
+    align-self: flex-start !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    background: color-mix(in srgb, #000 25%, transparent) !important;
+    padding: 3px 9px !important;
+    border-radius: 999px !important;
 }
 
 .cmc-slide--glass__name {
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    color: #fff !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
 }
 
 .cmc-slide--glass__price {
-    color: #fff;
-    font-size: 13px;
+    color: #fff !important;
+    font-size: 13px !important;
 }
 
 .cmc-slide--glass__price ins {
-    color: #fff;
-    font-weight: 700;
-    text-decoration: none;
+    color: #fff !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
 }
 
 .cmc-slide--glass__price del {
-    opacity: 0.6;
+    opacity: 0.6 !important;
 }
 
 .cmc-slide--glass__cta {
-    margin-top: auto;
-    text-align: center;
-    padding: 8px;
-    border-radius: 8px;
-    background: color-mix(in srgb, #fff 90%, transparent);
-    color: #1a1d24;
-    font-size: 12px;
-    font-weight: 700;
+    margin-top: auto !important;
+    text-align: center !important;
+    padding: 8px !important;
+    border-radius: 8px !important;
+    background: color-mix(in srgb, #fff 90%, transparent) !important;
+    color: #1a1d24 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
 }
 
 /* ==========================================================================
@@ -501,90 +537,92 @@
    ========================================================================== */
 
 .swiper-slide.cmc-slide--bold {
-    width: 260px;
+    width: 260px !important;
 }
 
 .cmc-slide--bold {
-    border-radius: var(--cmc-s-radius, 16px);
-    overflow: hidden;
-    height: 100%;
-    display: flex;
-    flex-direction: row;
-    background: linear-gradient(160deg, var(--cmc-s-primary, #FF6B35) 0%, color-mix(in srgb, var(--cmc-s-primary, #FF6B35) 60%, #000) 100%);
-    color: #fff;
+    border-radius: var(--cmc-s-radius, 16px) !important;
+    overflow: hidden !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    background: linear-gradient(160deg, var(--cmc-s-primary, #FF6B35) 0%, color-mix(in srgb, var(--cmc-s-primary, #FF6B35) 60%, #000) 100%) !important;
+    color: #fff !important;
 }
 
 .cmc-slide--bold__media {
-    display: block;
-    flex-shrink: 0;
-    width: 90px;
-    background-size: cover;
-    background-position: center;
+    display: block !important;
+    flex-shrink: 0 !important;
+    width: 90px !important;
+    background-size: cover !important;
+    background-position: center !important;
 }
 
 .cmc-slide--bold__body {
-    flex: 1;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 8px;
-    min-width: 0;
+    flex: 1 !important;
+    padding: 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    min-width: 0 !important;
 }
 
 .cmc-slide--bold__percent {
-    font-size: 26px;
-    font-weight: 800;
-    line-height: 1.1;
-    color: var(--cmc-s-accent, #6C47FF);
-    margin-bottom: 4px;
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+    color: var(--cmc-s-accent, #6C47FF) !important;
+    margin-bottom: 4px !important;
 }
 
 .cmc-slide--bold__percent span {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    opacity: 0.85;
+    display: block !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    opacity: 0.85 !important;
 }
 
+/* ⚠️ CLEANUP: the original rule declared `display` twice (`block` then
+   `-webkit-box`) — the first was dead code, always overridden by the
+   second. Removed for clarity; behavior is unchanged. */
 .cmc-slide--bold__name {
-    display: block;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    display: -webkit-box !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    margin-bottom: 4px !important;
+    -webkit-line-clamp: 1 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
 }
 
 .cmc-slide--bold__price {
-    font-size: 13px;
+    font-size: 13px !important;
 }
 
 .cmc-slide--bold__price ins {
-    color: #fff;
-    font-weight: 700;
-    text-decoration: none;
+    color: #fff !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
 }
 
 .cmc-slide--bold__price del {
-    opacity: 0.55;
+    opacity: 0.55 !important;
 }
 
 .cmc-slide--bold__cta {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    text-align: center;
-    padding: 9px;
-    border-radius: 10px;
-    background: var(--cmc-s-accent, #6C47FF);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 700;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    text-align: center !important;
+    padding: 9px !important;
+    border-radius: 10px !important;
+    background: var(--cmc-s-accent, #6C47FF) !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
 }
 
 /* ==========================================================================
@@ -592,92 +630,92 @@
    ========================================================================== */
 
 .swiper-slide.cmc-slide--compact {
-    width: 160px;
+    width: 160px !important;
 }
 
 .cmc-slide--compact {
-    border-radius: var(--cmc-s-radius, 16px);
-    border: 1px solid #e9eaee;
-    background: #fff;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+    border-radius: var(--cmc-s-radius, 16px) !important;
+    border: 1px solid #e9eaee !important;
+    background: #fff !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
 }
 
 .cmc-slide--compact__media {
-    display: block;
-    height: 110px;
-    background-size: cover;
-    background-position: center;
-    background-color: #f4f5f7;
-    position: relative;
+    display: block !important;
+    height: 110px !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-color: #f4f5f7 !important;
+    position: relative !important;
 }
 
 .cmc-slide--compact__badge {
-    position: absolute;
-    top: 6px;
-    inset-inline-start: 6px;
-    font-size: 10px;
-    font-weight: 700;
-    color: #fff;
-    background: var(--cmc-s-primary, #6C47FF);
-    padding: 2px 7px;
-    border-radius: 999px;
+    position: absolute !important;
+    top: 6px !important;
+    inset-inline-start: 6px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    background: var(--cmc-s-primary, #6C47FF) !important;
+    padding: 2px 7px !important;
+    border-radius: 999px !important;
 }
 
 .cmc-slide--compact__body {
-    padding: 8px 10px 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
+    padding: 8px 10px 10px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    flex: 1 !important;
 }
 
 .cmc-slide--compact__name {
-    color: #1a1d24;
-    font-size: 12px;
-    font-weight: 600;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    color: #1a1d24 !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 1 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
 }
 
 .cmc-slide--compact__row {
-    margin-top: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
+    margin-top: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
 }
 
 .cmc-slide--compact__price {
-    font-size: 12px;
-    color: #1a1d24;
+    font-size: 12px !important;
+    color: #1a1d24 !important;
 }
 
 .cmc-slide--compact__price ins {
-    color: var(--cmc-s-primary, #6C47FF);
-    font-weight: 700;
-    text-decoration: none;
+    color: var(--cmc-s-primary, #6C47FF) !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
 }
 
 .cmc-slide--compact__price del {
-    color: #9aa0ac;
+    color: #9aa0ac !important;
 }
 
 .cmc-slide--compact__cta {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: var(--cmc-s-primary, #6C47FF);
-    color: #fff;
-    font-size: 13px;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 50% !important;
+    background: var(--cmc-s-primary, #6C47FF) !important;
+    color: #fff !important;
+    font-size: 13px !important;
 }
 
 /* -------------------------------------------------------------------- */
@@ -685,13 +723,13 @@
 /* -------------------------------------------------------------------- */
 
 @media (max-width: 640px) {
-    .swiper-slide.cmc-slide--flux    { width: 200px; }
-    .swiper-slide.cmc-slide--minimal { width: 180px; }
-    .swiper-slide.cmc-slide--glass   { width: 190px; }
-    .swiper-slide.cmc-slide--bold    { width: 220px; }
-    .swiper-slide.cmc-slide--compact { width: 130px; }
+    .swiper-slide.cmc-slide--flux    { width: 200px !important; }
+    .swiper-slide.cmc-slide--minimal { width: 180px !important; }
+    .swiper-slide.cmc-slide--glass   { width: 190px !important; }
+    .swiper-slide.cmc-slide--bold    { width: 220px !important; }
+    .swiper-slide.cmc-slide--compact { width: 130px !important; }
 
     .cmc-slider__head {
-        align-items: flex-start;
+        align-items: flex-start !important;
     }
 }
