@@ -826,7 +826,7 @@ class SettingsPage extends AbstractPage
                 </div>
 
                 <!-- Danger Zone -->
-                <div class="cmc-card" style="border-color:var(--cmc-danger);border-width:1.5px">
+                <div class="cmc-card" style="border-color:var(--cmc-danger);border-width:1.5px; margin-bottom:30px;">
                     <div class="cmc-card__header">
                         <div>
                             <div class="cmc-card__title" style="color:var(--cmc-danger)"><?php esc_html_e('منطقه خطر', 'campaignchi'); ?></div>
