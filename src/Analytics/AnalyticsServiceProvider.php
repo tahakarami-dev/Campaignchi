@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Msi\Campaignchi\Analytics;
 
 use Msi\Campaignchi\Analytics\Repositories\AnalyticsRepository;
+use Msi\Campaignchi\Analytics\Repositories\CampaignSalesRepository;
 use Msi\Campaignchi\Analytics\Services\AnalyticsService;
+use Msi\Campaignchi\Analytics\Services\CampaignSalesRecorder;
 use Msi\Campaignchi\Campaign\Pricing\CampaignProductResolver;
 use Msi\Campaignchi\Campaign\Pricing\CampaignResolver;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
@@ -17,15 +19,16 @@ use Msi\Campaignchi\Analytics\Services\ReportService;
 /**
  * Analytics Service Provider
  *
- * - ثبت AnalyticsRepository و AnalyticsService در کانتینر
- * - ثبت هوک فرانت برای شمارش بازدید (impression) محصولات کمپینی
- * - ثبت هوک‌های invalidation فوری برای کش‌های آماری داشبورد، تا داده‌ها
- *   بدون نیاز به منتظر ماندن برای انقضای TTL، بلافاصله به‌روز شوند
+ * - Registers analytics repositories/services in the container.
+ * - Registers the frontend impression-tracking hook.
+ * - Registers dashboard cache-invalidation hooks.
+ * - ⚠️ NEW: registers CampaignSalesRecorder — the event-log writer that
+ *   makes the Reports section accurate (see CampaignSalesRecorder).
  *
- * ⚠️ این provider باید بعد از PricingServiceProvider در
- * Application::registerProviders() قرار بگیرد، چون به
+ * ⚠️ Must be registered AFTER PricingServiceProvider in
+ * Application::registerProviders(), since it depends on
  * CampaignRepository / CampaignResolver / CampaignProductResolver
- * که آنجا singleton می‌شوند نیاز دارد.
+ * (singletons defined there).
  *
  * @package Msi\Campaignchi\Analytics
  */
@@ -38,6 +41,12 @@ class AnalyticsServiceProvider extends ServiceProvider
             fn() => new AnalyticsRepository()
         );
 
+        // NEW: accurate campaign-sales event log.
+        $this->container->singleton(
+            CampaignSalesRepository::class,
+            fn() => new CampaignSalesRepository()
+        );
+
         $this->container->singleton(
             AnalyticsService::class,
             fn($c) => new AnalyticsService(
@@ -48,10 +57,23 @@ class AnalyticsServiceProvider extends ServiceProvider
             )
         );
 
+        // NEW: the recorder that snapshots campaign sales at order time.
+        $this->container->singleton(
+            CampaignSalesRecorder::class,
+            fn($c) => new CampaignSalesRecorder(
+                $c->make(CampaignResolver::class),
+                $c->make(CampaignSalesRepository::class)
+            )
+        );
+
+        // ReportService now reads from the campaign-sales event log
+        // (accurate) instead of re-scanning every WooCommerce order and
+        // guessing campaign coverage by date.
         $this->container->singleton(
             ReportService::class,
             fn($c) => new ReportService(
-                $c->make(AnalyticsService::class),
+                $c->make(CampaignSalesRepository::class),
+                $c->make(AnalyticsRepository::class),
                 $c->make(CampaignRepository::class)
             )
         );
@@ -66,50 +88,36 @@ class AnalyticsServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // ⚠️ BUG FIX (dashboard data lagging behind real orders):
-        // Keep "today"'s dashboard stats accurate immediately after ANY
-        // WooCommerce order status change — checkout on the frontend,
-        // a manual status change from wp-admin's order list, or a
-        // programmatic/REST status change all fire this hook. This must
-        // be registered unconditionally (NOT behind the is_admin() guard
-        // below), because marking an order "completed" from wp-admin is
-        // itself an admin-context action that needs to trigger the same
-        // cache flush.
+        // Keep "today"'s dashboard stats fresh on any order status change.
         Hooks::action('woocommerce_order_status_changed', [$this, 'flushTodayCache']);
 
-        // A campaign's own create/update/delete/status-change, or a
-        // product's taxonomy/save event, can change which products are
-        // considered "campaign products" for analytics purposes —
-        // invalidate the cached candidates list used by every
-        // analytics calculation so it gets rebuilt on the next request.
+        // Campaign/product changes invalidate the cached analytics candidates.
         Hooks::action('cmc_campaign_changed', [AnalyticsService::class, 'flushCampaignCandidatesCache']);
         Hooks::action('set_object_terms', [AnalyticsService::class, 'flushCampaignCandidatesCache']);
         Hooks::action('save_post_product', [AnalyticsService::class, 'flushCampaignCandidatesCache']);
-        // Register the Reports CSV export handler (admin-ajax context).
+
+        // Reports CSV export handler + AJAX data endpoint (admin-ajax context).
         $this->container->make(ReportsAjaxController::class)->register();
+
+        // ⚠️ NEW: register the campaign-sales recorder UNCONDITIONALLY (not
+        // behind is_admin()), because checkout and order-status hooks fire
+        // in both frontend and admin contexts.
+        $this->container->make(CampaignSalesRecorder::class)->register();
 
         if (is_admin()) {
             return;
         }
 
-        // شمارش بازدید برای هر محصول کمپینی که در شاپ یا تک‌محصول رندر می‌شود
+        // Impression tracking for campaign products on shop/single pages.
         Hooks::action('woocommerce_before_shop_loop_item_title', [$this, 'trackImpression'], 5);
         Hooks::action('woocommerce_single_product_summary', [$this, 'trackImpression'], 5);
     }
 
-    /**
-     * Thin instance wrapper around AnalyticsService::flushTodayCache(),
-     * needed because hooks are registered from this provider but the
-     * cache-flush logic itself lives on the service.
-     */
     public function flushTodayCache(): void
     {
         $this->container->make(AnalyticsService::class)->flushTodayCache();
     }
 
-    /**
-     * اگر محصول جاری زیر یک کمپین زنده باشد، یک بازدید برای آن کمپین ثبت می‌کند.
-     */
     public function trackImpression(): void
     {
         global $product;

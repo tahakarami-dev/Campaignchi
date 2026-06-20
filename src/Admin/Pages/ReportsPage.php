@@ -12,17 +12,13 @@ use Msi\Campaignchi\Helpers\JalaliHelper;
 /**
  * Reports Page
  *
- * A focused, accounting-friendly sales report for campaigns. Every figure
- * shown here is produced by the SAME analytics engine that powers the
- * dashboard (AnalyticsService::getRangeReport → getDailyCampaignData →
- * the campaign-matching logic), only widened from "today" to an arbitrary
- * date range. Nothing here recomputes revenue/orders/views independently.
+ * Fully AJAX-driven: render() outputs only the shell (header, range bar)
+ * and skeleton placeholders. reports-page.js then fetches the actual
+ * figures via cmc_get_report_data and swaps each region's HTML in. Both
+ * preset changes and custom ranges re-fetch via AJAX (no full reload).
  *
- * The page is fully server-rendered: changing the range simply reloads
- * the page with `?cmc_page=reports&range=...` (preset) or
- * `&range=custom&from=...&to=...` (custom Jalali range), exactly like the
- * Campaigns list filter bar. JavaScript (reports-page.js) only wires the
- * Jalali date pickers and the "apply custom range" navigation.
+ * Every figure shown here is sourced from the accurate campaign-sales
+ * event log via ReportService — see CampaignSalesRecorder.
  *
  * @package Msi\Campaignchi\Admin\Pages
  */
@@ -41,22 +37,8 @@ class ReportsPage extends AbstractPage
         $from     = isset($_GET['from'])  ? sanitize_text_field((string) $_GET['from']) : null;
         $to       = isset($_GET['to'])    ? sanitize_text_field((string) $_GET['to'])   : null;
 
-        $range  = $service->resolveRange($rangeKey, $from, $to);
-        $report = $service->getReport($range);
-
-        $baseUrl   = AdminRouter::url('reports');
-        $exportUrl = add_query_arg(
-            [
-                'action' => 'cmc_export_report',
-                'nonce'  => wp_create_nonce('cmc_admin'),
-                'range'  => $range['key'],
-                'from'   => $range['key'] === 'custom' ? $range['start'] : '',
-                'to'     => $range['key'] === 'custom' ? $range['end']   : '',
-            ],
-            admin_url('admin-ajax.php')
-        );
-
-        $hasData = $report['summary']['orders'] > 0 || $report['summary']['impressions'] > 0;
+        $range   = $service->resolveRange($rangeKey, $from, $to);
+        $baseUrl = AdminRouter::url('reports');
 ?>
         <!-- ---- Page header + export ---- -->
         <div class="cmc-row cmc-row--between cmc-mb-5">
@@ -69,73 +51,62 @@ class ReportsPage extends AbstractPage
                     printf(
                         /* translators: %s: resolved range label. */
                         esc_html__('گزارش فروش کمپین‌ها — %s', 'campaignchi'),
-                        '<strong>' . esc_html($range['label']) . '</strong>'
+                        '<strong id="cmc-report-range-label">' . esc_html($range['label']) . '</strong>'
                     );
                     ?>
                 </p>
             </div>
-            <a href="<?php echo esc_url($exportUrl); ?>" class="cmc-btn cmc-btn--secondary">
+            <a href="#" id="cmc-report-export" class="cmc-btn cmc-btn--secondary">
                 <i class="ti ti-file-spreadsheet"></i>
-                <?php esc_html_e('خروجی اکسل (CSV)', 'campaignchi'); ?>
+                <?php esc_html_e('خروجی اکسل (سفارش‌ها)', 'campaignchi'); ?>
             </a>
         </div>
 
         <!-- ---- Range selector ---- -->
-        <?php $this->renderRangeBar($service, $range, $baseUrl); ?>
+        <?php $this->renderRangeBar($service, $range); ?>
 
-        <!-- ---- KPI cards ---- -->
-        <div class="cmc-grid cmc-grid--4 cmc-mb-5">
-            <?php
-            $summary = $report['summary'];
+        <!-- ---- KPI cards (skeleton until AJAX fills them) ---- -->
+        <div class="cmc-grid cmc-grid--4 cmc-mb-5" id="cmc-report-kpis"></div>
 
-            $this->renderStatCard(__('فروش کل', 'campaignchi'), $summary['revenue_abbr'], 'ti-cash', 'purple', $summary['revenue_full'] . ' ' . __('تومان', 'campaignchi'));
-            $this->renderStatCard(__('تعداد سفارش', 'campaignchi'), JalaliHelper::toPersianNums((string) $summary['orders']), 'ti-shopping-bag', 'orange', __('سفارش شامل محصول کمپین', 'campaignchi'));
-            $this->renderStatCard(__('بازدید', 'campaignchi'), $summary['impressions_label'], 'ti-eye', 'blue', __('بازدید محصولات کمپین', 'campaignchi'));
-            $this->renderStatCard(__('نرخ تبدیل', 'campaignchi'), $summary['conversion_label'], 'ti-click', 'green', __('سفارش به ازای بازدید', 'campaignchi'));
-            ?>
+        <!-- ---- Daily sales chart ---- -->
+        <div class="cmc-card cmc-mb-5">
+            <div class="cmc-card__header">
+                <div>
+                    <div class="cmc-card__title"><?php esc_html_e('روند فروش', 'campaignchi'); ?></div>
+                    <div class="cmc-card__subtitle"><?php esc_html_e('فروش محصولات کمپین در بازه‌ی انتخابی (تومان)', 'campaignchi'); ?></div>
+                </div>
+            </div>
+            <div id="cmc-report-chart"></div>
         </div>
 
-        <?php if (!$hasData): ?>
-            <div class="cmc-card">
-                <div class="cmc-empty" style="padding:var(--cmc-space-10) 0">
-                    <div class="cmc-empty__icon"><i class="ti ti-chart-bar-off"></i></div>
-                    <div class="cmc-empty__title"><?php esc_html_e('داده‌ای در این بازه ثبت نشده', 'campaignchi'); ?></div>
-                    <div class="cmc-empty__desc"><?php esc_html_e('در این بازه‌ی زمانی هیچ فروش یا بازدیدی برای محصولات کمپین ثبت نشده است. بازه‌ی دیگری را انتخاب کنید.', 'campaignchi'); ?></div>
-                </div>
+        <!-- ---- Per-campaign breakdown ---- -->
+        <div class="cmc-card cmc-card--flush cmc-mb-5">
+            <div class="cmc-card__header" style="padding:var(--cmc-space-5) var(--cmc-space-5) 0">
+                <div class="cmc-card__title"><?php esc_html_e('عملکرد کمپین‌ها', 'campaignchi'); ?></div>
             </div>
-        <?php else: ?>
+            <div id="cmc-report-campaigns"></div>
+        </div>
 
-            <!-- ---- Daily sales chart ---- -->
-            <div class="cmc-card cmc-mb-5">
-                <div class="cmc-card__header">
-                    <div>
-                        <div class="cmc-card__title"><?php esc_html_e('روند فروش روزانه', 'campaignchi'); ?></div>
-                        <div class="cmc-card__subtitle"><?php esc_html_e('فروش محصولات کمپین به تفکیک روز (تومان)', 'campaignchi'); ?></div>
-                    </div>
-                </div>
-                <?php $this->renderChart($report['series']); ?>
+        <!-- ---- Top products ---- -->
+        <div class="cmc-card cmc-card--flush" style="margin-bottom: 30px !important;">
+            <div class="cmc-card__header" style="padding:var(--cmc-space-5) var(--cmc-space-5) 0">
+                <div class="cmc-card__title"><?php esc_html_e('پرفروش‌ترین محصولات', 'campaignchi'); ?></div>
             </div>
+            <div id="cmc-report-products"></div>
+        </div>
 
-            <!-- ---- Per-campaign breakdown ---- -->
-            <div class="cmc-card cmc-card--flush cmc-mb-5">
-                <div class="cmc-card__header" style="padding:var(--cmc-space-5) var(--cmc-space-5) 0">
-                    <div class="cmc-card__title"><?php esc_html_e('عملکرد کمپین‌ها', 'campaignchi'); ?></div>
-                </div>
-                <?php $this->renderCampaignsTable($report['campaigns']); ?>
-            </div>
-
-            <!-- ---- Top products ---- -->
-            <div class="cmc-card cmc-card--flush">
-                <div class="cmc-card__header" style="padding:var(--cmc-space-5) var(--cmc-space-5) 0">
-                    <div class="cmc-card__title"><?php esc_html_e('پرفروش‌ترین محصولات', 'campaignchi'); ?></div>
-                </div>
-                <?php $this->renderTopProducts(array_slice($report['top_products'], 0, 10)); ?>
-            </div>
-
-        <?php endif; ?>
-
-        <!-- Range base URL for the custom-range navigation in reports-page.js -->
         <input type="hidden" id="cmc-report-base" value="<?php echo esc_attr($baseUrl); ?>">
+
+        <script>
+            window.CMC_REPORT = {
+                range: <?php echo wp_json_encode($range['key']); ?>,
+                from: <?php echo wp_json_encode($range['key'] === 'custom' ? $range['start'] : ''); ?>,
+                to: <?php echo wp_json_encode($range['key'] === 'custom' ? $range['end'] : ''); ?>,
+                isCustom: <?php echo wp_json_encode($range['key'] === 'custom'); ?>
+            };
+        </script>
+
+        <?php $this->renderSkeletonStyles(); ?>
 <?php
     }
 
@@ -143,32 +114,23 @@ class ReportsPage extends AbstractPage
     // RANGE BAR
     // -------------------------------------------------------
 
-    private function renderRangeBar(ReportService $service, array $range, string $baseUrl): void
+    private function renderRangeBar(ReportService $service, array $range): void
     {
         $isCustom = $range['key'] === 'custom';
 ?>
         <div class="cmc-card cmc-mb-5" style="padding:var(--cmc-space-4)">
-            <div class="cmc-row cmc-row--sm" style="flex-wrap:wrap;gap:var(--cmc-space-2)">
-
+            <div class="cmc-row cmc-row--sm" style="flex-wrap:wrap;gap:var(--cmc-space-2)" id="cmc-report-presets">
                 <?php foreach ($service->presets() as $key => $label): ?>
-                    <?php if ($key === 'custom'): ?>
-                        <button type="button"
-                            class="cmc-btn cmc-btn--sm <?php echo $isCustom ? 'cmc-btn--primary' : 'cmc-btn--secondary'; ?>"
-                            id="cmc-report-custom-toggle">
-                            <i class="ti ti-calendar-event"></i>
-                            <?php echo esc_html($label); ?>
-                        </button>
-                    <?php else: ?>
-                        <a href="<?php echo esc_url(add_query_arg('range', $key, $baseUrl)); ?>"
-                            class="cmc-btn cmc-btn--sm <?php echo $range['key'] === $key ? 'cmc-btn--primary' : 'cmc-btn--secondary'; ?>">
-                            <?php echo esc_html($label); ?>
-                        </a>
-                    <?php endif; ?>
+                    <button type="button"
+                        class="cmc-btn cmc-btn--sm cmc-report-preset <?php echo $range['key'] === $key ? 'cmc-btn--primary' : 'cmc-btn--secondary'; ?>"
+                        data-range="<?php echo esc_attr($key); ?>">
+                        <?php if ($key === 'custom'): ?><i class="ti ti-calendar-event"></i><?php endif; ?>
+                        <?php echo esc_html($label); ?>
+                    </button>
                 <?php endforeach; ?>
-
             </div>
 
-            <!-- Custom Jalali range row (revealed by the "بازه دلخواه" button) -->
+            <!-- Custom Jalali range row -->
             <div id="cmc-report-custom-row"
                  class="cmc-row cmc-row--sm"
                  style="flex-wrap:wrap;gap:var(--cmc-space-3);margin-top:<?php echo $isCustom ? 'var(--cmc-space-4)' : '0'; ?>;display:<?php echo $isCustom ? 'flex' : 'none'; ?>">
@@ -204,32 +166,49 @@ class ReportsPage extends AbstractPage
                 </div>
             </div>
         </div>
-
-        <script>
-            // Pre-fill the custom-range pickers with the active range (edit mode).
-            window.CMC_REPORT = {
-                isCustom: <?php echo wp_json_encode($isCustom); ?>,
-                from: <?php echo wp_json_encode($isCustom ? $range['start'] . 'T00:00' : ''); ?>,
-                to: <?php echo wp_json_encode($isCustom ? $range['end'] . 'T00:00' : ''); ?>
-            };
-        </script>
 <?php
     }
 
-    // -------------------------------------------------------
-    // CHART (pure-CSS bars, reusing panel.css `.cmc-chart-bars`)
-    // -------------------------------------------------------
+    // =========================================================
+    // AJAX FRAGMENTS (called by ReportsAjaxController)
+    // =========================================================
+
+    /** @param array<string,mixed> $summary */
+    public function renderKpisFragment(array $summary): string
+    {
+        ob_start();
+        $this->renderStatCard(__('فروش کل', 'campaignchi'), $summary['revenue_abbr'], 'ti-cash', 'purple', $summary['revenue_full'] . ' ' . __('تومان', 'campaignchi'));
+        $this->renderStatCard(__('تعداد سفارش', 'campaignchi'), JalaliHelper::toPersianNums((string) $summary['orders']), 'ti-shopping-bag', 'orange', __('سفارش شامل محصول کمپین', 'campaignchi'));
+        $this->renderStatCard(__('بازدید', 'campaignchi'), $summary['impressions_label'], 'ti-eye', 'blue', __('بازدید محصولات کمپین', 'campaignchi'));
+        $this->renderStatCard(__('نرخ تبدیل', 'campaignchi'), $summary['conversion_label'], 'ti-click', 'green', __('سفارش به ازای بازدید', 'campaignchi'));
+        return (string) ob_get_clean();
+    }
 
     /**
-     * @param array<int, array{label:string, revenue:float, percent:int, value_label:string}> $series
+     * @param array<int, array<string,mixed>> $series
      */
-    private function renderChart(array $series): void
+    public function renderChartFragment(array $series, bool $hasData): string
     {
-        // Thin, horizontally-scrollable bars so a 30-day range stays readable.
-        $minWidth = max(0, count($series) * 34);
-?>
-        <div style="overflow-x:auto">
-            <div class="cmc-chart-bars" style="min-width:<?php echo esc_attr((string) $minWidth); ?>px">
+        ob_start();
+
+        if (!$hasData || empty($series)) {
+            ?>
+            <div class="cmc-empty" style="padding:var(--cmc-space-10) 0">
+                <div class="cmc-empty__icon"><i class="ti ti-chart-bar-off"></i></div>
+                <div class="cmc-empty__title"><?php esc_html_e('داده‌ای در این بازه ثبت نشده', 'campaignchi'); ?></div>
+                <div class="cmc-empty__desc"><?php esc_html_e('در این بازه هیچ فروشی از محصولات کمپین ثبت نشده است. بازه‌ی دیگری را انتخاب کنید.', 'campaignchi'); ?></div>
+            </div>
+            <?php
+            return (string) ob_get_clean();
+        }
+
+        // ⚠️ Bug #4: taller chart + generous top padding so the value
+        // tooltip (which sits at top:-28px above each bar) is never clipped
+        // by the card edge or the section above it.
+        $minWidth = max(0, count($series) * 38);
+        ?>
+        <div style="overflow-x:auto;padding-top:34px">
+            <div class="cmc-chart-bars" style="height:220px;min-width:<?php echo esc_attr((string) $minWidth); ?>px">
                 <div class="cmc-chart-bars__grid">
                     <span></span><span></span><span></span><span></span>
                 </div>
@@ -243,18 +222,17 @@ class ReportsPage extends AbstractPage
                 </div>
             </div>
         </div>
-<?php
+        <?php
+        return (string) ob_get_clean();
     }
 
-    // -------------------------------------------------------
-    // CAMPAIGNS TABLE
-    // -------------------------------------------------------
-
     /**
-     * @param array<int, array<string, mixed>> $campaigns
+     * @param array<int, array<string,mixed>> $campaigns
      */
-    private function renderCampaignsTable(array $campaigns): void
+    public function renderCampaignsFragment(array $campaigns): string
     {
+        ob_start();
+
         if (empty($campaigns)) {
             ?>
             <div class="cmc-empty" style="padding:var(--cmc-space-6) 0">
@@ -262,7 +240,7 @@ class ReportsPage extends AbstractPage
                 <div class="cmc-empty__title"><?php esc_html_e('کمپینی در این بازه فروش نداشته', 'campaignchi'); ?></div>
             </div>
             <?php
-            return;
+            return (string) ob_get_clean();
         }
         ?>
         <div class="cmc-table-wrap">
@@ -314,17 +292,18 @@ class ReportsPage extends AbstractPage
             </table>
         </div>
         <?php
+        return (string) ob_get_clean();
     }
 
-    // -------------------------------------------------------
-    // TOP PRODUCTS
-    // -------------------------------------------------------
-
     /**
-     * @param array<int, array{name:string, qty:int, campaign_title:string}> $products
+     * @param array<int, array<string,mixed>> $products
      */
-    private function renderTopProducts(array $products): void
+    public function renderProductsFragment(array $products): string
     {
+        ob_start();
+
+        $products = array_slice($products, 0, 10);
+
         if (empty($products)) {
             ?>
             <div class="cmc-empty" style="padding:var(--cmc-space-6) 0">
@@ -332,7 +311,7 @@ class ReportsPage extends AbstractPage
                 <div class="cmc-empty__title"><?php esc_html_e('محصولی در این بازه فروخته نشده', 'campaignchi'); ?></div>
             </div>
             <?php
-            return;
+            return (string) ob_get_clean();
         }
         ?>
         <div class="cmc-table-wrap">
@@ -358,6 +337,7 @@ class ReportsPage extends AbstractPage
             </table>
         </div>
         <?php
+        return (string) ob_get_clean();
     }
 
     // -------------------------------------------------------
@@ -380,6 +360,35 @@ class ReportsPage extends AbstractPage
             </div>
         </div>
         <?php
+    }
+
+    /** Skeleton shimmer used while AJAX fragments load. */
+    private function renderSkeletonStyles(): void
+    {
+    ?>
+        <style>
+            .cmc-skel {
+                position: relative;
+                overflow: hidden;
+                background: var(--cmc-surface-2);
+                border-radius: var(--cmc-radius-md);
+            }
+            .cmc-skel::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                transform: translateX(100%);
+                background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.04), transparent);
+                animation: cmc-skel-shimmer 1.2s infinite;
+            }
+            @keyframes cmc-skel-shimmer {
+                100% { transform: translateX(-100%); }
+            }
+            .cmc-skel-card { height: 116px; border: 1px solid var(--cmc-border); }
+            .cmc-skel-line { height: 14px; margin: 10px var(--cmc-space-5); }
+            .cmc-skel-chart { height: 220px; margin-top: var(--cmc-space-4); }
+        </style>
+<?php
     }
 
     private function reportService(): ReportService

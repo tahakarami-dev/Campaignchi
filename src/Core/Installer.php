@@ -24,8 +24,12 @@ class Installer
     /** @var string DB schema version option key */
     private const DB_VERSION_KEY = 'cmc_db_version';
 
-    /** @var string Current schema version */
-    private const DB_VERSION = '1.1.0'; // ⚠️ BUG FIX: was the corrupted literal '1.1maybeUpgrade.0', which would never equal itself across requests in a meaningful way and is just an invalid version string.
+    /**
+     * Current schema version.
+     * ⚠️ Bumped to 1.2.0 to add the cmc_campaign_sales event-log table
+     * (the new accurate source of truth for the Reports section).
+     */
+    private const DB_VERSION = '1.2.0';
 
     // -------------------------------------------------------
     // Activation
@@ -115,7 +119,7 @@ class Installer
             KEY rule_type (rule_type)
         ) $charset;";
 
-        // Table: campaign_stats (aggregated analytics)
+        // Table: campaign_stats (aggregated analytics — impressions)
         $campaign_stats = "CREATE TABLE {$wpdb->prefix}cmc_campaign_stats (
             id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             campaign_id BIGINT UNSIGNED NOT NULL,
@@ -131,18 +135,46 @@ class Installer
 
         // Table: sliders
         $sliders = "CREATE TABLE {$wpdb->prefix}cmc_sliders (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-        title VARCHAR(190) NOT NULL,
-        template VARCHAR(40) NOT NULL,
-        campaign_id BIGINT UNSIGNED NULL,
-        settings LONGTEXT NULL,
-        created_at DATETIME NOT NULL,
-        updated_at DATETIME NOT NULL,
-        PRIMARY KEY (id),
-        KEY template (template),
-        KEY campaign_id (campaign_id)
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            title VARCHAR(190) NOT NULL,
+            template VARCHAR(40) NOT NULL,
+            campaign_id BIGINT UNSIGNED NULL,
+            settings LONGTEXT NULL,
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME NOT NULL,
+            PRIMARY KEY (id),
+            KEY template (template),
+            KEY campaign_id (campaign_id)
         ) {$charset};";
 
+        // ⚠️ NEW — Table: campaign_sales (accurate event log)
+        // One row per (order, product, campaign) captured AT THE MOMENT the
+        // order is created — when the campaign is provably live and its
+        // discount was actually applied. This removes all retroactive
+        // "was this product under a campaign back then?" guessing from the
+        // Reports section. order_status is kept in sync with the WooCommerce
+        // order so reports can filter to paid orders without joining the
+        // orders table (HPOS-safe). sold_at is stored in SITE-LOCAL time so
+        // it can be filtered directly against the site-local Jalali ranges
+        // chosen in the UI.
+        $campaign_sales = "CREATE TABLE {$wpdb->prefix}cmc_campaign_sales (
+            id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            order_id       BIGINT UNSIGNED NOT NULL,
+            campaign_id    BIGINT UNSIGNED NOT NULL,
+            product_id     BIGINT UNSIGNED NOT NULL,
+            qty            INT UNSIGNED    NOT NULL DEFAULT 0,
+            revenue        DECIMAL(12,2)   NOT NULL DEFAULT 0,
+            customer_name  VARCHAR(255)    NOT NULL DEFAULT '',
+            customer_email VARCHAR(255)    NOT NULL DEFAULT '',
+            order_status   VARCHAR(30)     NOT NULL DEFAULT '',
+            sold_at        DATETIME        NOT NULL,
+            created_at     DATETIME        NOT NULL,
+            PRIMARY KEY (id),
+            UNIQUE KEY order_product_campaign (order_id, product_id, campaign_id),
+            KEY campaign_id (campaign_id),
+            KEY order_status (order_status),
+            KEY sold_at (sold_at)
+        ) {$charset};";
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($campaigns);
@@ -150,6 +182,7 @@ class Installer
         dbDelta($campaign_rules);
         dbDelta($campaign_stats);
         dbDelta($sliders);
+        dbDelta($campaign_sales);
 
         update_option(self::DB_VERSION_KEY, self::DB_VERSION);
     }
@@ -183,14 +216,6 @@ class Installer
 
     /**
      * Schedule recurring background tasks.
-     *
-     * Uses the 'cmc_five_minutes' custom interval registered by
-     * PricingServiceProvider::registerCronSchedule() — that filter
-     * runs on every request (plugins_loaded), so it's available
-     * by the time WP-Cron actually fires this event.
-     *
-     * If a previous version scheduled this event with a different
-     * recurrence (e.g. 'hourly'), it's unscheduled first.
      */
     private static function scheduleEvents(): void
     {
@@ -220,9 +245,9 @@ class Installer
 
     /**
      * Re-run table creation if the stored DB version is older than the
-     * current DB_VERSION. Needed so sites that already had Campaignchi
-     * active before this feature shipped still get the new cmc_sliders
-     * table, without requiring a deactivate/reactivate cycle.
+     * current DB_VERSION. Sites that already had Campaignchi active before
+     * this feature shipped get the new cmc_campaign_sales table here,
+     * without requiring a deactivate/reactivate cycle.
      */
     public static function maybeUpgrade(): void
     {

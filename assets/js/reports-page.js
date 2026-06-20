@@ -1,14 +1,12 @@
 /**
  * Campaignchi — admin "Reports" page controller.
  *
- * The report itself is fully server-rendered; this script only handles the
- * custom date-range interaction:
- *   - initializes the shared Jalali date pickers (CMCDatePicker),
- *   - pre-fills them with the currently-active custom range (edit mode),
- *   - toggles the custom-range row open,
- *   - and navigates to the report URL with the chosen from/to dates.
- *
- * Preset ranges are plain links (no JS needed) — see ReportsPage::renderRangeBar().
+ * The Reports page is fully AJAX-driven: PHP renders only the shell
+ * (header + range bar) plus empty regions; this script fills every region
+ * with server-rendered HTML fragments fetched via cmc_get_report_data,
+ * showing skeleton placeholders meanwhile. Preset changes and custom
+ * ranges both re-fetch without a full page reload, and keep the URL and
+ * the CSV export link in sync.
  */
 (function (window, document) {
     'use strict';
@@ -17,7 +15,106 @@
         return document.getElementById(id);
     }
 
-    /** Reveal the custom-range row and scroll it into view. */
+    /* ---------------------------------------------------------------- */
+    /* Skeleton templates (shown while a region is loading)             */
+    /* ---------------------------------------------------------------- */
+
+    function kpiSkeleton() {
+        var card = '<div class="cmc-skel cmc-skel-card"></div>';
+        return card + card + card + card;
+    }
+
+    function chartSkeleton() {
+        return '<div class="cmc-skel cmc-skel-chart"></div>';
+    }
+
+    function tableSkeleton(rows) {
+        var html = '<div style="padding:var(--cmc-space-4) 0">';
+        for (var i = 0; i < rows; i++) {
+            html += '<div class="cmc-skel cmc-skel-line" style="width:' + (60 + (i % 4) * 10) + '%"></div>';
+        }
+        return html + '</div>';
+    }
+
+    function showSkeletons() {
+        $('cmc-report-kpis').innerHTML = kpiSkeleton();
+        $('cmc-report-chart').innerHTML = chartSkeleton();
+        $('cmc-report-campaigns').innerHTML = tableSkeleton(5);
+        $('cmc-report-products').innerHTML = tableSkeleton(4);
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* Data fetch + render                                              */
+    /* ---------------------------------------------------------------- */
+
+    function fetchReport(rangeKey, from, to, pushHistory) {
+        showSkeletons();
+
+        var params = { range: rangeKey };
+        if (rangeKey === 'custom') {
+            params.from = (from || '').substring(0, 10);
+            params.to = (to || '').substring(0, 10);
+        }
+
+        // CMC.ajax() always POSTs (FormData) with the shared nonce.
+        CMC.ajax('cmc_get_report_data', params)
+            .then(function (res) {
+                $('cmc-report-kpis').innerHTML = res.kpis;
+                $('cmc-report-chart').innerHTML = res.chart;
+                $('cmc-report-campaigns').innerHTML = res.campaigns;
+                $('cmc-report-products').innerHTML = res.products;
+
+                var label = $('cmc-report-range-label');
+                if (label) {
+                    label.textContent = res.range_label;
+                }
+
+                var exportBtn = $('cmc-report-export');
+                if (exportBtn) {
+                    exportBtn.href = res.export_url;
+                }
+
+                setActivePreset(res.range_key);
+
+                if (pushHistory) {
+                    updateUrl(res.range_key, params.from, params.to);
+                }
+            })
+            .catch(function () {
+                if (window.CMC && typeof CMC.toast === 'function') {
+                    CMC.toast('خطا در بارگذاری گزارش.', 'danger');
+                }
+                $('cmc-report-chart').innerHTML =
+                    '<div style="padding:40px;text-align:center;color:var(--cmc-danger)">خطا در بارگذاری گزارش.</div>';
+            });
+    }
+
+    function setActivePreset(rangeKey) {
+        document.querySelectorAll('.cmc-report-preset').forEach(function (btn) {
+            var active = btn.dataset.range === rangeKey;
+            btn.classList.toggle('cmc-btn--primary', active);
+            btn.classList.toggle('cmc-btn--secondary', !active);
+        });
+    }
+
+    function updateUrl(rangeKey, from, to) {
+        var base = $('cmc-report-base');
+        if (!base || !window.history || !window.history.pushState) {
+            return;
+        }
+
+        var url = base.value + '&range=' + encodeURIComponent(rangeKey);
+        if (rangeKey === 'custom' && from && to) {
+            url += '&from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to);
+        }
+
+        window.history.pushState({ range: rangeKey }, '', url);
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* Custom range UI                                                  */
+    /* ---------------------------------------------------------------- */
+
     function openCustomRow() {
         var row = $('cmc-report-custom-row');
         if (row) {
@@ -27,11 +124,9 @@
         }
     }
 
-    /** Build the report URL for a custom range and navigate to it. */
     function applyCustomRange() {
         var fromEl = $('cmc-report-from');
         var toEl = $('cmc-report-to');
-        var baseEl = $('cmc-report-base');
 
         var from = fromEl ? fromEl.value : '';
         var to = toEl ? toEl.value : '';
@@ -43,40 +138,50 @@
             return;
         }
 
-        var base = baseEl ? baseEl.value : '';
-        var url = base
-            + '&range=custom'
-            + '&from=' + encodeURIComponent(from.substring(0, 10))
-            + '&to=' + encodeURIComponent(to.substring(0, 10));
-
-        window.location.href = url;
+        fetchReport('custom', from, to, true);
     }
 
+    /* ---------------------------------------------------------------- */
+    /* Init                                                             */
+    /* ---------------------------------------------------------------- */
+
     document.addEventListener('DOMContentLoaded', function () {
-        // Initialize the shared Jalali date pickers (idempotent — guarded internally).
+        // Jalali date pickers for the custom-range inputs (idempotent).
         if (typeof CMCDatePicker !== 'undefined') {
             CMCDatePicker.init();
 
-            // Pre-fill the pickers when re-opening an existing custom range,
-            // so the display inputs show the active dates instead of being blank.
             if (window.CMC_REPORT && window.CMC_REPORT.isCustom) {
                 if (window.CMC_REPORT.from) {
-                    CMCDatePicker.setValue('cmc-report-from', window.CMC_REPORT.from);
+                    CMCDatePicker.setValue('cmc-report-from', window.CMC_REPORT.from + 'T00:00');
                 }
                 if (window.CMC_REPORT.to) {
-                    CMCDatePicker.setValue('cmc-report-to', window.CMC_REPORT.to);
+                    CMCDatePicker.setValue('cmc-report-to', window.CMC_REPORT.to + 'T00:00');
                 }
             }
         }
 
-        var toggleBtn = $('cmc-report-custom-toggle');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', openCustomRow);
-        }
+        // Preset buttons.
+        document.querySelectorAll('.cmc-report-preset').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var range = btn.dataset.range;
+
+                if (range === 'custom') {
+                    setActivePreset('custom');
+                    openCustomRow();
+                    return; // wait for the user to apply concrete dates
+                }
+
+                fetchReport(range, '', '', true);
+            });
+        });
 
         var applyBtn = $('cmc-report-apply');
         if (applyBtn) {
             applyBtn.addEventListener('click', applyCustomRange);
         }
+
+        // Initial load — render the range that PHP resolved on first paint.
+        var initial = window.CMC_REPORT || { range: 'last7', from: '', to: '' };
+        fetchReport(initial.range, initial.from, initial.to, false);
     });
 })(window, document);
