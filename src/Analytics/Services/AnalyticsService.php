@@ -36,6 +36,9 @@ use Msi\Campaignchi\Helpers\JalaliHelper;
  */
 class AnalyticsService
 {
+    /** Versioned cache-key prefix for per-day campaign data. Bumped to v2 when the per-campaign breakdown was added. */
+    private const DAILY_CACHE_PREFIX = 'cmc_daily_campaign_data_v2_';
+
     /** وضعیت سفارش‌هایی که "فروش قطعی" محسوب می‌شوند */
     private const ORDER_STATUSES = ['processing', 'completed'];
 
@@ -446,7 +449,7 @@ class AnalyticsService
      */
     private function getDailyCampaignData(array $range): array
     {
-        $cacheKey = 'cmc_daily_campaign_data_' . $range['date'];
+        $cacheKey = self::DAILY_CACHE_PREFIX . $range['date'];
 
         $cached = get_transient($cacheKey);
         if ($cached !== false) {
@@ -466,10 +469,12 @@ class AnalyticsService
         $revenue         = 0.0;
         $orderCount      = 0;
         $products        = [];
+        $campaigns       = [];
         $orderActivities = [];
 
         foreach ($orders as $order) {
             $hasCampaignItem = false;
+            $orderId         = $order->get_id();
 
             foreach ($order->get_items() as $item) {
                 $product = $item->get_product();
@@ -485,8 +490,11 @@ class AnalyticsService
                 }
 
                 $hasCampaignItem = true;
-                $revenue += (float) $item->get_total();
+                $itemTotal       = (float) $item->get_total();
+                $itemQty         = (int) $item->get_quantity();
+                $revenue        += $itemTotal;
 
+                // Per-product accumulation (existing behavior).
                 if (!isset($products[$productId])) {
                     $products[$productId] = [
                         'id'             => $productId,
@@ -494,18 +502,43 @@ class AnalyticsService
                         'campaign_title' => $campaign->title,
                     ];
                 }
+                $products[$productId]['qty'] += $itemQty;
 
-                $products[$productId]['qty'] += (int) $item->get_quantity();
+                // Per-campaign accumulation (NEW) — same matched campaign,
+                // same loop, no extra query. Orders are de-duplicated per
+                // campaign via the temporary `_orders` set, finalized below.
+                $cid = $campaign->id;
+                if (!isset($campaigns[$cid])) {
+                    $campaigns[$cid] = [
+                        'id'      => $cid,
+                        'title'   => $campaign->title,
+                        'type'    => $campaign->type,
+                        'revenue' => 0.0,
+                        'qty'     => 0,
+                        '_orders' => [],
+                    ];
+                }
+                $campaigns[$cid]['revenue']        += $itemTotal;
+                $campaigns[$cid]['qty']            += $itemQty;
+                $campaigns[$cid]['_orders'][$orderId] = true;
             }
 
             if ($hasCampaignItem) {
                 $orderCount++;
                 $orderActivities[] = [
-                    'order_id' => $order->get_id(),
+                    'order_id' => $orderId,
                     'time'     => $order->get_date_created()->getTimestamp(),
                 ];
             }
         }
+
+        // Finalize per-campaign order counts (count distinct orders that
+        // contained at least one item from that campaign).
+        foreach ($campaigns as &$campaignRow) {
+            $campaignRow['orders'] = count($campaignRow['_orders']);
+            unset($campaignRow['_orders']);
+        }
+        unset($campaignRow);
 
         usort($products, fn($a, $b) => $b['qty'] <=> $a['qty']);
 
@@ -513,6 +546,7 @@ class AnalyticsService
             'revenue'          => $revenue,
             'orders'           => $orderCount,
             'products'         => array_values($products),
+            'campaigns'        => array_values($campaigns),
             'order_activities' => $orderActivities,
         ];
 
@@ -551,7 +585,7 @@ class AnalyticsService
     public function flushTodayCache(): void
     {
         $today = (new \DateTime('now', wp_timezone()))->format('Y-m-d');
-        delete_transient('cmc_daily_campaign_data_' . $today);
+        delete_transient(self::DAILY_CACHE_PREFIX . $today);
     }
 
     // =========================================================
@@ -805,5 +839,189 @@ class AnalyticsService
         $w = (int) (new \DateTime($dateStr, wp_timezone()))->format('w');
 
         return JalaliHelper::weekdayName($w);
+    }
+
+    // =========================================================
+    // RANGE REPORT — منبع واحد گزارش‌های صفحه‌ی «گزارش‌ها»
+    // همه‌ی اعداد از getDailyCampaignData (همان موتور داشبورد) می‌آیند،
+    // فقط روی یک بازه‌ی دلخواه به‌جای «امروز» تجمیع می‌شوند.
+    // =========================================================
+
+    /**
+     * گزارش کامل یک بازه‌ی تاریخی: خلاصه‌ی KPI، سری روزانه، تفکیک
+     * per-کمپین و پرفروش‌ترین محصولات.
+     *
+     * @param string $startDate Y-m-d (site-local)
+     * @param string $endDate   Y-m-d (site-local)
+     */
+    public function getRangeReport(string $startDate, string $endDate): array
+    {
+        $dates = $this->datesInRange($startDate, $endDate);
+
+        $series         = [];
+        $totalRevenue   = 0.0;
+        $totalOrders    = 0;
+        $campaignAgg    = [];
+        $productAgg     = [];
+        $today          = (new \DateTime('now', wp_timezone()))->format('Y-m-d');
+
+        foreach ($dates as $date) {
+            $range = $this->dayRangeForDate(new \DateTime($date, wp_timezone()));
+            $daily = $this->getDailyCampaignData($range);
+
+            $series[] = [
+                'label'       => $this->shortJalaliLabel($date),
+                'date'        => $date,
+                'revenue'     => $daily['revenue'],
+                'orders'      => $daily['orders'],
+                'is_today'    => $date === $today,
+                'value_label' => $this->abbreviateNumber($daily['revenue']),
+            ];
+
+            $totalRevenue += $daily['revenue'];
+            $totalOrders  += $daily['orders'];
+
+            foreach ($daily['campaigns'] as $c) {
+                $cid = $c['id'];
+                if (!isset($campaignAgg[$cid])) {
+                    $campaignAgg[$cid] = [
+                        'id'      => $cid,
+                        'title'   => $c['title'],
+                        'type'    => $c['type'],
+                        'revenue' => 0.0,
+                        'orders'  => 0,
+                        'qty'     => 0,
+                    ];
+                }
+                $campaignAgg[$cid]['revenue'] += $c['revenue'];
+                $campaignAgg[$cid]['orders']  += $c['orders'];
+                $campaignAgg[$cid]['qty']     += $c['qty'];
+            }
+
+            foreach ($daily['products'] as $p) {
+                $pid = $p['id'];
+                if (!isset($productAgg[$pid])) {
+                    $productAgg[$pid] = ['id' => $pid, 'qty' => 0, 'campaign_title' => $p['campaign_title']];
+                }
+                $productAgg[$pid]['qty'] += $p['qty'];
+            }
+        }
+
+        // بازدید per-کمپین از همان جدول stats (منبع یکسان با داشبورد).
+        $impressionsByCampaign = $this->stats->getImpressionsByCampaign($startDate, $endDate);
+        $totalImpressions      = array_sum($impressionsByCampaign);
+
+        // Chart percentages.
+        $maxRevenue = max(array_column($series, 'revenue') ?: [0]);
+        $maxRevenue = $maxRevenue > 0 ? $maxRevenue : 1;
+        foreach ($series as &$bar) {
+            $bar['percent'] = (int) round(($bar['revenue'] / $maxRevenue) * 100);
+        }
+        unset($bar);
+
+        // Enrich + finalize per-campaign rows.
+        $campaigns = [];
+        foreach ($campaignAgg as $c) {
+            $impressions  = $impressionsByCampaign[$c['id']] ?? 0;
+            $conversion   = $this->conversionRate($c['orders'], $impressions);
+            $campaigns[]  = [
+                'id'               => $c['id'],
+                'title'            => $c['title'],
+                'type'             => $c['type'],
+                'revenue'          => $c['revenue'],
+                'revenue_full'     => $this->formatToman($c['revenue']),
+                'orders'           => $c['orders'],
+                'qty'              => $c['qty'],
+                'impressions'      => $impressions,
+                'conversion'       => $conversion,
+                'conversion_label' => $this->formatPercent($conversion),
+            ];
+        }
+        usort($campaigns, fn($a, $b) => $b['revenue'] <=> $a['revenue']);
+
+        // Top products (limit 50; the page slices to 10, the CSV keeps all).
+        usort($productAgg, fn($a, $b) => $b['qty'] <=> $a['qty']);
+        $topProducts = [];
+        foreach (array_slice(array_values($productAgg), 0, 50) as $p) {
+            $product = wc_get_product($p['id']);
+            $topProducts[] = [
+                'id'             => $p['id'],
+                'name'           => $product ? $product->get_name() : ('#' . $p['id']),
+                'qty'            => $p['qty'],
+                'campaign_title' => $p['campaign_title'],
+            ];
+        }
+
+        $conversion = $this->conversionRate($totalOrders, $totalImpressions);
+        $aov        = $totalOrders > 0 ? $totalRevenue / $totalOrders : 0.0;
+
+        return [
+            'summary' => [
+                'revenue'            => $totalRevenue,
+                'revenue_abbr'       => $this->abbreviateNumber($totalRevenue),
+                'revenue_full'       => $this->formatToman($totalRevenue),
+                'orders'             => $totalOrders,
+                'impressions'        => $totalImpressions,
+                'impressions_label'  => $this->abbreviateNumber((float) $totalImpressions),
+                'conversion'         => $conversion,
+                'conversion_label'   => $this->formatPercent($conversion),
+                'aov'                => $aov,
+                'aov_label'          => $this->formatToman($aov),
+            ],
+            'series'       => $series,
+            'campaigns'    => $campaigns,
+            'top_products' => $topProducts,
+        ];
+    }
+
+    /**
+     * فهرست تاریخ‌های Y-m-d در یک بازه (شامل دو مرز)، با محدودسازی به
+     * «امروز» و سقف امن برای جلوگیری از پیمایش بیش از حد.
+     *
+     * @return string[]
+     */
+    private function datesInRange(string $startDate, string $endDate): array
+    {
+        $today = (new \DateTime('now', wp_timezone()))->format('Y-m-d');
+        if ($endDate > $today) {
+            $endDate = $today;
+        }
+        if ($startDate > $endDate) {
+            $startDate = $endDate;
+        }
+
+        $dates   = [];
+        $cursor  = new \DateTime($startDate, wp_timezone());
+        $endDt   = new \DateTime($endDate, wp_timezone());
+        $guard   = 0;
+
+        while ($cursor <= $endDt && $guard < 366) {
+            $dates[] = $cursor->format('Y-m-d');
+            $cursor->modify('+1 day');
+            $guard++;
+        }
+
+        return $dates;
+    }
+
+    /** برچسب کوتاه روز برای محور نمودار: فقط شماره‌ی روزِ شمسی، مثلاً «۲۳». */
+    private function shortJalaliLabel(string $dateStr): string
+    {
+        $ts = strtotime($dateStr);
+        [,, $jd] = JalaliHelper::gregorianToJalali((int) date('Y', $ts), (int) date('m', $ts), (int) date('d', $ts));
+
+        return JalaliHelper::toPersianNums((string) $jd);
+    }
+
+    /** قالب‌بندی مبلغ تومان با جداکننده‌ی هزارگان و اعداد فارسی. */
+    private function formatToman(float $value): string
+    {
+        return JalaliHelper::toPersianNums(number_format($value, 0));
+    }
+
+    /** قالب‌بندی درصد یک‌رقمی با اعداد فارسی. */
+    private function formatPercent(float $value): string
+    {
+        return JalaliHelper::toPersianNums(number_format($value, 1)) . '٪';
     }
 }

@@ -248,11 +248,13 @@ class PanelLayout
             <?php endif; ?>
 
             <?php
-            // اسکریپت‌های مختص هر صفحه
+            
             $pageScripts = [
                 'campaigns'  => 'campaigns.js',
                 'appearance' => 'appearance-page.js',
                 'templates'  => 'templates-admin.js',
+                'reports'    => 'reports-page.js',
+
             ];
             if (isset($pageScripts[$activeSlug])) :
             ?>

@@ -164,6 +164,77 @@ class JalaliHelper
     }
 
     /**
+     * تبدیل تاریخ شمسی به میلادی (معکوس gregorianToJalali).
+     * پورت PHP همان الگوریتم j2g موجود در assets/js/datepicker.js.
+     *
+     * @return array{0:int, 1:int, 2:int} [سال_میلادی, ماه_میلادی, روز_میلادی]
+     */
+    public static function jalaliToGregorian(int $jy, int $jm, int $jd): array
+    {
+        $jy -= 979;
+        $jm--;
+        $jd--;
+
+        $j_day_no = 365 * $jy + intdiv($jy, 33) * 8 + intdiv($jy % 33 + 3, 4);
+        $j_mi     = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+        for ($i = 0; $i < $jm; $i++) {
+            $j_day_no += $j_mi[$i];
+        }
+        $j_day_no += $jd;
+
+        $g_day_no = $j_day_no + 79;
+        $gy       = 1600 + 400 * intdiv($g_day_no, 146097);
+        $g_day_no %= 146097;
+
+        $leap = true;
+        if ($g_day_no >= 36525) {
+            $g_day_no--;
+            $gy       += 100 * intdiv($g_day_no, 36524);
+            $g_day_no %= 36524;
+            if ($g_day_no >= 365) {
+                $g_day_no++;
+            } else {
+                $leap = false;
+            }
+        }
+
+        $gy       += 4 * intdiv($g_day_no, 1461);
+        $g_day_no %= 1461;
+        if ($g_day_no >= 366) {
+            $leap = false;
+            $g_day_no--;
+            $gy       += intdiv($g_day_no, 365);
+            $g_day_no %= 365;
+        }
+
+        $g_mi = [31, $leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        $gm   = 0;
+        for ($gm = 0; $gm < 12 && $g_day_no >= $g_mi[$gm]; $gm++) {
+            $g_day_no -= $g_mi[$gm];
+        }
+
+        return [$gy, $gm + 1, $g_day_no + 1];
+    }
+
+    /**
+     * تعداد روزهای یک ماه شمسی (با لحاظ سال کبیسه برای اسفند).
+     */
+    public static function jDaysInMonth(int $jy, int $jm): int
+    {
+        if ($jm <= 6) {
+            return 31;
+        }
+        if ($jm <= 11) {
+            return 30;
+        }
+
+        // Esfand: 30 days in a leap year, otherwise 29.
+        $rem = ((($jy - 474) % 2820 + 474 + 38) * 682) % 2816;
+
+        return $rem < 682 ? 30 : 29;
+    }
+
+    /**
      * تبدیل اعداد انگلیسی به فارسی
      */
     public static function toPersianNums(string $str): string

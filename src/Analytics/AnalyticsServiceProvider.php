@@ -11,6 +11,8 @@ use Msi\Campaignchi\Campaign\Pricing\CampaignResolver;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 use Msi\Campaignchi\Core\Hooks;
 use Msi\Campaignchi\Core\ServiceProvider;
+use Msi\Campaignchi\Analytics\Controllers\ReportsAjaxController;
+use Msi\Campaignchi\Analytics\Services\ReportService;
 
 /**
  * Analytics Service Provider
@@ -45,6 +47,21 @@ class AnalyticsServiceProvider extends ServiceProvider
                 $c->make(CampaignProductResolver::class)
             )
         );
+
+        $this->container->singleton(
+            ReportService::class,
+            fn($c) => new ReportService(
+                $c->make(AnalyticsService::class),
+                $c->make(CampaignRepository::class)
+            )
+        );
+
+        $this->container->singleton(
+            ReportsAjaxController::class,
+            fn($c) => new ReportsAjaxController(
+                $c->make(ReportService::class)
+            )
+        );
     }
 
     public function boot(): void
@@ -68,6 +85,8 @@ class AnalyticsServiceProvider extends ServiceProvider
         Hooks::action('cmc_campaign_changed', [AnalyticsService::class, 'flushCampaignCandidatesCache']);
         Hooks::action('set_object_terms', [AnalyticsService::class, 'flushCampaignCandidatesCache']);
         Hooks::action('save_post_product', [AnalyticsService::class, 'flushCampaignCandidatesCache']);
+        // Register the Reports CSV export handler (admin-ajax context).
+        $this->container->make(ReportsAjaxController::class)->register();
 
         if (is_admin()) {
             return;

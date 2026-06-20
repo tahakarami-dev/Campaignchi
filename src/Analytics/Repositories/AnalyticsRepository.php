@@ -56,4 +56,33 @@ class AnalyticsRepository
 
         return (int) $value;
     }
+
+    /**
+     * مجموع بازدیدهای هر کمپین در یک بازه‌ی تاریخی (Y-m-d تا Y-m-d).
+     * همان منبع و همان جدولی که getTotalImpressions از آن می‌خواند —
+     * فقط گروه‌بندی‌شده به‌ازای هر کمپین، برای جدول گزارش‌ها.
+     *
+     * @return array<int, int> campaign_id => impressions
+     */
+    public function getImpressionsByCampaign(string $startDate, string $endDate): array
+    {
+        global $wpdb;
+        $table = $this->table();
+
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT campaign_id, COALESCE(SUM(impressions), 0) AS imp
+             FROM {$table}
+             WHERE stat_date BETWEEN %s AND %s
+             GROUP BY campaign_id",
+            $startDate,
+            $endDate
+        ), ARRAY_A) ?: [];
+
+        $out = [];
+        foreach ($rows as $row) {
+            $out[(int) $row['campaign_id']] = (int) $row['imp'];
+        }
+
+        return $out;
+    }
 }
