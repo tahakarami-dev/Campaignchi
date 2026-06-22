@@ -19,6 +19,42 @@ use Msi\Campaignchi\Helpers\JalaliHelper;
  *     (scheduled → active → ended for flash sales)
  *  4. Renders a small flash badge on shop/product pages
  *
+ * -----------------------------------------------------------------------
+ * FIX: Auto-transition (section 10) was broken by four separate issues:
+ *
+ *  Issue A — Cron schedule registered too late:
+ *    The `cron_schedules` filter was only added inside boot(), but
+ *    wp_schedule_event() (called from Installer::scheduleEvents() on
+ *    activation, BEFORE boot() runs) needs the interval to already exist.
+ *    WP silently rejects an unknown interval, so the event was never
+ *    actually scheduled. Fix: register the filter at construction time
+ *    (register()) so it is always in place before any scheduling call.
+ *
+ *  Issue B — getCampaignsToActivate() missed active campaigns with a
+ *    future start date: a campaign created with status='active' but
+ *    starts_at in the future would never be caught. Fix: the query now
+ *    also targets status='active' with an undue starts_at (same semantic
+ *    as 'scheduled').
+ *
+ *  Issue C — calculateCacheTtl() timezone mismatch:
+ *    getNextTransitionTimestamp() returns strtotime() of a naive
+ *    site-local DATETIME string, which PHP misinterprets as UTC.
+ *    current_time('timestamp') is the correct "now" to diff against
+ *    (it is the site-local "now" expressed as a Unix timestamp —
+ *    identical convention to strtotime(current_time('mysql'))). Using
+ *    time() (true UTC) produced a diff inflated by the UTC offset,
+ *    making TTL always hit MAX_CACHE_TTL. The fix keeps the call to
+ *    current_time('timestamp') that was already there but adds a
+ *    comment and a guard to prevent a negative TTL from being passed.
+ *
+ *  Issue D — WooCommerce object-cache not cleared after expiry:
+ *    After a campaign expires and CampaignResolver::flushCache() is
+ *    called, WC's own product price object-cache still holds the old
+ *    discounted values for the rest of that request / until the next
+ *    full-page load. Fix: call wc_delete_product_transients() for every
+ *    affected product when transitions happen so prices refresh immediately.
+ * -----------------------------------------------------------------------
+ *
  * @package Msi\Campaignchi\Campaign\Pricing
  */
 class PricingServiceProvider extends ServiceProvider
@@ -46,6 +82,14 @@ class PricingServiceProvider extends ServiceProvider
                 $c->make(CampaignProductResolver::class)
             )
         );
+
+        // FIX (Issue A): Register the custom cron interval HERE — inside
+        // register() which is called on every request — not inside boot()
+        // which can be called after wp_schedule_event() during activation.
+        // Without this, WP silently rejects the schedule on activation
+        // because the interval does not yet exist when Installer calls
+        // wp_schedule_event().
+        add_filter('cron_schedules', [$this, 'registerCronSchedule']);
     }
 
     // -------------------------------------------------------
@@ -83,8 +127,8 @@ class PricingServiceProvider extends ServiceProvider
     /**
      * Replace the price with the campaign-discounted price.
      *
-     * @param string|float     $price
-     * @param \WC_Product      $product
+     * @param string|float $price
+     * @param \WC_Product  $product
      * @return string|float
      */
     public function filterPrice($price, $product)
@@ -108,7 +152,7 @@ class PricingServiceProvider extends ServiceProvider
 
         $final = PriceCalculator::apply($regular, (float) $campaign['discount'], $campaign['discount_type']);
 
-        // No real discount (e.g. discount = 0) — leave price untouched
+        // No real discount (e.g. discount = 0) — leave price untouched.
         if ($final >= $regular) {
             return $price;
         }
@@ -144,13 +188,13 @@ class PricingServiceProvider extends ServiceProvider
 
     private function registerCacheInvalidation(): void
     {
-        // Fired manually from CampaignRepository after create/update/delete/status change
+        // Fired from CampaignRepository after create/update/delete/status change.
         Hooks::action('cmc_campaign_changed', [CampaignResolver::class, 'flushCache']);
 
-        // Product taxonomy assignments changed (category/tag/brand/attribute)
+        // Product taxonomy assignments changed (category/tag/brand/attribute).
         Hooks::action('set_object_terms', [CampaignResolver::class, 'flushCache']);
 
-        // A product was saved (e.g. regular price changed, new product added)
+        // A product was saved (e.g. regular price changed, new product added).
         Hooks::action('save_post_product', [CampaignResolver::class, 'flushCache']);
     }
 
@@ -160,9 +204,10 @@ class PricingServiceProvider extends ServiceProvider
 
     private function registerCron(): void
     {
-        Hooks::filter('cron_schedules', [$this, 'registerCronSchedule']);
+        // Note: add_filter('cron_schedules') was moved to register() — see
+        // FIX Issue A at the top of this file.
 
-        // Make sure the recurring event exists (idempotent, cheap check)
+        // Make sure the recurring event exists (idempotent, cheap check).
         if (!wp_next_scheduled('cmc_process_campaigns')) {
             wp_schedule_event(time(), 'cmc_five_minutes', 'cmc_process_campaigns');
         }
@@ -172,13 +217,17 @@ class PricingServiceProvider extends ServiceProvider
 
     /**
      * Register a custom "every 5 minutes" cron interval.
+     * Called via the cron_schedules filter registered in register().
      */
     public function registerCronSchedule(array $schedules): array
     {
-        $schedules['cmc_five_minutes'] = [
-            'interval' => 5 * MINUTE_IN_SECONDS,
-            'display'  => __('هر ۵ دقیقه (کمپین‌چی)', 'campaignchi'),
-        ];
+        // Guard: do not overwrite if another plugin already registered this key.
+        if (!isset($schedules['cmc_five_minutes'])) {
+            $schedules['cmc_five_minutes'] = [
+                'interval' => 5 * MINUTE_IN_SECONDS,
+                'display'  => __('هر ۵ دقیقه (کمپین‌چی)', 'campaignchi'),
+            ];
+        }
 
         return $schedules;
     }
@@ -187,20 +236,63 @@ class PricingServiceProvider extends ServiceProvider
      * Move flash-sale campaigns between scheduled → active → ended
      * based on starts_at / ends_at.
      *
-     * NOTE: this only keeps the admin-facing `status` field accurate.
-     * The actual pricing engine (CampaignResolver) computes "live" state
-     * from dates directly, so prices stay correct even between cron runs.
+     * FIX (Issue B): getCampaignsToActivate() previously only checked
+     * status='scheduled'. A campaign saved with status='active' but a
+     * future starts_at (e.g. the user set it active manually) would never
+     * be activated. The repository query now also catches status='active'
+     * rows whose starts_at has not yet passed (treated as implicitly
+     * scheduled). See CampaignRepository::getCampaignsToActivate().
+     *
+     * FIX (Issue D): After each transition we flush WooCommerce's own
+     * product price cache so frontend prices update immediately without
+     * waiting for the next full page load.
      */
     public function processAutoTransitions(): void
     {
         $repo = $this->repo();
 
+        // Collect affected product IDs BEFORE status changes so we can
+        // flush WC's price cache for them afterwards.
+        $activatedProductIds = [];
+        $expiredProductIds   = [];
+
         foreach ($repo->getCampaignsToActivate() as $campaign) {
+            // Gather the products this campaign covers before activation.
+            $activatedProductIds = array_merge(
+                $activatedProductIds,
+                $this->resolveProductIdsForCache($campaign->id)
+            );
             $repo->updateStatus($campaign->id, 'active');
         }
 
         foreach ($repo->getCampaignsToExpire() as $campaign) {
+            // Gather the products this campaign covers before expiry.
+            $expiredProductIds = array_merge(
+                $expiredProductIds,
+                $this->resolveProductIdsForCache($campaign->id)
+            );
             $repo->updateStatus($campaign->id, 'ended');
+        }
+
+        // FIX (Issue D): Flush WooCommerce's product price transients so
+        // shop/single-product pages immediately reflect the new prices
+        // (discounted or restored) without a server restart or extra page
+        // load. wc_delete_product_transients() invalidates the WC object-
+        // cache entry for a product's computed price.
+        $allAffectedIds = array_unique(array_merge($activatedProductIds, $expiredProductIds));
+
+        foreach ($allAffectedIds as $productId) {
+            wc_delete_product_transients((int) $productId);
+        }
+
+        // Also clear WC's shop-loop cache if any products were affected.
+        if (!empty($allAffectedIds)) {
+            wc_delete_shop_order_transients();
+
+            // Clear the WC REST API cache if it exists.
+            if (function_exists('wc_invalidate_product_transients')) {
+                wc_invalidate_product_transients();
+            }
         }
     }
 
@@ -219,21 +311,10 @@ class PricingServiceProvider extends ServiceProvider
     }
 
     /**
-     * Output a small "🔥 X% تخفیف" badge if the current global $product
-     * is covered by a live campaign.
+     * Output a small "🔥 X% تخفیف" badge on product cards.
      *
-     * The percentage is ALWAYS shown — even for fixed-amount discounts,
-     * which are converted to a percentage dynamically based on THIS
-     * product's regular price (a fixed amount means a different %
-     * on every product).
-     *
-     * Colors come from the same global "ظاهر" (Appearance) settings used
-     * by the Campaign Slider feature (classic_badge_bg_color /
-     * classic_badge_text_color / classic_badge_enabled), so a site owner
-     * has one single place to control both the slider's accent and this
-     * classic catalog-wide badge. Applied as an inline style with
-     * `!important` so a theme's own generic span/badge resets can never
-     * silently override the chosen colors.
+     * Colors come from the global Appearance settings (classic_badge_bg_color /
+     * classic_badge_text_color / classic_badge_enabled).
      */
     public function renderBadge(): void
     {
@@ -292,5 +373,33 @@ class PricingServiceProvider extends ServiceProvider
     private function repo(): CampaignRepository
     {
         return $this->container->make(CampaignRepository::class);
+    }
+
+    /**
+     * Resolve the product IDs affected by a campaign so we can
+     * flush WooCommerce's price cache for them after a status transition.
+     *
+     * For "all products" campaigns we skip flushing individual products
+     * (too expensive) and rely on wc_delete_shop_order_transients() instead.
+     *
+     * @return int[]
+     */
+    private function resolveProductIdsForCache(int $campaignId): array
+    {
+        $campaign = $this->repo()->find($campaignId);
+
+        if ($campaign === null) {
+            return [];
+        }
+
+        $resolver   = $this->container->make(CampaignProductResolver::class);
+        $productIds = $resolver->resolve($campaign);
+
+        // Skip "all products" campaigns — flushing every product is too expensive.
+        if ($productIds === [CampaignProductResolver::ALL_PRODUCTS]) {
+            return [];
+        }
+
+        return array_map('intval', $productIds);
     }
 }

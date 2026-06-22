@@ -15,19 +15,33 @@ namespace Msi\Campaignchi\Core;
  * Runs on deactivation:
  *  - Clears scheduled events
  *
- * No UI or business logic allowed here.
+ * -----------------------------------------------------------------------
+ * FIX (Section 10 — Issue A — Cron schedule registration):
+ *
+ * scheduleEvents() previously called wp_schedule_event() with
+ * 'cmc_five_minutes' interval DIRECTLY, but the filter that registers
+ * that interval on 'cron_schedules' is added inside
+ * PricingServiceProvider::register() — which runs on 'plugins_loaded',
+ * AFTER activation hooks. During activation the filter does not exist
+ * yet, so WP silently rejects the custom interval and the event is never
+ * scheduled.
+ *
+ * The fix: register the 'cmc_five_minutes' interval inline inside
+ * scheduleEvents() using a one-shot add_filter() call, then immediately
+ * call wp_schedule_event(). This guarantees the interval is always known
+ * to WP at the exact moment the event is being scheduled, regardless of
+ * which hook fired the scheduling call.
+ * -----------------------------------------------------------------------
  *
  * @package Msi\Campaignchi\Core
  */
 class Installer
 {
-    /** @var string DB schema version option key */
     private const DB_VERSION_KEY = 'cmc_db_version';
 
     /**
      * Current schema version.
-     * ⚠️ Bumped to 1.2.0 to add the cmc_campaign_sales event-log table
-     * (the new accurate source of truth for the Reports section).
+     * Bump this whenever the DB schema changes.
      */
     private const DB_VERSION = '1.2.0';
 
@@ -45,7 +59,6 @@ class Installer
         self::setDefaultOptions();
         self::scheduleEvents();
 
-        // Flush rewrite rules after menu registration
         flush_rewrite_rules();
     }
 
@@ -68,8 +81,7 @@ class Installer
     // -------------------------------------------------------
 
     /**
-     * Create or upgrade custom database tables.
-     * Uses dbDelta() for safe schema management.
+     * Create or upgrade custom database tables using dbDelta().
      */
     public static function createTables(): void
     {
@@ -107,7 +119,7 @@ class Installer
             KEY product_id (product_id)
         ) $charset;";
 
-        // Table: campaign_rules (group selection: category/tag/attribute)
+        // Table: campaign_rules (group selection: category/tag/attribute/brand)
         $campaign_rules = "CREATE TABLE {$wpdb->prefix}cmc_campaign_rules (
             id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             campaign_id BIGINT UNSIGNED NOT NULL,
@@ -133,7 +145,7 @@ class Installer
             KEY campaign_id (campaign_id)
         ) $charset;";
 
-        // Table: sliders
+        // Table: sliders (saved slider presets)
         $sliders = "CREATE TABLE {$wpdb->prefix}cmc_sliders (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             title VARCHAR(190) NOT NULL,
@@ -147,16 +159,7 @@ class Installer
             KEY campaign_id (campaign_id)
         ) {$charset};";
 
-        // ⚠️ NEW — Table: campaign_sales (accurate event log)
-        // One row per (order, product, campaign) captured AT THE MOMENT the
-        // order is created — when the campaign is provably live and its
-        // discount was actually applied. This removes all retroactive
-        // "was this product under a campaign back then?" guessing from the
-        // Reports section. order_status is kept in sync with the WooCommerce
-        // order so reports can filter to paid orders without joining the
-        // orders table (HPOS-safe). sold_at is stored in SITE-LOCAL time so
-        // it can be filtered directly against the site-local Jalali ranges
-        // chosen in the UI.
+        // Table: campaign_sales (accurate event log for Reports)
         $campaign_sales = "CREATE TABLE {$wpdb->prefix}cmc_campaign_sales (
             id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             order_id       BIGINT UNSIGNED NOT NULL,
@@ -215,15 +218,36 @@ class Installer
     // -------------------------------------------------------
 
     /**
-     * Schedule recurring background tasks.
+     * Schedule the recurring campaign-processing cron event.
+     *
+     * FIX (Issue A): Previously, wp_schedule_event() was called with
+     * 'cmc_five_minutes' but the corresponding 'cron_schedules' filter
+     * was only registered inside PricingServiceProvider::register() which
+     * runs on 'plugins_loaded' — AFTER the activation hook. WP silently
+     * rejects an unknown interval, so the event was never actually
+     * scheduled. The fix registers the interval inline here using a
+     * one-shot add_filter() call immediately before scheduling.
      */
     private static function scheduleEvents(): void
     {
-        $timestamp = wp_next_scheduled('cmc_process_campaigns');
-
-        if ($timestamp) {
-            wp_unschedule_event($timestamp, 'cmc_process_campaigns');
+        // Remove any stale event first to avoid duplicates.
+        $existing = wp_next_scheduled('cmc_process_campaigns');
+        if ($existing) {
+            wp_unschedule_event($existing, 'cmc_process_campaigns');
         }
+
+        // Register the interval inline so it is guaranteed to exist when
+        // wp_schedule_event() validates it, regardless of whether
+        // PricingServiceProvider has booted yet.
+        add_filter('cron_schedules', static function (array $schedules): array {
+            if (!isset($schedules['cmc_five_minutes'])) {
+                $schedules['cmc_five_minutes'] = [
+                    'interval' => 5 * MINUTE_IN_SECONDS,
+                    'display'  => 'هر ۵ دقیقه (کمپین‌چی)',
+                ];
+            }
+            return $schedules;
+        });
 
         wp_schedule_event(time(), 'cmc_five_minutes', 'cmc_process_campaigns');
     }
@@ -233,9 +257,7 @@ class Installer
      */
     private static function clearScheduledEvents(): void
     {
-        $events = ['cmc_process_campaigns'];
-
-        foreach ($events as $event) {
+        foreach (['cmc_process_campaigns'] as $event) {
             $timestamp = wp_next_scheduled($event);
             if ($timestamp) {
                 wp_unschedule_event($timestamp, $event);
@@ -244,10 +266,8 @@ class Installer
     }
 
     /**
-     * Re-run table creation if the stored DB version is older than the
-     * current DB_VERSION. Sites that already had Campaignchi active before
-     * this feature shipped get the new cmc_campaign_sales table here,
-     * without requiring a deactivate/reactivate cycle.
+     * Re-run table creation if the stored DB version is outdated.
+     * Called from Application::boot() on every request (cheap option check).
      */
     public static function maybeUpgrade(): void
     {

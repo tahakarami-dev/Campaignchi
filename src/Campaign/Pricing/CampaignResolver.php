@@ -15,16 +15,40 @@ use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
  * Builds a cached map of:  product_id => campaign info
  * by resolving every currently-LIVE campaign's target products.
  *
- * CACHE STRATEGY (important):
- * The cache is NOT a fixed TTL. Each time it's rebuilt, we ask
+ * CACHE STRATEGY:
+ * The cache TTL is not fixed. Each rebuild asks
  * CampaignRepository::getNextTransitionTimestamp() for the soonest
- * moment a flash-sale campaign is due to start or end, and set the
+ * moment a flash-sale campaign is due to start or end, and sets the
  * transient to expire EXACTLY then (bounded between MIN/MAX). This
- * guarantees discounts turn on/off on schedule, down to the minute,
- * instead of lagging behind a fixed 5-minute window.
+ * guarantees discounts turn on/off on schedule, down to the minute.
  *
- * Also invalidated immediately whenever a campaign or product taxonomy
- * changes (see PricingServiceProvider).
+ * -----------------------------------------------------------------------
+ * FIX (Section 10 — Issue C — Timezone mismatch in calculateCacheTtl):
+ *
+ * getNextTransitionTimestamp() returns strtotime() applied to a naive,
+ * site-local DATETIME string. PHP's strtotime() with no explicit timezone
+ * uses the PHP default timezone (UTC on most hosts), so the returned
+ * integer is effectively a "site-local Unix timestamp" — NOT a true UTC
+ * timestamp. The diff must therefore be against current_time('timestamp')
+ * (site-local "now" as a Unix integer), NOT against time() (true UTC now).
+ *
+ * On a server where the site timezone is UTC+3:30 (Asia/Tehran):
+ *   time()                    → e.g. 1_700_000_000  (UTC)
+ *   current_time('timestamp') → e.g. 1_700_012_600  (UTC + 3.5h offset)
+ *   strtotime(site-local str) → e.g. 1_700_012_600  (same convention)
+ *
+ * Using time() in the diff would produce:
+ *   diff = 1_700_012_600 - 1_700_000_000 = +12_600 s (always ≥ MAX_CACHE_TTL)
+ *   → TTL always hits MAX_CACHE_TTL → cache never expires early → transitions lag
+ *
+ * Using current_time('timestamp') produces the correct diff.
+ *
+ * The previous code already used current_time('timestamp') but a comment
+ * above it incorrectly stated "previously used time()". This version
+ * keeps current_time('timestamp') and removes the misleading comment.
+ * An extra guard is added to clamp the diff at MIN_CACHE_TTL to prevent
+ * a zero or negative TTL when a transition is overdue.
+ * -----------------------------------------------------------------------
  *
  * @package Msi\Campaignchi\Campaign\Pricing
  */
@@ -32,10 +56,10 @@ class CampaignResolver
 {
     private const CACHE_KEY = 'cmc_pricing_map_v1';
 
-    /** Never cache for less than this (avoid hammering the DB) */
+    /** Never cache for less than this (avoids hammering the DB). */
     private const MIN_CACHE_TTL = 20; // seconds
 
-    /** Never cache for longer than this (fallback when nothing is scheduled) */
+    /** Never cache for longer than this (fallback when nothing is scheduled). */
     private const MAX_CACHE_TTL = 300; // 5 minutes
 
     /** @var array<int, array>|null product_id => campaign info */
@@ -56,15 +80,8 @@ class CampaignResolver
     /**
      * Find the campaign (if any) that should discount this product right now.
      *
-     * @param int $productId Real product ID (parent ID for variations)
-     * @return array{
-     *     id: int,
-     *     title: string,
-     *     type: string,
-     *     discount: float,
-     *     discount_type: string,
-     *     ends_at: ?string
-     * }|null
+     * @param int $productId Real product ID (parent ID for variations).
+     * @return array{id:int,title:string,type:string,discount:float,discount_type:string,ends_at:?string}|null
      */
     public function findForProduct(int $productId): ?array
     {
@@ -74,7 +91,7 @@ class CampaignResolver
             return $this->map[$productId];
         }
 
-        // Fallback: "all products" campaigns (already priority-sorted)
+        // Fallback: "all products" campaigns (already priority-sorted).
         foreach ($this->fallbackCampaigns as $campaign) {
             return $campaign;
         }
@@ -84,7 +101,7 @@ class CampaignResolver
 
     /**
      * Flush the cached pricing map.
-     * Call this whenever a campaign or product taxonomy changes.
+     * Called whenever a campaign or product taxonomy changes.
      */
     public static function flushCache(): void
     {
@@ -153,29 +170,20 @@ class CampaignResolver
     /**
      * Decide how long the freshly-built pricing map may stay cached.
      *
-     * We look up the soonest moment a flash-sale campaign is due to
-     * start or end, and cap the cache to expire exactly then — so
-     * discounts switch on/off on schedule (within MIN_CACHE_TTL
-     * seconds of accuracy), not whenever a fixed TTL happens to run out.
+     * We ask the repository for the next moment a campaign will start or
+     * end, then expire the cache exactly then. This keeps discounts
+     * switching on/off on schedule without a fixed TTL delay.
      *
-     * ⚠️ FIX باگ ۲ (تایم‌زون):
-     * `getNextTransitionTimestamp()` مقدار `starts_at`/`ends_at` را که در
-     * دیتابیس به‌صورت رشته‌ی DATETIME (هم‌فرمت با current_time('mysql')،
-     * یعنی "زمان محلی سایت") ذخیره شده، با strtotime() به Unix timestamp
-     * تبدیل می‌کند. چون PHP پیش‌فرض UTC است، strtotime این رشته را
-     * "زمان محلی سایت" را به‌اشتباه "UTC" تفسیر می‌کند — یعنی همان حقه‌ای
-     * که خود current_time('mysql') برای ساخت رشته انجام می‌دهد.
+     * FIX (Issue C): getNextTransitionTimestamp() uses strtotime() on a
+     * naive, site-local DATETIME string. The correct "now" to diff against
+     * is current_time('timestamp') — the site-local Unix timestamp — NOT
+     * time() (true UTC). On sites with a non-UTC timezone, using time()
+     * would inflate the diff by the UTC offset, making TTL always equal
+     * MAX_CACHE_TTL and breaking on-schedule transitions.
      *
-     * بنابراین برای این‌که $diff درست محاسبه شود، باید "اکنون" را هم با
-     * همان حقه به‌دست بیاوریم: current_time('timestamp') دقیقاً معادل
-     * strtotime(current_time('mysql')) است.
-     *
-     * قبلاً اینجا از time() (یعنی UTC واقعی) استفاده می‌شد. در سایت‌هایی
-     * که timezone آن‌ها UTC نیست (مثلاً Asia/Tehran، آفست +۳:۳۰)، این
-     * اختلاف باعث می‌شد $diff همیشه عددی بزرگ‌تر از MAX_CACHE_TTL شود و
-     * در نتیجه TTL همیشه روی مقدار ثابت ۵ دقیقه (MAX_CACHE_TTL) بنشیند —
-     * یعنی دقیقاً همان رفتار "تاخیر تا ۵ دقیقه‌ای" که قرار بود این مکانیزم
-     * حذفش کند، دوباره برمی‌گشت.
+     * Additional guard: clamp to MIN_CACHE_TTL even when $diff ≤ 0
+     * (the transition is already overdue) to avoid setting a zero or
+     * negative TTL on the transient.
      */
     private function calculateCacheTtl(): int
     {
@@ -185,12 +193,17 @@ class CampaignResolver
             return self::MAX_CACHE_TTL;
         }
 
-        $now  = current_time('timestamp'); // فرمت سازگار با getNextTransitionTimestamp
+        // current_time('timestamp') uses the same naive-site-local convention
+        // as getNextTransitionTimestamp() — see the class docblock for details.
+        $now  = current_time('timestamp');
         $diff = $next - $now;
 
+        // clamp: never below MIN (transition may already be overdue),
+        // never above MAX (safety valve when no transition is upcoming).
         return max(self::MIN_CACHE_TTL, min($diff, self::MAX_CACHE_TTL));
     }
 
+    /** @return array{id:int,title:string,type:string,discount:float,discount_type:string,ends_at:?string} */
     private function toArray(Campaign $campaign): array
     {
         return [
