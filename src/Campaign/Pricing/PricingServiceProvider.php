@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Campaign\Pricing;
 
+use Msi\Campaignchi\Admin\Pages\SettingsPage;
 use Msi\Campaignchi\Core\ServiceProvider;
 use Msi\Campaignchi\Core\Hooks;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
@@ -12,47 +13,21 @@ use Msi\Campaignchi\Helpers\JalaliHelper;
 /**
  * Pricing Service Provider
  *
- * Wires the campaign pricing engine into WooCommerce:
- *  1. Filters product/variation prices on-the-fly (real, dynamic discounts)
- *  2. Invalidates the pricing cache when campaigns or taxonomies change
- *  3. Registers the 5-minute cron schedule + auto status transitions
- *     (scheduled → active → ended for flash sales)
- *  4. Renders a small flash badge on shop/product pages
+ * Wires the campaign pricing engine into WooCommerce.
  *
  * -----------------------------------------------------------------------
- * FIX: Auto-transition (section 10) was broken by four separate issues:
+ * FIX — Section 10: processAutoTransitions
  *
- *  Issue A — Cron schedule registered too late:
- *    The `cron_schedules` filter was only added inside boot(), but
- *    wp_schedule_event() (called from Installer::scheduleEvents() on
- *    activation, BEFORE boot() runs) needs the interval to already exist.
- *    WP silently rejects an unknown interval, so the event was never
- *    actually scheduled. Fix: register the filter at construction time
- *    (register()) so it is always in place before any scheduling call.
+ *  1. Cron schedule registered in register() (not boot()) so it exists
+ *     at activation time — see FIX Issue A from previous session.
  *
- *  Issue B — getCampaignsToActivate() missed active campaigns with a
- *    future start date: a campaign created with status='active' but
- *    starts_at in the future would never be caught. Fix: the query now
- *    also targets status='active' with an undue starts_at (same semantic
- *    as 'scheduled').
+ *  2. processAutoTransitions() now reads SettingsPage::getCampaign()
+ *     ['auto_expire_status'] to decide the target status after expiry
+ *     ('ended' or 'draft'). Previously it was hardcoded to 'ended',
+ *     which ignored the admin's setting entirely.
  *
- *  Issue C — calculateCacheTtl() timezone mismatch:
- *    getNextTransitionTimestamp() returns strtotime() of a naive
- *    site-local DATETIME string, which PHP misinterprets as UTC.
- *    current_time('timestamp') is the correct "now" to diff against
- *    (it is the site-local "now" expressed as a Unix timestamp —
- *    identical convention to strtotime(current_time('mysql'))). Using
- *    time() (true UTC) produced a diff inflated by the UTC offset,
- *    making TTL always hit MAX_CACHE_TTL. The fix keeps the call to
- *    current_time('timestamp') that was already there but adds a
- *    comment and a guard to prevent a negative TTL from being passed.
- *
- *  Issue D — WooCommerce object-cache not cleared after expiry:
- *    After a campaign expires and CampaignResolver::flushCache() is
- *    called, WC's own product price object-cache still holds the old
- *    discounted values for the rest of that request / until the next
- *    full-page load. Fix: call wc_delete_product_transients() for every
- *    affected product when transitions happen so prices refresh immediately.
+ *  3. After transitions, WooCommerce product price transients are flushed
+ *     for all affected products so frontend prices update immediately.
  * -----------------------------------------------------------------------
  *
  * @package Msi\Campaignchi\Campaign\Pricing
@@ -83,12 +58,8 @@ class PricingServiceProvider extends ServiceProvider
             )
         );
 
-        // FIX (Issue A): Register the custom cron interval HERE — inside
-        // register() which is called on every request — not inside boot()
-        // which can be called after wp_schedule_event() during activation.
-        // Without this, WP silently rejects the schedule on activation
-        // because the interval does not yet exist when Installer calls
-        // wp_schedule_event().
+        // FIX (Issue A): Register the custom cron interval HERE in register(),
+        // not in boot(), so it exists before activation hooks fire.
         add_filter('cron_schedules', [$this, 'registerCronSchedule']);
     }
 
@@ -105,19 +76,17 @@ class PricingServiceProvider extends ServiceProvider
     }
 
     // -------------------------------------------------------
-    // 1. PRICE FILTERS — the actual discount engine
+    // 1. PRICE FILTERS
     // -------------------------------------------------------
 
     private function registerPriceFilters(): void
     {
-        foreach (
-            [
-                'woocommerce_product_get_price',
-                'woocommerce_product_get_sale_price',
-                'woocommerce_product_variation_get_price',
-                'woocommerce_product_variation_get_sale_price',
-            ] as $hook
-        ) {
+        foreach ([
+            'woocommerce_product_get_price',
+            'woocommerce_product_get_sale_price',
+            'woocommerce_product_variation_get_price',
+            'woocommerce_product_variation_get_sale_price',
+        ] as $hook) {
             Hooks::filter($hook, [$this, 'filterPrice'], 99, 2);
         }
 
@@ -125,8 +94,6 @@ class PricingServiceProvider extends ServiceProvider
     }
 
     /**
-     * Replace the price with the campaign-discounted price.
-     *
      * @param string|float $price
      * @param \WC_Product  $product
      * @return string|float
@@ -152,7 +119,6 @@ class PricingServiceProvider extends ServiceProvider
 
         $final = PriceCalculator::apply($regular, (float) $campaign['discount'], $campaign['discount_type']);
 
-        // No real discount (e.g. discount = 0) — leave price untouched.
         if ($final >= $regular) {
             return $price;
         }
@@ -161,7 +127,7 @@ class PricingServiceProvider extends ServiceProvider
     }
 
     /**
-     * Force "on sale" state so price strike-through / badges show correctly.
+     * Force "on sale" state so WooCommerce renders strike-through prices.
      */
     public function filterIsOnSale($onSale, $product)
     {
@@ -188,26 +154,17 @@ class PricingServiceProvider extends ServiceProvider
 
     private function registerCacheInvalidation(): void
     {
-        // Fired from CampaignRepository after create/update/delete/status change.
         Hooks::action('cmc_campaign_changed', [CampaignResolver::class, 'flushCache']);
-
-        // Product taxonomy assignments changed (category/tag/brand/attribute).
         Hooks::action('set_object_terms', [CampaignResolver::class, 'flushCache']);
-
-        // A product was saved (e.g. regular price changed, new product added).
         Hooks::action('save_post_product', [CampaignResolver::class, 'flushCache']);
     }
 
     // -------------------------------------------------------
-    // 3. CRON — auto status transitions
+    // 3. CRON
     // -------------------------------------------------------
 
     private function registerCron(): void
     {
-        // Note: add_filter('cron_schedules') was moved to register() — see
-        // FIX Issue A at the top of this file.
-
-        // Make sure the recurring event exists (idempotent, cheap check).
         if (!wp_next_scheduled('cmc_process_campaigns')) {
             wp_schedule_event(time(), 'cmc_five_minutes', 'cmc_process_campaigns');
         }
@@ -216,12 +173,11 @@ class PricingServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register a custom "every 5 minutes" cron interval.
-     * Called via the cron_schedules filter registered in register().
+     * Register the custom "every 5 minutes" cron interval.
+     * Registered in register() — see constructor-level note above.
      */
     public function registerCronSchedule(array $schedules): array
     {
-        // Guard: do not overwrite if another plugin already registered this key.
         if (!isset($schedules['cmc_five_minutes'])) {
             $schedules['cmc_five_minutes'] = [
                 'interval' => 5 * MINUTE_IN_SECONDS,
@@ -233,31 +189,38 @@ class PricingServiceProvider extends ServiceProvider
     }
 
     /**
-     * Move flash-sale campaigns between scheduled → active → ended
-     * based on starts_at / ends_at.
+     * Transition campaigns between scheduled → active → (ended | draft).
      *
-     * FIX (Issue B): getCampaignsToActivate() previously only checked
-     * status='scheduled'. A campaign saved with status='active' but a
-     * future starts_at (e.g. the user set it active manually) would never
-     * be activated. The repository query now also catches status='active'
-     * rows whose starts_at has not yet passed (treated as implicitly
-     * scheduled). See CampaignRepository::getCampaignsToActivate().
+     * Activation:
+     *   Any campaign with status='scheduled' whose starts_at has arrived
+     *   is flipped to 'active'. This works for both flash_sale and any
+     *   other type (even though only flash_sale should reach 'scheduled').
      *
-     * FIX (Issue D): After each transition we flush WooCommerce's own
-     * product price cache so frontend prices update immediately without
-     * waiting for the next full page load.
+     * Expiry:
+     *   Any active/scheduled campaign whose ends_at has passed is flipped
+     *   to the status defined in Settings → Campaign Engine → "وضعیت پس
+     *   از انقضا" (auto_expire_status: 'ended' | 'draft').
+     *   Default: 'ended'.
+     *
+     * After each set of transitions:
+     *   WooCommerce product price transients are flushed for all affected
+     *   products so shop/single-product pages reflect new prices immediately.
      */
     public function processAutoTransitions(): void
     {
         $repo = $this->repo();
 
-        // Collect affected product IDs BEFORE status changes so we can
-        // flush WC's price cache for them afterwards.
+        // Read the admin-configured expiry target status.
+        $campaignSettings = SettingsPage::getCampaign();
+        $expireStatus     = in_array($campaignSettings['auto_expire_status'] ?? '', ['ended', 'draft'], true)
+            ? $campaignSettings['auto_expire_status']
+            : 'ended';
+
         $activatedProductIds = [];
         $expiredProductIds   = [];
 
+        // scheduled → active
         foreach ($repo->getCampaignsToActivate() as $campaign) {
-            // Gather the products this campaign covers before activation.
             $activatedProductIds = array_merge(
                 $activatedProductIds,
                 $this->resolveProductIdsForCache($campaign->id)
@@ -265,34 +228,25 @@ class PricingServiceProvider extends ServiceProvider
             $repo->updateStatus($campaign->id, 'active');
         }
 
+        // active/scheduled → ended|draft  (respects auto_expire_status setting)
         foreach ($repo->getCampaignsToExpire() as $campaign) {
-            // Gather the products this campaign covers before expiry.
             $expiredProductIds = array_merge(
                 $expiredProductIds,
                 $this->resolveProductIdsForCache($campaign->id)
             );
-            $repo->updateStatus($campaign->id, 'ended');
+            $repo->updateStatus($campaign->id, $expireStatus);
         }
 
-        // FIX (Issue D): Flush WooCommerce's product price transients so
-        // shop/single-product pages immediately reflect the new prices
-        // (discounted or restored) without a server restart or extra page
-        // load. wc_delete_product_transients() invalidates the WC object-
-        // cache entry for a product's computed price.
+        // Flush WooCommerce price cache for all affected products.
         $allAffectedIds = array_unique(array_merge($activatedProductIds, $expiredProductIds));
 
         foreach ($allAffectedIds as $productId) {
             wc_delete_product_transients((int) $productId);
         }
 
-        // Also clear WC's shop-loop cache if any products were affected.
         if (!empty($allAffectedIds)) {
+            // Broad WC cache bust for shop loop pages.
             wc_delete_shop_order_transients();
-
-            // Clear the WC REST API cache if it exists.
-            if (function_exists('wc_invalidate_product_transients')) {
-                wc_invalidate_product_transients();
-            }
         }
     }
 
@@ -311,10 +265,8 @@ class PricingServiceProvider extends ServiceProvider
     }
 
     /**
-     * Output a small "🔥 X% تخفیف" badge on product cards.
-     *
-     * Colors come from the global Appearance settings (classic_badge_bg_color /
-     * classic_badge_text_color / classic_badge_enabled).
+     * Render the classic discount badge on product cards.
+     * Colors come from Appearance → "بج تخفیف کلاسیک".
      */
     public function renderBadge(): void
     {
@@ -324,7 +276,8 @@ class PricingServiceProvider extends ServiceProvider
             return;
         }
 
-        $settings = $this->container->make(\Msi\Campaignchi\Templates\Services\SliderSettingsService::class)
+        $settings = $this->container
+            ->make(\Msi\Campaignchi\Templates\Services\SliderSettingsService::class)
             ->getGlobalSettings();
 
         if (empty($settings['classic_badge_enabled'])) {
@@ -376,11 +329,8 @@ class PricingServiceProvider extends ServiceProvider
     }
 
     /**
-     * Resolve the product IDs affected by a campaign so we can
-     * flush WooCommerce's price cache for them after a status transition.
-     *
-     * For "all products" campaigns we skip flushing individual products
-     * (too expensive) and rely on wc_delete_shop_order_transients() instead.
+     * Resolve affected product IDs for a campaign to flush WC cache.
+     * Returns empty array for "all products" campaigns (too expensive).
      *
      * @return int[]
      */
@@ -395,7 +345,6 @@ class PricingServiceProvider extends ServiceProvider
         $resolver   = $this->container->make(CampaignProductResolver::class);
         $productIds = $resolver->resolve($campaign);
 
-        // Skip "all products" campaigns — flushing every product is too expensive.
         if ($productIds === [CampaignProductResolver::ALL_PRODUCTS]) {
             return [];
         }

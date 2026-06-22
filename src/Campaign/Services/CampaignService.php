@@ -13,6 +13,28 @@ use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
  * Business logic layer.
  * Controllers call this — never touch the repository directly.
  *
+ * -----------------------------------------------------------------------
+ * FIX — Section 10: Smart status derivation
+ *
+ *  Rule 1 — amazing_offer CANNOT be scheduled:
+ *    amazing_offer campaigns have no starts_at / ends_at concept, so
+ *    status='scheduled' is meaningless for them. If the user somehow
+ *    submits status='scheduled' for an amazing_offer, this service
+ *    silently overrides it to 'active'.
+ *
+ *  Rule 2 — Auto-set status='scheduled' when starts_at is in the future:
+ *    If the user sets status='active' but supplies a starts_at that has
+ *    not yet arrived, this service automatically changes status to
+ *    'scheduled'. This ensures:
+ *      - The pricing engine does NOT apply discounts yet (getLiveCampaigns
+ *        only returns status='active' rows).
+ *      - The cron will flip it to 'active' when starts_at arrives.
+ *      - The admin UI shows the correct "زمان‌بندی شده" badge.
+ *
+ *  Rule 3 — Preserve 'draft':
+ *    If the user explicitly saves as 'draft', no override happens.
+ * -----------------------------------------------------------------------
+ *
  * @package Msi\Campaignchi\Campaign\Services
  */
 class CampaignService
@@ -35,6 +57,7 @@ class CampaignService
     {
         try {
             $dto = CreateCampaignDTO::fromPost($post);
+            $dto = $this->applyStatusRules($dto);
             $id  = $this->repo->create($dto);
 
             return [
@@ -69,6 +92,7 @@ class CampaignService
             }
 
             $dto = CreateCampaignDTO::fromPost($post);
+            $dto = $this->applyStatusRules($dto);
             $this->repo->update($id, $dto);
 
             return ['success' => true, 'message' => __('کمپین به‌روز شد.', 'campaignchi')];
@@ -84,7 +108,6 @@ class CampaignService
     // -------------------------------------------------------
 
     /**
-     * @param int $id
      * @return array{ success: bool, message: string }
      */
     public function delete(int $id): array
@@ -100,15 +123,10 @@ class CampaignService
     }
 
     // -------------------------------------------------------
-    // PRODUCT SEARCH (lightweight, paginated)
+    // PRODUCT SEARCH
     // -------------------------------------------------------
 
     /**
-     * Search WooCommerce products for the picker.
-     * Returns minimal data — only what the UI needs.
-     *
-     * @param string $search  Search term
-     * @param int    $page    Page number (20 per page)
      * @return array{ products: array, has_more: bool }
      */
     public function searchProducts(string $search = '', int $page = 1): array
@@ -119,26 +137,25 @@ class CampaignService
         $args = [
             'post_type'      => 'product',
             'post_status'    => 'publish',
-            'posts_per_page' => $perPage + 1,  // fetch +1 to detect has_more
+            'posts_per_page' => $perPage + 1,
             'offset'         => $offset,
             'orderby'        => 'title',
             'order'          => 'ASC',
-            'fields'         => 'ids',          // only IDs — fastest query
+            'fields'         => 'ids',
         ];
 
         if (!empty($search)) {
             $args['s'] = sanitize_text_field($search);
         }
 
-        $query    = new \WP_Query($args);
-        $ids      = $query->posts;
-        $hasMore  = count($ids) > $perPage;
+        $query   = new \WP_Query($args);
+        $ids     = $query->posts;
+        $hasMore = count($ids) > $perPage;
 
         if ($hasMore) {
-            array_pop($ids); // remove the extra item
+            array_pop($ids);
         }
 
-        // Build minimal product data — no heavy meta
         $products = [];
         foreach ($ids as $id) {
             $product = wc_get_product($id);
@@ -147,83 +164,45 @@ class CampaignService
             }
 
             $products[] = [
-                'id'          => $id,
-                'name'        => $product->get_name(),
-                'price'       => wc_price($product->get_price()),
-                'price_raw'   => (float) $product->get_price(),
-                'sku'         => $product->get_sku(),
-                'thumb'       => get_the_post_thumbnail_url($id, 'thumbnail') ?: wc_placeholder_img_src('thumbnail'),
-                'type'        => $product->get_type(),
+                'id'        => $id,
+                'name'      => $product->get_name(),
+                'price'     => wc_price($product->get_price()),
+                'price_raw' => (float) $product->get_price(),
+                'sku'       => $product->get_sku(),
+                'thumb'     => get_the_post_thumbnail_url($id, 'thumbnail') ?: wc_placeholder_img_src('thumbnail'),
+                'type'      => $product->get_type(),
             ];
         }
 
-        return [
-            'products' => $products,
-            'has_more' => $hasMore,
-            'page'     => $page,
-        ];
+        return ['products' => $products, 'has_more' => $hasMore, 'page' => $page];
     }
 
     // -------------------------------------------------------
-    // TAXONOMY TERMS (for group selection)
+    // TAXONOMY TERMS
     // -------------------------------------------------------
 
-    /**
-     * Get all product categories (flat list for picker).
-     *
-     * @return array
-     */
     public function getCategories(): array
     {
-        $terms = get_terms([
-            'taxonomy'   => 'product_cat',
-            'hide_empty' => false,
-            'orderby'    => 'name',
-            'order'      => 'ASC',
-        ]);
+        $terms = get_terms(['taxonomy' => 'product_cat', 'hide_empty' => false, 'orderby' => 'name', 'order' => 'ASC']);
 
         if (is_wp_error($terms)) {
             return [];
         }
 
-        return array_map(fn($t) => [
-            'id'    => $t->term_id,
-            'name'  => $t->name,
-            'count' => $t->count,
-            'slug'  => $t->slug,
-        ], $terms);
+        return array_map(fn($t) => ['id' => $t->term_id, 'name' => $t->name, 'count' => $t->count, 'slug' => $t->slug], $terms);
     }
 
-    /**
-     * Get all product tags.
-     *
-     * @return array
-     */
     public function getTags(): array
     {
-        $terms = get_terms([
-            'taxonomy'   => 'product_tag',
-            'hide_empty' => false,
-            'orderby'    => 'name',
-            'order'      => 'ASC',
-        ]);
+        $terms = get_terms(['taxonomy' => 'product_tag', 'hide_empty' => false, 'orderby' => 'name', 'order' => 'ASC']);
 
         if (is_wp_error($terms)) {
             return [];
         }
 
-        return array_map(fn($t) => [
-            'id'    => $t->term_id,
-            'name'  => $t->name,
-            'count' => $t->count,
-        ], $terms);
+        return array_map(fn($t) => ['id' => $t->term_id, 'name' => $t->name, 'count' => $t->count], $terms);
     }
 
-    /**
-     * Get all WooCommerce product attributes and their terms.
-     *
-     * @return array
-     */
     public function getAttributes(): array
     {
         $attributes = wc_get_attribute_taxonomies();
@@ -240,49 +219,27 @@ class CampaignService
             $result[] = [
                 'taxonomy' => $taxonomy,
                 'label'    => $attr->attribute_label,
-                'terms'    => array_map(fn($t) => [
-                    'id'   => $t->term_id,
-                    'name' => $t->name,
-                ], $terms),
+                'terms'    => array_map(fn($t) => ['id' => $t->term_id, 'name' => $t->name], $terms),
             ];
         }
 
         return $result;
     }
 
-    /**
-     * Get all WooCommerce product brands.
-     * Supports: product_brand (WooCommerce Brands), yith_product_brand, berocket_brand
-     *
-     * @return array
-     */
     public function getBrands(): array
     {
-        // Try common brand taxonomies
-        $taxonomies = ['product_brand', 'yith_product_brand', 'berocket_brand', 'pwb-brand'];
-
-        foreach ($taxonomies as $taxonomy) {
+        foreach (['product_brand', 'yith_product_brand', 'berocket_brand', 'pwb-brand'] as $taxonomy) {
             if (!taxonomy_exists($taxonomy)) {
                 continue;
             }
 
-            $terms = get_terms([
-                'taxonomy'   => $taxonomy,
-                'hide_empty' => false,
-                'orderby'    => 'name',
-                'order'      => 'ASC',
-            ]);
+            $terms = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false, 'orderby' => 'name', 'order' => 'ASC']);
 
             if (is_wp_error($terms) || empty($terms)) {
                 continue;
             }
 
-            return array_map(fn($t) => [
-                'id'       => $t->term_id,
-                'name'     => $t->name,
-                'count'    => $t->count,
-                'taxonomy' => $taxonomy,
-            ], $terms);
+            return array_map(fn($t) => ['id' => $t->term_id, 'name' => $t->name, 'count' => $t->count, 'taxonomy' => $taxonomy], $terms);
         }
 
         return [];
@@ -295,5 +252,73 @@ class CampaignService
     public function getRepository(): CampaignRepository
     {
         return $this->repo;
+    }
+
+    // -------------------------------------------------------
+    // STATUS RULES (business logic)
+    // -------------------------------------------------------
+
+    /**
+     * Apply smart status derivation rules BEFORE persisting a campaign.
+     *
+     * Rules (applied in order):
+     *
+     *  1. amazing_offer + status='scheduled'
+     *     → override to 'active'
+     *     Reason: amazing_offer has no date concept, scheduling is meaningless.
+     *
+     *  2. flash_sale + status='active' + starts_at in the future
+     *     → override to 'scheduled'
+     *     Reason: the campaign should not be live until its start time.
+     *     The cron (processAutoTransitions) will flip it to 'active' when
+     *     starts_at arrives.
+     *
+     *  3. status='draft'
+     *     → never changed (admin explicitly chose not to publish)
+     *
+     * This method creates a new DTO with the corrected status because DTO
+     * properties are readonly. PHP 8.1 named arguments make this clean.
+     */
+    private function applyStatusRules(CreateCampaignDTO $dto): CreateCampaignDTO
+    {
+        $status = $dto->status;
+
+        // Rule 1: amazing_offer cannot be scheduled.
+        if ($dto->type === 'amazing_offer' && $status === 'scheduled') {
+            $status = 'active';
+        }
+
+        // Rule 2: flash_sale with a future starts_at must start as 'scheduled'.
+        if (
+            $status === 'active'
+            && $dto->type === 'flash_sale'
+            && $dto->startsAt !== null
+            && strtotime($dto->startsAt) > current_time('timestamp')
+        ) {
+            $status = 'scheduled';
+        }
+
+        // Nothing changed — return original DTO to avoid an unnecessary copy.
+        if ($status === $dto->status) {
+            return $dto;
+        }
+
+        // Return a new DTO with the corrected status (all other fields preserved).
+        return new CreateCampaignDTO(
+            title:          $dto->title,
+            type:           $dto->type,
+            discount:       $dto->discount,
+            discountType:   $dto->discountType,
+            startsAt:       $dto->startsAt,
+            endsAt:         $dto->endsAt,
+            description:    $dto->description,
+            selectionMode:  $dto->selectionMode,
+            productIds:     $dto->productIds,
+            categoryIds:    $dto->categoryIds,
+            tagIds:         $dto->tagIds,
+            attributeRules: $dto->attributeRules,
+            brandIds:       $dto->brandIds,
+            status:         $status,
+        );
     }
 }
