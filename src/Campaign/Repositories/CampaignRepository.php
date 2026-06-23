@@ -19,38 +19,33 @@ use Msi\Campaignchi\Campaign\DTOs\CreateCampaignDTO;
  *   {prefix}cmc_campaign_rules
  *
  * -----------------------------------------------------------------------
- * FIX — Section 10: Auto-transition rules
+ * Section 10 — Auto-transition rules (revised)
  *
- *  Rule 1 (amazing_offer + scheduled):
+ *  Rule 1 (amazing_offer cannot be scheduled):
  *    amazing_offer campaigns NEVER get status='scheduled'. They have no
- *    starts_at / ends_at, so scheduling is meaningless. If the admin
- *    picks "scheduled" on an amazing_offer the CampaignService now
- *    silently overrides it to 'active' (see CampaignService). At the
- *    repository level, getLiveCampaigns() only returns amazing_offer rows
- *    whose status='active' — nothing changes here.
+ *    starts_at / ends_at concept. CampaignService::applyStatusRules()
+ *    overrides any attempt. At the repository level, getLiveCampaigns()
+ *    only returns amazing_offer rows with status='active'.
  *
- *  Rule 2 (auto-set status on save):
- *    CreateCampaignDTO / CampaignService now derive the correct initial
- *    status from the dates the user supplied:
- *      - starts_at in the future  → status = 'scheduled'  (even if admin
- *                                   picked 'active' manually)
- *      - starts_at in past/absent → status stays as chosen
- *    This logic lives in CampaignService, not here.
+ *  Rule 2 (status derivation on save):
+ *    CampaignService::applyStatusRules() derives the correct initial
+ *    status from the dates the admin supplied:
+ *      starts_at in the future  → status = 'scheduled'
+ *      starts_at in past/absent → status stays as admin chose
  *
- *  Rule 3 (getCampaignsToActivate — both types):
- *    Previously type='flash_sale' only. Now includes all types that have
- *    status='scheduled' and a starts_at that has arrived, so the cron
- *    sets them to 'active' at the right moment.
+ *  Rule 3 (getCampaignsToActivate):
+ *    Any campaign with status='scheduled' whose starts_at has arrived
+ *    AND whose ends_at has NOT yet passed. Restricted to status='scheduled'
+ *    only — prevents double-activation if cron runs early.
  *
- *  Rule 4 (getCampaignsToExpire — respects auto_expire_status setting):
- *    PricingServiceProvider::processAutoTransitions() now reads the
- *    SettingsPage::getCampaign()['auto_expire_status'] value ('ended' or
- *    'draft') and passes it to updateStatus(). The repository itself just
- *    stores whatever status string it receives.
+ *  Rule 4 (getCampaignsToExpire):
+ *    Any campaign in status 'active' or 'scheduled' whose ends_at < now.
+ *    Target status ('ended'|'draft') is decided by the caller reading
+ *    SettingsPage::getCampaign()['auto_expire_status'].
  *
- *  Rule 5 (getNextTransitionTimestamp — all types):
- *    The query no longer filters on type='flash_sale' so that amazing_offer
- *    campaigns with a starts_at are also included in the TTL calculation.
+ *  Rule 5 (getNextTransitionTimestamp):
+ *    Returns the nearest future transition moment for ALL campaign types
+ *    and statuses (scheduled + active) so the cache TTL is always correct.
  * -----------------------------------------------------------------------
  *
  * @package Msi\Campaignchi\Campaign\Repositories
@@ -67,8 +62,8 @@ class CampaignRepository
      * @param array $args {
      *   int    $per_page
      *   int    $page
-     *   string $status   (optional)
-     *   string $search   (optional)
+     *   string $status   (optional filter)
+     *   string $search   (optional keyword)
      *   string $orderby
      *   string $order    ASC|DESC
      * }
@@ -81,10 +76,13 @@ class CampaignRepository
         $perPage = max(1, (int) ($args['per_page'] ?? 20));
         $page    = max(1, (int) ($args['page']     ?? 1));
         $offset  = ($page - 1) * $perPage;
-        $orderby = in_array($args['orderby'] ?? '', ['title', 'status', 'created_at', 'starts_at'], true)
+
+        // Whitelist sortable columns to prevent SQL injection.
+        $allowedOrderBy = ['title', 'status', 'created_at', 'starts_at'];
+        $orderby = in_array($args['orderby'] ?? '', $allowedOrderBy, true)
             ? $args['orderby']
             : 'created_at';
-        $order   = strtoupper($args['order'] ?? 'DESC') === 'ASC' ? 'ASC' : 'DESC';
+        $order = strtoupper($args['order'] ?? 'DESC') === 'ASC' ? 'ASC' : 'DESC';
 
         $table  = $wpdb->prefix . 'cmc_campaigns';
         $where  = ['1=1'];
@@ -102,12 +100,14 @@ class CampaignRepository
 
         $whereSQL = implode(' AND ', $where);
 
+        // Count query.
         $countSQL = "SELECT COUNT(*) FROM {$table} WHERE {$whereSQL}";
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
         $total = (int) $wpdb->get_var(
             empty($params) ? $countSQL : $wpdb->prepare($countSQL, ...$params)
         );
 
+        // Data query.
         $rowSQL    = "SELECT * FROM {$table} WHERE {$whereSQL} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d";
         $allParams = array_merge($params, [$perPage, $offset]);
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -120,7 +120,10 @@ class CampaignRepository
     }
 
     /**
-     * Get a single campaign by ID.
+     * Find a single campaign by its primary key.
+     *
+     * @param int $id Campaign ID.
+     * @return Campaign|null
      */
     public function find(int $id): ?Campaign
     {
@@ -135,18 +138,18 @@ class CampaignRepository
     }
 
     /**
-     * Get all campaigns that are currently LIVE (pricing engine uses this).
+     * Get all campaigns that are LIVE right now (used by the pricing engine).
      *
      * "Live" means the campaign's discount should be applied RIGHT NOW:
-     *   - Any type:         status must be 'active'
-     *   - flash_sale only:  additionally starts_at ≤ now AND ends_at ≥ now
-     *                       (NULL on either side = open-ended bound)
-     *   - amazing_offer:    no date check — live whenever status='active'
+     *   - Any type:        status must be 'active'
+     *   - flash_sale only: additionally starts_at ≤ now AND ends_at ≥ now
+     *                      (NULL on either bound = open-ended)
+     *   - amazing_offer:   no date check — live whenever status='active'
      *
-     * 'scheduled' rows are never live — they are waiting for starts_at to
-     * arrive, after which the cron flips them to 'active'.
+     * 'scheduled' rows are never live. They are waiting for starts_at to
+     * arrive, at which point the cron flips them to 'active'.
      *
-     * Ordering priority:
+     * Priority ordering:
      *   1) flash_sale before amazing_offer
      *   2) newest campaign (higher id) wins ties
      *
@@ -157,18 +160,20 @@ class CampaignRepository
         global $wpdb;
 
         $table = $wpdb->prefix . 'cmc_campaigns';
-        $now   = current_time('mysql'); // naive site-local, matches starts_at/ends_at.
+
+        // Use site-local time to match stored starts_at/ends_at values.
+        $now = current_time('mysql');
 
         $sql = "SELECT * FROM {$table}
                 WHERE status = 'active'
-                AND (
-                    type = 'amazing_offer'
-                    OR (
-                        type = 'flash_sale'
-                        AND (starts_at IS NULL OR starts_at <= %s)
-                        AND (ends_at   IS NULL OR ends_at   >= %s)
-                    )
-                )
+                  AND (
+                      type = 'amazing_offer'
+                      OR (
+                          type = 'flash_sale'
+                          AND (starts_at IS NULL OR starts_at <= %s)
+                          AND (ends_at   IS NULL OR ends_at   >= %s)
+                      )
+                  )
                 ORDER BY (type = 'flash_sale') DESC, id DESC";
 
         $rows = $wpdb->get_results($wpdb->prepare($sql, $now, $now));
@@ -177,13 +182,17 @@ class CampaignRepository
     }
 
     /**
-     * Campaigns that should switch to 'active' because their starts_at has arrived.
+     * Find campaigns that should be activated now: scheduled → active.
      *
-     * FIX: No longer restricted to type='flash_sale'. Any campaign with
-     * status='scheduled' whose starts_at ≤ now should be activated.
-     * Also: amazing_offer campaigns should never reach this state because
-     * CampaignService prevents assigning status='scheduled' to them — but
-     * if they somehow end up here, this query will still handle them safely.
+     * Conditions:
+     *   - status = 'scheduled'  (never activates already-active campaigns)
+     *   - starts_at IS NOT NULL AND starts_at <= now
+     *   - ends_at IS NULL OR ends_at >= now
+     *     (skip campaigns that started AND already ended — skip-expired guard)
+     *
+     * Both flash_sale and amazing_offer types are included, even though
+     * CampaignService prevents amazing_offer from ever reaching 'scheduled'.
+     * The guard here is a safety net.
      *
      * @return Campaign[]
      */
@@ -194,9 +203,6 @@ class CampaignRepository
         $table = $wpdb->prefix . 'cmc_campaigns';
         $now   = current_time('mysql');
 
-        // Match ALL types: any scheduled campaign whose start time has arrived.
-        // ends_at guard: skip campaigns that started AND already ended in the
-        // same cron cycle (rare but possible if the cron was missed).
         $rows = $wpdb->get_results($wpdb->prepare(
             "SELECT * FROM {$table}
              WHERE status = 'scheduled'
@@ -211,13 +217,15 @@ class CampaignRepository
     }
 
     /**
-     * Campaigns whose ends_at has passed and should be expired.
+     * Find campaigns that should be expired now: (active|scheduled) → (ended|draft).
      *
-     * FIX: No longer restricted to type='flash_sale'. Any active/scheduled
-     * campaign with a past ends_at should expire. The target status
-     * ('ended' or 'draft') is decided by the caller
-     * (PricingServiceProvider::processAutoTransitions), which reads the
-     * SettingsPage::getCampaign()['auto_expire_status'] option.
+     * Conditions:
+     *   - status IN ('active', 'scheduled')
+     *   - ends_at IS NOT NULL AND ends_at < now
+     *
+     * The target expiry status ('ended' or 'draft') is decided by the
+     * caller (PricingServiceProvider::processAutoTransitions) which reads
+     * the admin setting: SettingsPage::getCampaign()['auto_expire_status'].
      *
      * @return Campaign[]
      */
@@ -243,11 +251,18 @@ class CampaignRepository
      * Get the SITE-LOCAL Unix timestamp of the next moment any campaign's
      * live state will change (about to start or about to end).
      *
-     * FIX: Removed the type='flash_sale' restriction so amazing_offer
-     * campaigns with dates also contribute to the TTL calculation.
+     * Used by CampaignResolver to set an optimal cache TTL so prices
+     * refresh automatically without manual intervention.
      *
-     * ⚠️ TIMEZONE NOTE: returns strtotime() of a naive site-local DATETIME.
-     * Callers must diff against current_time('timestamp'), NOT time().
+     * Considers:
+     *   - starts_at of 'scheduled' campaigns whose start is still in the future
+     *   - ends_at   of 'active'    campaigns whose end   is still in the future
+     *
+     * NOTE: We intentionally exclude 'active' starts_at here because a
+     * campaign that is already active does not need to re-activate.
+     *
+     * ⚠️ TIMEZONE: returns strtotime() of a naive site-local DATETIME.
+     * Callers MUST diff against current_time('timestamp'), NOT time().
      *
      * @return int|null Site-local Unix timestamp, or null if no pending transition.
      */
@@ -258,15 +273,17 @@ class CampaignRepository
         $table = $wpdb->prefix . 'cmc_campaigns';
         $now   = current_time('mysql');
 
-        // FIX: no type filter — all campaign types with scheduled dates matter.
+        // Two sub-queries united:
+        //   1. Next activation: scheduled campaigns whose starts_at is in the future.
+        //   2. Next expiry:     active campaigns whose ends_at is in the future.
         $sql = "SELECT MIN(t) FROM (
                     SELECT starts_at AS t FROM {$table}
-                        WHERE status IN ('active', 'scheduled')
+                        WHERE status = 'scheduled'
                           AND starts_at IS NOT NULL
                           AND starts_at > %s
                     UNION ALL
                     SELECT ends_at AS t FROM {$table}
-                        WHERE status IN ('active', 'scheduled')
+                        WHERE status = 'active'
                           AND ends_at IS NOT NULL
                           AND ends_at > %s
                 ) AS transitions";
@@ -278,7 +295,10 @@ class CampaignRepository
 
     /**
      * Count campaigns created since a given GMT datetime.
-     * Used by AnalyticsService for "X new campaigns this week".
+     * Used by AnalyticsService for "X new campaigns this week" stats.
+     *
+     * @param string $datetime MySQL DATETIME in GMT.
+     * @return int
      */
     public function countCreatedSince(string $datetime): int
     {
@@ -293,8 +313,9 @@ class CampaignRepository
     }
 
     /**
-     * Recently-changed campaigns (for activity feed).
+     * Get the most recently updated campaigns for the activity feed.
      *
+     * @param int $limit Maximum number of records to return.
      * @return Campaign[]
      */
     public function getRecentlyChanged(int $limit = 5): array
@@ -312,7 +333,8 @@ class CampaignRepository
     }
 
     /**
-     * All non-draft campaigns, ordered by priority.
+     * Get all non-draft campaigns ordered by priority.
+     * Used internally for analytics and reporting.
      *
      * @return Campaign[]
      */
@@ -336,16 +358,18 @@ class CampaignRepository
     // -------------------------------------------------------
 
     /**
-     * Insert a new campaign from DTO.
+     * Insert a new campaign from a validated DTO.
      *
-     * @throws \RuntimeException On DB failure.
+     * @param CreateCampaignDTO $dto Validated campaign data.
+     * @throws \RuntimeException If the database insert fails.
+     * @return int The newly created campaign ID.
      */
     public function create(CreateCampaignDTO $dto): int
     {
         global $wpdb;
 
         $table  = $wpdb->prefix . 'cmc_campaigns';
-        $nowGmt = current_time('mysql', true);
+        $nowGmt = current_time('mysql', true); // GMT for audit timestamps.
 
         $wpdb->insert($table, [
             'title'          => $dto->title,
@@ -362,7 +386,7 @@ class CampaignRepository
         ], ['%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s']);
 
         if (!$wpdb->insert_id) {
-            throw new \RuntimeException('[CMC] Failed to insert campaign.');
+            throw new \RuntimeException('[CMC] Failed to insert campaign into database.');
         }
 
         $id = (int) $wpdb->insert_id;
@@ -370,13 +394,17 @@ class CampaignRepository
         $this->syncProducts($id, $dto);
         $this->syncRules($id, $dto);
 
+        // Notify the pricing engine to rebuild its cache.
         do_action('cmc_campaign_changed', $id);
 
         return $id;
     }
 
     /**
-     * Update an existing campaign from DTO.
+     * Update an existing campaign from a validated DTO.
+     *
+     * @param int               $id  Campaign ID to update.
+     * @param CreateCampaignDTO $dto Validated campaign data.
      */
     public function update(int $id, CreateCampaignDTO $dto): void
     {
@@ -403,18 +431,21 @@ class CampaignRepository
             ['%d']
         );
 
+        // Rebuild product and rule associations.
         $this->deleteProducts($id);
         $this->deleteRules($id);
         $this->syncProducts($id, $dto);
         $this->syncRules($id, $dto);
 
+        // Notify the pricing engine to rebuild its cache.
         do_action('cmc_campaign_changed', $id);
     }
 
     /**
      * Update only the status field (used by the auto-transition cron).
      *
-     * @param string $status One of: draft | active | scheduled | ended
+     * @param int    $id     Campaign ID.
+     * @param string $status Target status: draft | active | scheduled | ended
      */
     public function updateStatus(int $id, string $status): void
     {
@@ -431,16 +462,20 @@ class CampaignRepository
             ['%d']
         );
 
+        // Notify the pricing engine to flush affected product caches.
         do_action('cmc_campaign_changed', $id);
     }
 
     /**
-     * Delete a campaign and all its related records.
+     * Permanently delete a campaign and all its related records.
+     *
+     * @param int $id Campaign ID to delete.
      */
     public function delete(int $id): void
     {
         global $wpdb;
 
+        // Remove child records first (no FK cascade in MySQL by default).
         $this->deleteProducts($id);
         $this->deleteRules($id);
 
@@ -450,6 +485,7 @@ class CampaignRepository
             ['%d']
         );
 
+        // Notify the pricing engine to flush all related caches.
         do_action('cmc_campaign_changed', $id);
     }
 
@@ -458,6 +494,9 @@ class CampaignRepository
     // -------------------------------------------------------
 
     /**
+     * Get all manually-assigned product IDs for a campaign.
+     *
+     * @param int $campaignId Campaign ID.
      * @return int[]
      */
     public function getProductIds(int $campaignId): array
@@ -473,7 +512,15 @@ class CampaignRepository
     }
 
     /**
-     * @return array{category_ids:int[], tag_ids:int[], brand_ids:int[], attribute_rules:array}
+     * Get all taxonomy/attribute rules for a campaign.
+     *
+     * @param int $campaignId Campaign ID.
+     * @return array{
+     *   category_ids:    int[],
+     *   tag_ids:         int[],
+     *   brand_ids:       int[],
+     *   attribute_rules: array<array{taxonomy:string, term_id:int}>
+     * }
      */
     public function getRules(int $campaignId): array
     {
@@ -488,6 +535,7 @@ class CampaignRepository
             'attribute_rules' => [],
         ];
 
+        // Table may not exist on older installations — guard before querying.
         if ($wpdb->get_var("SHOW TABLES LIKE '{$table}'") !== $table) {
             return $result;
         }
@@ -511,7 +559,7 @@ class CampaignRepository
                 case 'attribute':
                     $result['attribute_rules'][] = [
                         'taxonomy' => (string) $row['taxonomy'],
-                        'term_id'  => (int) $row['term_id'],
+                        'term_id'  => (int)    $row['term_id'],
                     ];
                     break;
             }
@@ -524,6 +572,12 @@ class CampaignRepository
     // PRIVATE HELPERS
     // -------------------------------------------------------
 
+    /**
+     * Insert product IDs for a campaign (manual selection mode).
+     *
+     * @param int               $campaignId Campaign ID.
+     * @param CreateCampaignDTO $dto        DTO containing productIds.
+     */
     private function syncProducts(int $campaignId, CreateCampaignDTO $dto): void
     {
         global $wpdb;
@@ -534,6 +588,7 @@ class CampaignRepository
 
         $table = $wpdb->prefix . 'cmc_campaign_products';
 
+        // De-duplicate before inserting to prevent constraint violations.
         foreach (array_unique($dto->productIds) as $productId) {
             $wpdb->insert(
                 $table,
@@ -543,12 +598,19 @@ class CampaignRepository
         }
     }
 
+    /**
+     * Insert taxonomy/attribute rules for a campaign.
+     *
+     * @param int               $campaignId Campaign ID.
+     * @param CreateCampaignDTO $dto        DTO containing rule arrays.
+     */
     private function syncRules(int $campaignId, CreateCampaignDTO $dto): void
     {
         global $wpdb;
 
         $table = $wpdb->prefix . 'cmc_campaign_rules';
 
+        // Table may not exist on older installations — guard before inserting.
         if ($wpdb->get_var("SHOW TABLES LIKE '{$table}'") !== $table) {
             return;
         }
@@ -573,12 +635,22 @@ class CampaignRepository
         }
     }
 
+    /**
+     * Delete all manually-assigned products for a campaign.
+     *
+     * @param int $campaignId Campaign ID.
+     */
     private function deleteProducts(int $campaignId): void
     {
         global $wpdb;
         $wpdb->delete($wpdb->prefix . 'cmc_campaign_products', ['campaign_id' => $campaignId], ['%d']);
     }
 
+    /**
+     * Delete all taxonomy/attribute rules for a campaign.
+     *
+     * @param int $campaignId Campaign ID.
+     */
     private function deleteRules(int $campaignId): void
     {
         global $wpdb;

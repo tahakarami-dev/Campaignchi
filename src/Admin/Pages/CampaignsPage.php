@@ -482,6 +482,27 @@ class CampaignsPage extends AbstractPage
                         </select>
                     </div>
 
+                    <?php
+                    /**
+                     * Scheduling hint banner (id="cmc-scheduled-hint").
+                     *
+                     * Shown by campaigns.js when:
+                     *   - type = flash_sale
+                     *   - status = active
+                     *   - starts_at is set and is in the future
+                     *
+                     * Informs the admin that the server will automatically
+                     * save the campaign as "scheduled" and activate it when
+                     * starts_at arrives. Hidden by default; JS controls visibility.
+                     */
+                    ?>
+                    <div id="cmc-scheduled-hint" class="cmc-alert cmc-alert--info cmc-mb-3" style="display:none">
+                        <i class="ti ti-clock cmc-alert__icon"></i>
+                        <div class="cmc-alert__body">
+                            <?php esc_html_e('کمپین به صورت «زمان‌بندی شده» ذخیره می‌شود و در زمان شروع به طور خودکار فعال خواهد شد.', 'campaignchi'); ?>
+                        </div>
+                    </div>
+
                     <div id="cmc-form-error" class="cmc-alert cmc-alert--danger cmc-mb-3" style="display:none">
                         <i class="ti ti-alert-circle cmc-alert__icon"></i>
                         <div class="cmc-alert__body" id="cmc-form-error-text"></div>

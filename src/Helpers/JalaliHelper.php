@@ -64,7 +64,7 @@ class JalaliHelper
      * @param string      $separator جداکننده تاریخ (پیشفرض /)
      * @return string تاریخ شمسی با اعداد فارسی یا '—' در صورت خالی بودن
      */
-    public static function toDisplay(?string $datetime, bool $withTime = false, string $separator = '/'): string
+    public static function toDisplay(?string $datetime, bool $withTime = true, string $separator = '/'): string
     {
         if (empty($datetime) || $datetime === '0000-00-00 00:00:00') {
             return '—';

@@ -261,23 +261,29 @@ class CampaignService
     /**
      * Apply smart status derivation rules BEFORE persisting a campaign.
      *
-     * Rules (applied in order):
+     * Rules (applied in order, first match wins):
      *
-     *  1. amazing_offer + status='scheduled'
+     *  Rule 1 — amazing_offer + status='scheduled'
      *     → override to 'active'
-     *     Reason: amazing_offer has no date concept, scheduling is meaningless.
+     *     Reason: amazing_offer has no date concept; scheduling is meaningless.
      *
-     *  2. flash_sale + status='active' + starts_at in the future
+     *  Rule 2 — any type + ends_at already in the past + status NOT 'draft'
+     *     → override to 'ended'
+     *     Reason: admin set an end date that has already passed. Saving as
+     *     'active' would briefly apply discounts until the next cron cycle.
+     *     'draft' is exempt so admins can keep a record without re-activating.
+     *
+     *  Rule 3 — flash_sale + status='active' + starts_at is in the future
      *     → override to 'scheduled'
      *     Reason: the campaign should not be live until its start time.
      *     The cron (processAutoTransitions) will flip it to 'active' when
      *     starts_at arrives.
      *
-     *  3. status='draft'
-     *     → never changed (admin explicitly chose not to publish)
+     *  Rule 4 — status='draft'
+     *     → never changed (admin explicitly chose not to publish yet).
      *
-     * This method creates a new DTO with the corrected status because DTO
-     * properties are readonly. PHP 8.1 named arguments make this clean.
+     * This method returns a new DTO with the corrected status because DTO
+     * properties are readonly.
      */
     private function applyStatusRules(CreateCampaignDTO $dto): CreateCampaignDTO
     {
@@ -288,7 +294,19 @@ class CampaignService
             $status = 'active';
         }
 
-        // Rule 2: flash_sale with a future starts_at must start as 'scheduled'.
+        // Rule 2: if ends_at has already passed, the campaign is over.
+        // Skip this check for 'draft' (admin may want to keep it for reference).
+        if (
+            $status !== 'draft'
+            && $dto->endsAt !== null
+            && strtotime($dto->endsAt) < current_time('timestamp')
+        ) {
+            $status = 'ended';
+        }
+
+        // Rule 3: flash_sale with a future starts_at must wait as 'scheduled'.
+        // Only applies when the admin tried to publish as 'active' and Rule 2
+        // did not already flip the status to 'ended'.
         if (
             $status === 'active'
             && $dto->type === 'flash_sale'
@@ -298,12 +316,12 @@ class CampaignService
             $status = 'scheduled';
         }
 
-        // Nothing changed — return original DTO to avoid an unnecessary copy.
+        // Nothing changed — return original DTO to avoid an unnecessary object copy.
         if ($status === $dto->status) {
             return $dto;
         }
 
-        // Return a new DTO with the corrected status (all other fields preserved).
+        // Return a new DTO with the corrected status; all other fields are preserved.
         return new CreateCampaignDTO(
             title:          $dto->title,
             type:           $dto->type,
