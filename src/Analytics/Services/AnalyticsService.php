@@ -842,186 +842,26 @@ class AnalyticsService
     }
 
     // =========================================================
-    // RANGE REPORT — منبع واحد گزارش‌های صفحه‌ی «گزارش‌ها»
-    // همه‌ی اعداد از getDailyCampaignData (همان موتور داشبورد) می‌آیند،
-    // فقط روی یک بازه‌ی دلخواه به‌جای «امروز» تجمیع می‌شوند.
+    // RANGE REPORT — REMOVED
+    // getRangeReport() has been removed from this class.
+    //
+    // The Reports page is now powered exclusively by ReportService, which
+    // reads from the campaign-sales event log (wp_cmc_campaign_sales) via
+    // CampaignSalesRepository. That approach is accurate because it only
+    // counts items that were provably sold under a campaign, recorded at
+    // checkout time.
+    //
+    // The old getRangeReport() scanned raw WooCommerce orders and tried to
+    // retroactively determine whether a product was under a campaign on a
+    // past date — a fundamentally unreliable approach that could include
+    // non-campaign items and was inconsistent with the event-log figures.
+    //
+    // Do NOT add range-report logic back here. See ReportService.php.
     // =========================================================
 
-    /**
-     * گزارش کامل یک بازه‌ی تاریخی: خلاصه‌ی KPI، سری روزانه، تفکیک
-     * per-کمپین و پرفروش‌ترین محصولات.
-     *
-     * @param string $startDate Y-m-d (site-local)
-     * @param string $endDate   Y-m-d (site-local)
-     */
-    public function getRangeReport(string $startDate, string $endDate): array
-    {
-        $dates = $this->datesInRange($startDate, $endDate);
+    // NOTE: the following private helpers (datesInRange, shortJalaliLabel,
+    // formatToman, formatPercent) were used exclusively by getRangeReport()
+    // and have been removed together with it to keep this class clean.
+    // Equivalent helpers exist in ReportService.php.
 
-        $series         = [];
-        $totalRevenue   = 0.0;
-        $totalOrders    = 0;
-        $campaignAgg    = [];
-        $productAgg     = [];
-        $today          = (new \DateTime('now', wp_timezone()))->format('Y-m-d');
-
-        foreach ($dates as $date) {
-            $range = $this->dayRangeForDate(new \DateTime($date, wp_timezone()));
-            $daily = $this->getDailyCampaignData($range);
-
-            $series[] = [
-                'label'       => $this->shortJalaliLabel($date),
-                'date'        => $date,
-                'revenue'     => $daily['revenue'],
-                'orders'      => $daily['orders'],
-                'is_today'    => $date === $today,
-                'value_label' => $this->abbreviateNumber($daily['revenue']),
-            ];
-
-            $totalRevenue += $daily['revenue'];
-            $totalOrders  += $daily['orders'];
-
-            foreach ($daily['campaigns'] as $c) {
-                $cid = $c['id'];
-                if (!isset($campaignAgg[$cid])) {
-                    $campaignAgg[$cid] = [
-                        'id'      => $cid,
-                        'title'   => $c['title'],
-                        'type'    => $c['type'],
-                        'revenue' => 0.0,
-                        'orders'  => 0,
-                        'qty'     => 0,
-                    ];
-                }
-                $campaignAgg[$cid]['revenue'] += $c['revenue'];
-                $campaignAgg[$cid]['orders']  += $c['orders'];
-                $campaignAgg[$cid]['qty']     += $c['qty'];
-            }
-
-            foreach ($daily['products'] as $p) {
-                $pid = $p['id'];
-                if (!isset($productAgg[$pid])) {
-                    $productAgg[$pid] = ['id' => $pid, 'qty' => 0, 'campaign_title' => $p['campaign_title']];
-                }
-                $productAgg[$pid]['qty'] += $p['qty'];
-            }
-        }
-
-        // بازدید per-کمپین از همان جدول stats (منبع یکسان با داشبورد).
-        $impressionsByCampaign = $this->stats->getImpressionsByCampaign($startDate, $endDate);
-        $totalImpressions      = array_sum($impressionsByCampaign);
-
-        // Chart percentages.
-        $maxRevenue = max(array_column($series, 'revenue') ?: [0]);
-        $maxRevenue = $maxRevenue > 0 ? $maxRevenue : 1;
-        foreach ($series as &$bar) {
-            $bar['percent'] = (int) round(($bar['revenue'] / $maxRevenue) * 100);
-        }
-        unset($bar);
-
-        // Enrich + finalize per-campaign rows.
-        $campaigns = [];
-        foreach ($campaignAgg as $c) {
-            $impressions  = $impressionsByCampaign[$c['id']] ?? 0;
-            $conversion   = $this->conversionRate($c['orders'], $impressions);
-            $campaigns[]  = [
-                'id'               => $c['id'],
-                'title'            => $c['title'],
-                'type'             => $c['type'],
-                'revenue'          => $c['revenue'],
-                'revenue_full'     => $this->formatToman($c['revenue']),
-                'orders'           => $c['orders'],
-                'qty'              => $c['qty'],
-                'impressions'      => $impressions,
-                'conversion'       => $conversion,
-                'conversion_label' => $this->formatPercent($conversion),
-            ];
-        }
-        usort($campaigns, fn($a, $b) => $b['revenue'] <=> $a['revenue']);
-
-        // Top products (limit 50; the page slices to 10, the CSV keeps all).
-        usort($productAgg, fn($a, $b) => $b['qty'] <=> $a['qty']);
-        $topProducts = [];
-        foreach (array_slice(array_values($productAgg), 0, 50) as $p) {
-            $product = wc_get_product($p['id']);
-            $topProducts[] = [
-                'id'             => $p['id'],
-                'name'           => $product ? $product->get_name() : ('#' . $p['id']),
-                'qty'            => $p['qty'],
-                'campaign_title' => $p['campaign_title'],
-            ];
-        }
-
-        $conversion = $this->conversionRate($totalOrders, $totalImpressions);
-        $aov        = $totalOrders > 0 ? $totalRevenue / $totalOrders : 0.0;
-
-        return [
-            'summary' => [
-                'revenue'            => $totalRevenue,
-                'revenue_abbr'       => $this->abbreviateNumber($totalRevenue),
-                'revenue_full'       => $this->formatToman($totalRevenue),
-                'orders'             => $totalOrders,
-                'impressions'        => $totalImpressions,
-                'impressions_label'  => $this->abbreviateNumber((float) $totalImpressions),
-                'conversion'         => $conversion,
-                'conversion_label'   => $this->formatPercent($conversion),
-                'aov'                => $aov,
-                'aov_label'          => $this->formatToman($aov),
-            ],
-            'series'       => $series,
-            'campaigns'    => $campaigns,
-            'top_products' => $topProducts,
-        ];
-    }
-
-    /**
-     * فهرست تاریخ‌های Y-m-d در یک بازه (شامل دو مرز)، با محدودسازی به
-     * «امروز» و سقف امن برای جلوگیری از پیمایش بیش از حد.
-     *
-     * @return string[]
-     */
-    private function datesInRange(string $startDate, string $endDate): array
-    {
-        $today = (new \DateTime('now', wp_timezone()))->format('Y-m-d');
-        if ($endDate > $today) {
-            $endDate = $today;
-        }
-        if ($startDate > $endDate) {
-            $startDate = $endDate;
-        }
-
-        $dates   = [];
-        $cursor  = new \DateTime($startDate, wp_timezone());
-        $endDt   = new \DateTime($endDate, wp_timezone());
-        $guard   = 0;
-
-        while ($cursor <= $endDt && $guard < 366) {
-            $dates[] = $cursor->format('Y-m-d');
-            $cursor->modify('+1 day');
-            $guard++;
-        }
-
-        return $dates;
-    }
-
-    /** برچسب کوتاه روز برای محور نمودار: فقط شماره‌ی روزِ شمسی، مثلاً «۲۳». */
-    private function shortJalaliLabel(string $dateStr): string
-    {
-        $ts = strtotime($dateStr);
-        [,, $jd] = JalaliHelper::gregorianToJalali((int) date('Y', $ts), (int) date('m', $ts), (int) date('d', $ts));
-
-        return JalaliHelper::toPersianNums((string) $jd);
-    }
-
-    /** قالب‌بندی مبلغ تومان با جداکننده‌ی هزارگان و اعداد فارسی. */
-    private function formatToman(float $value): string
-    {
-        return JalaliHelper::toPersianNums(number_format($value, 0));
-    }
-
-    /** قالب‌بندی درصد یک‌رقمی با اعداد فارسی. */
-    private function formatPercent(float $value): string
-    {
-        return JalaliHelper::toPersianNums(number_format($value, 1)) . '٪';
-    }
 }
