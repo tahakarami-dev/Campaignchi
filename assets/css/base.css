@@ -690,12 +690,11 @@
     display: none;
   }
 
-  .cmc-content-inner {
-    margin-bottom: 30px;
-  }
-  .cmc-sidebar__logo-wrap {
-    justify-content: center;
-    gap: 0px;
+  /* Bottom breathing room so the last card is never glued to the
+     viewport edge. Replaces the previous per-page margin-bottom hacks
+     and keeps spacing consistent across every panel page. */
+  .cmc-content {
+    padding-bottom: calc(var(--cmc-space-10) + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -726,10 +725,6 @@
 
   .cmc-sidebar.is-open .cmc-sidebar__footer {
     padding-bottom: 10px;
-  }
-
-  .cmc-content-inner {
-    margin-bottom: 55px;
   }
 
   /* Show all text again when sidebar is open */
@@ -794,12 +789,40 @@
   /* Content padding reduce */
   .cmc-content {
     padding: var(--cmc-space-4);
+    /* Guarantee bottom spacing (incl. iOS home-indicator safe area) so the
+       last element keeps clear of the viewport edge on touch devices. */
+    padding-bottom: calc(var(--cmc-space-10) + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Modal full-width on mobile */
-  .cmc-modal {
-    max-width: 100%;
+  /* --- Tabs: scroll horizontally instead of overflowing the screen ---
+     Shared rule for the settings tabs (#cmc-settings-tabs) and the campaign
+     product-picker tabs (#cmc-picker-tabs), which previously pushed content
+     off-screen because the flex row could neither wrap nor scroll. */
+  .cmc-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .cmc-tabs::-webkit-scrollbar {
+    display: none; /* Chrome / Safari */
+  }
+
+  .cmc-tab {
+    flex-shrink: 0; /* keep each tab on a single line while scrolling */
+  }
+
+  /* --- Modal: full-width bottom sheet on tablet/mobile ---
+     !important is required on the width because page-level inline <style>
+     blocks (notably .cmc-modal--wide in TemplatesPage) load after this file
+     and would otherwise keep the desktop max-width, breaking the layout. */
+  .cmc-modal,
+  .cmc-modal--wide {
+    max-width: 100% !important;
+    width: 100%;
     margin: 0;
+    max-height: 92vh;
     border-radius: var(--cmc-radius-lg) var(--cmc-radius-lg) 0 0;
     position: fixed;
     bottom: 0;
@@ -810,12 +833,30 @@
   .cmc-modal-overlay {
     align-items: flex-end;
   }
+
+  /* Keep footer buttons above the iOS home indicator. */
+  .cmc-modal__footer {
+    padding-bottom: calc(var(--cmc-space-4) + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* ---- Mobile (≤ 480px) ---- */
 @media (max-width: 480px) {
   .cmc-content {
     padding: var(--cmc-space-3);
+    /* Preserve generous bottom clearance on the smallest screens too. */
+    padding-bottom: calc(var(--cmc-space-8) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Let two-control rows (e.g. discount value + discount type) stack
+     instead of squeezing into an unusable single line. */
+  .cmc-row--md {
+    flex-wrap: wrap;
+  }
+
+  /* Compact the horizontally scrollable tabs so more fit before scrolling. */
+  .cmc-tab {
+    padding: var(--cmc-space-2) var(--cmc-space-3);
   }
 
   .cmc-stat-card__value {
