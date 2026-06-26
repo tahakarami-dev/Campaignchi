@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Analytics\Services;
 
+use Msi\Campaignchi\Admin\Pages\SettingsPage;
 use Msi\Campaignchi\Analytics\Repositories\AnalyticsRepository;
 use Msi\Campaignchi\Campaign\Models\Campaign;
 use Msi\Campaignchi\Campaign\Pricing\CampaignProductResolver;
@@ -59,6 +60,41 @@ class AnalyticsService
 
     /** @var array<int, array{campaign: Campaign, product_ids: array}>|null */
     private ?array $campaignCandidates = null;
+
+    /**
+     * Resolve the TTL (seconds) for today's cached analytics.
+     *
+     * Reads the admin setting (Settings → Performance → analytics_cache_ttl)
+     * and clamps it, falling back to the TODAY_CACHE_TTL constant when the
+     * settings layer is unavailable.
+     */
+    private function todayCacheTtl(): int
+    {
+        if (!class_exists(SettingsPage::class)) {
+            return self::TODAY_CACHE_TTL;
+        }
+
+        $configured = (int) (SettingsPage::getPerformance()['analytics_cache_ttl'] ?? self::TODAY_CACHE_TTL);
+
+        return max(10, min($configured, 600));
+    }
+
+    /**
+     * Resolve the TTL (seconds) for the campaign-candidates cache.
+     *
+     * Reads the admin setting (Settings → Performance → candidates_cache_ttl)
+     * and clamps it, falling back to the CAMPAIGN_CANDIDATES_CACHE_TTL constant.
+     */
+    private function candidatesCacheTtl(): int
+    {
+        if (!class_exists(SettingsPage::class)) {
+            return self::CAMPAIGN_CANDIDATES_CACHE_TTL;
+        }
+
+        $configured = (int) (SettingsPage::getPerformance()['candidates_cache_ttl'] ?? self::CAMPAIGN_CANDIDATES_CACHE_TTL);
+
+        return max(60, min($configured, 3600));
+    }
 
     public function __construct(
         private AnalyticsRepository $stats,
@@ -551,7 +587,7 @@ class AnalyticsService
         ];
 
         $today = (new \DateTime('now', wp_timezone()))->format('Y-m-d');
-        $ttl   = $range['date'] === $today ? self::TODAY_CACHE_TTL : HOUR_IN_SECONDS;
+        $ttl   = $range['date'] === $today ? $this->todayCacheTtl() : HOUR_IN_SECONDS;
 
         set_transient($cacheKey, $data, $ttl);
 
@@ -637,7 +673,7 @@ class AnalyticsService
             return $b['campaign']->id - $a['campaign']->id;
         });
 
-        set_transient(self::CAMPAIGN_CANDIDATES_CACHE_KEY, $candidates, self::CAMPAIGN_CANDIDATES_CACHE_TTL);
+        set_transient(self::CAMPAIGN_CANDIDATES_CACHE_KEY, $candidates, $this->candidatesCacheTtl());
 
         return $this->campaignCandidates = $candidates;
     }

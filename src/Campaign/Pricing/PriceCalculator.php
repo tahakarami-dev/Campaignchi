@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Campaign\Pricing;
 
+use Msi\Campaignchi\Admin\Pages\SettingsPage;
+
 /**
  * PriceCalculator
  *
  * Pure math — converts a regular price + campaign discount
- * into the final campaign price.
+ * into the final campaign price, honoring the admin-configured
+ * discount ceilings (Settings → Campaign engine).
  *
  * @package Msi\Campaignchi\Campaign\Pricing
  */
@@ -28,12 +31,22 @@ final class PriceCalculator
             return $regularPrice;
         }
 
+        // Admin-configured safety ceilings (Settings → Campaign engine).
+        [$maxPercent, $maxFixed] = self::discountCeilings();
+
         if ($discountType === 'percent') {
-            $discount = min(max($discount, 0), 100); // clamp 0-100
+            // Clamp 0-100, then apply the configured percentage ceiling.
+            $discount = min(max($discount, 0), 100);
+            $discount = min($discount, $maxPercent);
             $final = $regularPrice * (1 - ($discount / 100));
         } else {
-            // fixed amount discount
-            $final = $regularPrice - max($discount, 0);
+            // Fixed-amount discount: never negative, never above the configured
+            // ceiling (0 = unlimited).
+            $discount = max($discount, 0);
+            if ($maxFixed > 0) {
+                $discount = min($discount, $maxFixed);
+            }
+            $final = $regularPrice - $discount;
         }
 
         $final = max(0, $final);
@@ -41,6 +54,29 @@ final class PriceCalculator
         $decimals = function_exists('wc_get_price_decimals') ? wc_get_price_decimals() : 2;
 
         return round($final, $decimals);
+    }
+
+    /**
+     * Resolve the admin-configured discount ceilings.
+     *
+     * @return array{0: float, 1: float} [maxPercent (1-100), maxFixed (0 = unlimited)]
+     */
+    private static function discountCeilings(): array
+    {
+        // Fallback ceilings when the settings layer is unavailable: 100% / unlimited.
+        if (!class_exists(SettingsPage::class)) {
+            return [100.0, 0.0];
+        }
+
+        $campaign   = SettingsPage::getCampaign();
+        $maxPercent = (float) ($campaign['max_discount_percent'] ?? 100);
+        $maxFixed   = (float) ($campaign['max_discount_fixed'] ?? 0);
+
+        // Keep the percentage ceiling within a valid range.
+        $maxPercent = min(max($maxPercent, 1.0), 100.0);
+        $maxFixed   = max($maxFixed, 0.0);
+
+        return [$maxPercent, $maxFixed];
     }
 
     /**

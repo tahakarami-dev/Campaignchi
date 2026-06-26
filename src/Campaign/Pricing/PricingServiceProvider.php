@@ -192,28 +192,48 @@ class PricingServiceProvider extends ServiceProvider
 
     /**
      * Schedule the campaign auto-transition cron job.
-     * Runs every 5 minutes via the 'cmc_five_minutes' schedule.
+     *
+     * Uses the 'cmc_campaign_cron' schedule whose interval is read live from
+     * the admin settings via registerCronSchedule(). Existing installs that
+     * were scheduled under the legacy 'cmc_five_minutes' interval keep working
+     * because we only schedule a fresh event when none is registered yet.
      */
     private function registerCron(): void
     {
         if (!wp_next_scheduled('cmc_process_campaigns')) {
-            wp_schedule_event(time(), 'cmc_five_minutes', 'cmc_process_campaigns');
+            wp_schedule_event(time(), 'cmc_campaign_cron', 'cmc_process_campaigns');
         }
 
         Hooks::action('cmc_process_campaigns', [$this, 'processAutoTransitions']);
     }
 
     /**
-     * Register the custom "every 5 minutes" cron interval with WordPress.
+     * Register Campaignchi's custom cron intervals with WordPress.
      *
-     * Called via the 'cron_schedules' filter — registered in register()
-     * so it is available before activation hooks.
+     * 'cmc_campaign_cron' is the active, settings-driven interval (5/10/15/30
+     * minutes). 'cmc_five_minutes' is kept for backward compatibility with
+     * events scheduled by older versions / the installer.
+     *
+     * Registered via the 'cron_schedules' filter in register() so the
+     * intervals are always known before activation hooks or rescheduling fire.
      *
      * @param array $schedules Existing WP cron schedule definitions.
-     * @return array Modified schedules with our custom entry added.
+     * @return array Modified schedules with our custom entries added.
      */
     public function registerCronSchedule(array $schedules): array
     {
+        // Active interval — read from settings and clamped to allowed values.
+        $minutes = (int) (SettingsPage::getCampaign()['cron_interval_minutes'] ?? 5);
+        if (!in_array($minutes, [5, 10, 15, 30], true)) {
+            $minutes = 5;
+        }
+
+        $schedules['cmc_campaign_cron'] = [
+            'interval' => $minutes * MINUTE_IN_SECONDS,
+            'display'  => sprintf(__('هر %d دقیقه (کمپین‌چی)', 'campaignchi'), $minutes),
+        ];
+
+        // Legacy interval — keep registered so pre-existing events still recur.
         if (!isset($schedules['cmc_five_minutes'])) {
             $schedules['cmc_five_minutes'] = [
                 'interval' => 5 * MINUTE_IN_SECONDS,

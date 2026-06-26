@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Campaign\Pricing;
 
+use Msi\Campaignchi\Admin\Pages\SettingsPage;
 use Msi\Campaignchi\Campaign\Models\Campaign;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 
@@ -187,10 +188,14 @@ class CampaignResolver
      */
     private function calculateCacheTtl(): int
     {
+        // Admin-configurable ceiling (Settings → Performance → pricing_cache_ttl),
+        // falling back to the hardcoded MAX_CACHE_TTL when unavailable.
+        $maxTtl = $this->maxCacheTtl();
+
         $next = $this->repo->getNextTransitionTimestamp();
 
         if ($next === null) {
-            return self::MAX_CACHE_TTL;
+            return $maxTtl;
         }
 
         // current_time('timestamp') uses the same naive-site-local convention
@@ -199,8 +204,26 @@ class CampaignResolver
         $diff = $next - $now;
 
         // clamp: never below MIN (transition may already be overdue),
-        // never above MAX (safety valve when no transition is upcoming).
-        return max(self::MIN_CACHE_TTL, min($diff, self::MAX_CACHE_TTL));
+        // never above the admin-configured max (safety valve when nothing is upcoming).
+        return max(self::MIN_CACHE_TTL, min($diff, $maxTtl));
+    }
+
+    /**
+     * Resolve the configured maximum pricing-map cache TTL.
+     *
+     * Reads the admin setting and clamps it to a sane range so a bad value
+     * can never starve or over-cache the pricing map. Falls back to the
+     * MAX_CACHE_TTL constant if the settings layer is unavailable.
+     */
+    private function maxCacheTtl(): int
+    {
+        if (!class_exists(SettingsPage::class)) {
+            return self::MAX_CACHE_TTL;
+        }
+
+        $configured = (int) (SettingsPage::getPerformance()['pricing_cache_ttl'] ?? self::MAX_CACHE_TTL);
+
+        return max(self::MIN_CACHE_TTL, min($configured, 3600));
     }
 
     /** @return array{id:int,title:string,type:string,discount:float,discount_type:string,ends_at:?string} */

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Admin;
 
+use Msi\Campaignchi\Admin\Pages\SettingsPage;
+use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 use Msi\Campaignchi\Core\ServiceProvider;
 use Msi\Campaignchi\Core\Hooks;
 
@@ -77,6 +79,9 @@ class AdminServiceProvider extends ServiceProvider
 
         // Keep brand colours in WP menu icon
         Hooks::action('admin_head', [$this, 'injectMenuIconStyle']);
+
+        // Live-campaign count in the WP admin bar (Settings → General → admin_bar_badge).
+        Hooks::action('admin_bar_menu', [$this, 'renderAdminBarBadge'], 90);
 
         // Register AJAX controllers
         $this->container->make(Controllers\CampaignController::class)->register();
@@ -166,5 +171,52 @@ class AdminServiceProvider extends ServiceProvider
             }
         </style>
         <?php
+    }
+
+    // -------------------------------------------------------
+    // Admin Bar Badge
+    // -------------------------------------------------------
+
+    /**
+     * Render a live-campaign count node in the WP admin bar.
+     *
+     * Visible only when enabled in Settings → General and only to users who
+     * can manage the plugin. The count reflects campaigns currently 'active'.
+     *
+     * @param \WP_Admin_Bar $wpAdminBar The admin bar instance passed by WP.
+     */
+    public function renderAdminBarBadge(\WP_Admin_Bar $wpAdminBar): void
+    {
+        // Respect the admin setting.
+        if (empty(SettingsPage::getGeneral()['admin_bar_badge'])) {
+            return;
+        }
+
+        // Only surface management data to capable users.
+        if (!current_user_can(self::CAPABILITY)) {
+            return;
+        }
+
+        try {
+            $repo  = $this->container->make(CampaignRepository::class);
+            $count = count($repo->getLiveCampaigns());
+        } catch (\Throwable) {
+            // Never let a toolbar widget break the page.
+            return;
+        }
+
+        $label = sprintf(
+            /* translators: %d: number of currently active campaigns */
+            _n('%d کمپین فعال', '%d کمپین فعال', $count, 'campaignchi'),
+            $count
+        );
+
+        $wpAdminBar->add_node([
+            'id'    => 'campaignchi-live',
+            'title' => '<span class="ab-icon dashicons dashicons-megaphone" style="top:2px"></span>'
+                       . esc_html($label),
+            'href'  => esc_url(admin_url('admin.php?page=' . self::MENU_SLUG)),
+            'meta'  => ['title' => __('کمپین‌چی — کمپین‌های فعال', 'campaignchi')],
+        ]);
     }
 }
