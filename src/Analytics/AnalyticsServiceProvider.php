@@ -13,8 +13,6 @@ use Msi\Campaignchi\Campaign\Pricing\CampaignResolver;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 use Msi\Campaignchi\Core\Hooks;
 use Msi\Campaignchi\Core\ServiceProvider;
-use Msi\Campaignchi\Analytics\Controllers\ReportsAjaxController;
-use Msi\Campaignchi\Analytics\Services\ReportService;
 
 /**
  * Analytics Service Provider
@@ -23,8 +21,6 @@ use Msi\Campaignchi\Analytics\Services\ReportService;
  * - Registers the frontend impression-tracking hook.
  * - Registers dashboard cache-invalidation hooks.
  * - ⚠️ NEW: registers CampaignSalesRecorder — the event-log writer that
- *   makes the Reports section accurate (see CampaignSalesRecorder).
- *
  * ⚠️ Must be registered AFTER PricingServiceProvider in
  * Application::registerProviders(), since it depends on
  * CampaignRepository / CampaignResolver / CampaignProductResolver
@@ -65,25 +61,6 @@ class AnalyticsServiceProvider extends ServiceProvider
                 $c->make(CampaignSalesRepository::class)
             )
         );
-
-        // ReportService now reads from the campaign-sales event log
-        // (accurate) instead of re-scanning every WooCommerce order and
-        // guessing campaign coverage by date.
-        $this->container->singleton(
-            ReportService::class,
-            fn($c) => new ReportService(
-                $c->make(CampaignSalesRepository::class),
-                $c->make(AnalyticsRepository::class),
-                $c->make(CampaignRepository::class)
-            )
-        );
-
-        $this->container->singleton(
-            ReportsAjaxController::class,
-            fn($c) => new ReportsAjaxController(
-                $c->make(ReportService::class)
-            )
-        );
     }
 
     public function boot(): void
@@ -95,9 +72,6 @@ class AnalyticsServiceProvider extends ServiceProvider
         Hooks::action('cmc_campaign_changed', [AnalyticsService::class, 'flushCampaignCandidatesCache']);
         Hooks::action('set_object_terms', [AnalyticsService::class, 'flushCampaignCandidatesCache']);
         Hooks::action('save_post_product', [AnalyticsService::class, 'flushCampaignCandidatesCache']);
-
-        // Reports CSV export handler + AJAX data endpoint (admin-ajax context).
-        $this->container->make(ReportsAjaxController::class)->register();
 
         // ⚠️ NEW: register the campaign-sales recorder UNCONDITIONALLY (not
         // behind is_admin()), because checkout and order-status hooks fire

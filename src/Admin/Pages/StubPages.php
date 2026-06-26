@@ -95,30 +95,6 @@ final class TemplatesPage extends AdminPage
 }
 
 /**
- * ReportsPage — Analytics and reporting
- */
-final class ReportsPage extends AdminPage
-{
-    public function getTitle(): string
-    {
-        return __('گزارش‌ها', 'campaignchi');
-    }
-
-    public function render(): void
-    {
-        ?>
-        <div class="cmc-empty">
-            <div class="cmc-empty__icon"><i class="ti ti-chart-bar"></i></div>
-            <div class="cmc-empty__title"><?php esc_html_e('گزارش‌های آنالیتیکس', 'campaignchi'); ?></div>
-            <div class="cmc-empty__desc">
-                <?php esc_html_e('به‌زودی: آمار فروش، نرخ تبدیل و عملکرد کمپین‌ها.', 'campaignchi'); ?>
-            </div>
-        </div>
-        <?php
-    }
-}
-
-/**
  * SettingsPage — Plugin settings panel
  */
 final class SettingsPage extends AdminPage

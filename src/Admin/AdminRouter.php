@@ -23,7 +23,6 @@ class AdminRouter
         'schedule'   => Pages\SchedulePage::class,
         'templates'  => Pages\TemplatesPage::class,
         'appearance' => Pages\AppearancePage::class,
-        'reports'    => Pages\ReportsPage::class,
         'settings'   => Pages\SettingsPage::class,
     ];
 

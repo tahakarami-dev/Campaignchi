@@ -88,9 +88,6 @@ class DashboardPage extends AbstractPage
                         -->
                         <div class="cmc-card__subtitle"><?php esc_html_e('هفته جاری (شنبه تا جمعه)', 'campaignchi'); ?></div>
                     </div>
-                    <a href="<?php echo esc_url(\Msi\Campaignchi\Admin\AdminRouter::url('reports')); ?>" class="cmc-card__action">
-                        <?php esc_html_e('گزارش کامل', 'campaignchi'); ?>
-                    </a>
                 </div>
 
                 <?php if (array_sum(array_column($chart, 'value')) <= 0): ?>

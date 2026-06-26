@@ -137,7 +137,6 @@ class PanelLayout
 
                             <?php $this->renderNavItem('templates',  'ti-layout-2',  'قالب‌ها',  $activeSlug); ?>
                             <?php $this->renderNavItem('appearance', 'ti-palette',   'ظاهر',     $activeSlug); ?>
-                            <?php $this->renderNavItem('reports',    'ti-chart-bar', 'گزارش‌ها', $activeSlug); ?>
 
                             <p class="cmc-nav__section"><?php esc_html_e('سیستم', 'campaignchi'); ?></p>
 
@@ -253,7 +252,6 @@ class PanelLayout
                 'campaigns'  => 'campaigns.js',
                 'appearance' => 'appearance-page.js',
                 'templates'  => 'templates-admin.js',
-                'reports'    => 'reports-page.js',
 
             ];
             if (isset($pageScripts[$activeSlug])) :
