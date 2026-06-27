@@ -32,6 +32,7 @@ use Msi\Campaignchi\Campaign\DTOs\CreateCampaignDTO;
  *    status from the dates the admin supplied:
  *      starts_at in the future  → status = 'scheduled'
  *      starts_at in past/absent → status stays as admin chose
+ *    This now applies to ALL campaign types, not just flash_sale.
  *
  *  Rule 3 (getCampaignsToActivate):
  *    Any campaign with status='scheduled' whose starts_at has arrived
@@ -46,6 +47,10 @@ use Msi\Campaignchi\Campaign\DTOs\CreateCampaignDTO;
  *  Rule 5 (getNextTransitionTimestamp):
  *    Returns the nearest future transition moment for ALL campaign types
  *    and statuses (scheduled + active) so the cache TTL is always correct.
+ *    BUG FIX: now also detects OVERDUE scheduled campaigns (starts_at in
+ *    the past but cron has not run yet) and returns 0 so the cache TTL
+ *    collapses to MIN_CACHE_TTL, ensuring the pricing map is rebuilt
+ *    immediately after the cron activates the campaign.
  * -----------------------------------------------------------------------
  *
  * @package Msi\Campaignchi\Campaign\Repositories
@@ -254,12 +259,26 @@ class CampaignRepository
      * Used by CampaignResolver to set an optimal cache TTL so prices
      * refresh automatically without manual intervention.
      *
-     * Considers:
-     *   - starts_at of 'scheduled' campaigns whose start is still in the future
-     *   - ends_at   of 'active'    campaigns whose end   is still in the future
+     * Considers THREE cases:
+     *   1. starts_at of 'scheduled' campaigns whose start is still in the future
+     *      → campaign will activate soon; cache must expire by then.
+     *   2. ends_at of 'active' campaigns whose end is still in the future
+     *      → campaign will expire soon; cache must expire by then.
+     *   3. starts_at of 'scheduled' campaigns whose start is already PAST
+     *      → cron is overdue; the transition should have happened but has not.
+     *      → return the current timestamp so calculateCacheTtl() produces
+     *        MIN_CACHE_TTL and the next price request rebuilds immediately
+     *        once the cron has run.
      *
-     * NOTE: We intentionally exclude 'active' starts_at here because a
-     * campaign that is already active does not need to re-activate.
+     * BUG FIX: Previously only cases 1 and 2 were handled. If a scheduled
+     * campaign's starts_at had passed but the cron had not yet run (e.g. WP
+     * cron was slow or missed a cycle), getNextTransitionTimestamp() returned
+     * NULL (or another campaign's time). calculateCacheTtl() would then set
+     * TTL to MAX_CACHE_TTL (5 minutes), meaning the pricing map would show
+     * no discount for up to 5 additional minutes after the cron finally ran
+     * and activated the campaign.
+     * The fix includes overdue transitions and returns 0 (forces MIN_CACHE_TTL)
+     * so the map is rebuilt on the very next page load after the cron runs.
      *
      * ⚠️ TIMEZONE: returns strtotime() of a naive site-local DATETIME.
      * Callers MUST diff against current_time('timestamp'), NOT time().
@@ -273,9 +292,23 @@ class CampaignRepository
         $table = $wpdb->prefix . 'cmc_campaigns';
         $now   = current_time('mysql');
 
-        // Two sub-queries united:
-        //   1. Next activation: scheduled campaigns whose starts_at is in the future.
-        //   2. Next expiry:     active campaigns whose ends_at is in the future.
+        // Case 3: any 'scheduled' campaign with starts_at already in the past.
+        // The cron is overdue — signal the caller to use MIN_CACHE_TTL.
+        $overdueCount = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$table}
+             WHERE status = 'scheduled'
+               AND starts_at IS NOT NULL
+               AND starts_at <= %s",
+            $now
+        ));
+
+        if ($overdueCount > 0) {
+            // Return 0 so calculateCacheTtl() clamps to MIN_CACHE_TTL.
+            // The next price request after the cron runs will rebuild cleanly.
+            return 0;
+        }
+
+        // Cases 1 & 2: find the earliest FUTURE transition moment.
         $sql = "SELECT MIN(t) FROM (
                     SELECT starts_at AS t FROM {$table}
                         WHERE status = 'scheduled'

@@ -175,6 +175,14 @@ class CampaignResolver
      * end, then expire the cache exactly then. This keeps discounts
      * switching on/off on schedule without a fixed TTL delay.
      *
+     * Special cases from getNextTransitionTimestamp():
+     *   - Returns null  → no pending transitions → use $maxTtl
+     *   - Returns 0     → overdue scheduled campaign (cron is late)
+     *                     → use MIN_CACHE_TTL so the map is rebuilt ASAP
+     *                        after the cron runs and activates the campaign
+     *   - Returns a future timestamp → compute diff and clamp between
+     *                     MIN_CACHE_TTL and $maxTtl
+     *
      * FIX (Issue C): getNextTransitionTimestamp() uses strtotime() on a
      * naive, site-local DATETIME string. The correct "now" to diff against
      * is current_time('timestamp') — the site-local Unix timestamp — NOT
@@ -194,16 +202,25 @@ class CampaignResolver
 
         $next = $this->repo->getNextTransitionTimestamp();
 
+        // No pending transitions at all.
         if ($next === null) {
             return $maxTtl;
         }
 
+        // Overdue signal: a scheduled campaign's starts_at has passed but the cron
+        // has not run yet. Use MIN_CACHE_TTL so we rebuild on the next request
+        // after the cron activates the campaign.
+        if ($next === 0) {
+            return self::MIN_CACHE_TTL;
+        }
+
+        // Future transition: expire cache exactly when the transition is due.
         // current_time('timestamp') uses the same naive-site-local convention
         // as getNextTransitionTimestamp() — see the class docblock for details.
         $now  = current_time('timestamp');
         $diff = $next - $now;
 
-        // clamp: never below MIN (transition may already be overdue),
+        // Clamp: never below MIN (transition may already be overdue),
         // never above the admin-configured max (safety valve when nothing is upcoming).
         return max(self::MIN_CACHE_TTL, min($diff, $maxTtl));
     }

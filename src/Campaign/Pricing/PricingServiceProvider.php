@@ -195,16 +195,52 @@ class PricingServiceProvider extends ServiceProvider
      *
      * Uses the 'cmc_campaign_cron' schedule whose interval is read live from
      * the admin settings via registerCronSchedule(). Existing installs that
-     * were scheduled under the legacy 'cmc_five_minutes' interval keep working
-     * because we only schedule a fresh event when none is registered yet.
+     * were scheduled under the legacy 'cmc_five_minutes' interval are
+     * automatically migrated to 'cmc_campaign_cron' on the next boot.
+     *
+     * BUG FIX: Previously, this method only checked wp_next_scheduled() and
+     * skipped scheduling if ANY event was found — even legacy events using the
+     * fixed 'cmc_five_minutes' schedule. This meant admin interval changes had
+     * no effect until settings were manually re-saved.
+     *
+     * Now, we also inspect the schedule name of the existing event and replace
+     * it when it differs from the canonical 'cmc_campaign_cron'.
      */
     private function registerCron(): void
     {
-        if (!wp_next_scheduled('cmc_process_campaigns')) {
-            wp_schedule_event(time(), 'cmc_campaign_cron', 'cmc_process_campaigns');
+        $hook         = 'cmc_process_campaigns';
+        $targetSched  = 'cmc_campaign_cron';
+        $legacySched  = 'cmc_five_minutes';
+
+        $nextTimestamp = wp_next_scheduled($hook);
+
+        if ($nextTimestamp !== false) {
+            // Retrieve the full cron array to inspect the schedule name used.
+            $cronArray     = _get_cron_array();
+            $existingSched = null;
+
+            // Walk the cron array to find which schedule name was used.
+            foreach ($cronArray as $schedEvents) {
+                if (isset($schedEvents[$hook])) {
+                    // Each hook entry is keyed by md5(serialize(args)).
+                    $hookEntry     = reset($schedEvents[$hook]);
+                    $existingSched = $hookEntry['schedule'] ?? null;
+                    break;
+                }
+            }
+
+            // If the existing event already uses the canonical schedule, do nothing.
+            if ($existingSched === $targetSched) {
+                Hooks::action($hook, [$this, 'processAutoTransitions']);
+                return;
+            }
+
+            // Otherwise (legacy 'cmc_five_minutes' or unknown) — replace it.
+            wp_unschedule_event($nextTimestamp, $hook);
         }
 
-        Hooks::action('cmc_process_campaigns', [$this, 'processAutoTransitions']);
+        wp_schedule_event(time(), $targetSched, $hook);
+        Hooks::action($hook, [$this, 'processAutoTransitions']);
     }
 
     /**

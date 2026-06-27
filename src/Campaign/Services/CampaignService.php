@@ -273,11 +273,14 @@ class CampaignService
      *     'active' would briefly apply discounts until the next cron cycle.
      *     'draft' is exempt so admins can keep a record without re-activating.
      *
-     *  Rule 3 — flash_sale + status='active' + starts_at is in the future
+     *  Rule 3 — any type + status='active' + starts_at is in the future
      *     → override to 'scheduled'
      *     Reason: the campaign should not be live until its start time.
      *     The cron (processAutoTransitions) will flip it to 'active' when
      *     starts_at arrives.
+     *     NOTE: applies to ALL types (previously only flash_sale). If an
+     *     amazing_offer has a future starts_at, it must also wait.
+     *     amazing_offer rows with no starts_at are unaffected.
      *
      *  Rule 4 — status='draft'
      *     → never changed (admin explicitly chose not to publish yet).
@@ -289,7 +292,7 @@ class CampaignService
     {
         $status = $dto->status;
 
-        // Rule 1: amazing_offer cannot be scheduled.
+        // Rule 1: amazing_offer cannot be scheduled — override to 'active'.
         if ($dto->type === 'amazing_offer' && $status === 'scheduled') {
             $status = 'active';
         }
@@ -304,12 +307,13 @@ class CampaignService
             $status = 'ended';
         }
 
-        // Rule 3: flash_sale with a future starts_at must wait as 'scheduled'.
-        // Only applies when the admin tried to publish as 'active' and Rule 2
-        // did not already flip the status to 'ended'.
+        // Rule 3: any campaign with a future starts_at must wait as 'scheduled'.
+        // Applies to ALL types — amazing_offer rows with starts_at in the future
+        // should not discount products before their start time either.
+        // Only triggers when admin tried to publish as 'active' and Rule 2 did
+        // not already flip the status to 'ended'.
         if (
             $status === 'active'
-            && $dto->type === 'flash_sale'
             && $dto->startsAt !== null
             && strtotime($dto->startsAt) > current_time('timestamp')
         ) {

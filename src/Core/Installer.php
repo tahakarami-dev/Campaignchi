@@ -220,36 +220,65 @@ class Installer
     /**
      * Schedule the recurring campaign-processing cron event.
      *
-     * FIX (Issue A): Previously, wp_schedule_event() was called with
-     * 'cmc_five_minutes' but the corresponding 'cron_schedules' filter
-     * was only registered inside PricingServiceProvider::register() which
-     * runs on 'plugins_loaded' — AFTER the activation hook. WP silently
-     * rejects an unknown interval, so the event was never actually
-     * scheduled. The fix registers the interval inline here using a
-     * one-shot add_filter() call immediately before scheduling.
+     * Uses the canonical 'cmc_campaign_cron' schedule — the same key that
+     * PricingServiceProvider registers and reads for interval changes.
+     * This ensures the activation-time interval is consistent with the
+     * settings-driven interval and that admin changes take effect without
+     * needing to manually re-save settings.
+     *
+     * The interval is registered inline via a one-shot add_filter() call
+     * immediately before wp_schedule_event() so WordPress can validate it
+     * even though PricingServiceProvider has not booted yet (activation
+     * runs before plugins_loaded).
+     *
+     * BUG FIX: Previously used 'cmc_five_minutes' which is a fixed 5-minute
+     * interval. PricingServiceProvider::registerCron() would see the event
+     * already scheduled and skip re-scheduling, permanently ignoring the
+     * admin-configured cron_interval_minutes setting until the admin manually
+     * re-saved Campaign settings.
      */
     private static function scheduleEvents(): void
     {
-        // Remove any stale event first to avoid duplicates.
+        // Remove any stale event (including old 'cmc_five_minutes' events) first.
         $existing = wp_next_scheduled('cmc_process_campaigns');
         if ($existing) {
             wp_unschedule_event($existing, 'cmc_process_campaigns');
         }
 
-        // Register the interval inline so it is guaranteed to exist when
-        // wp_schedule_event() validates it, regardless of whether
-        // PricingServiceProvider has booted yet.
-        add_filter('cron_schedules', static function (array $schedules): array {
+        // Read the admin-configured interval; fall back to 5 minutes if not set yet.
+        $stored  = get_option('cmc_settings_campaign', []);
+        $minutes = isset($stored['cron_interval_minutes'])
+            ? (int) $stored['cron_interval_minutes']
+            : 5;
+
+        // Clamp to allowed values (same rule as PricingServiceProvider).
+        if (!in_array($minutes, [5, 10, 15, 30], true)) {
+            $minutes = 5;
+        }
+
+        // Register the canonical 'cmc_campaign_cron' schedule inline so it is
+        // guaranteed to exist when wp_schedule_event() validates it.
+        add_filter('cron_schedules', static function (array $schedules) use ($minutes): array {
+            if (!isset($schedules['cmc_campaign_cron'])) {
+                $schedules['cmc_campaign_cron'] = [
+                    'interval' => $minutes * MINUTE_IN_SECONDS,
+                    'display'  => sprintf('هر %d دقیقه (کمپین‌چی)', $minutes),
+                ];
+            }
+
+            // Keep the legacy schedule so any old events that survived deactivation
+            // can still fire and be replaced on the next boot.
             if (!isset($schedules['cmc_five_minutes'])) {
                 $schedules['cmc_five_minutes'] = [
                     'interval' => 5 * MINUTE_IN_SECONDS,
                     'display'  => 'هر ۵ دقیقه (کمپین‌چی)',
                 ];
             }
+
             return $schedules;
         });
 
-        wp_schedule_event(time(), 'cmc_five_minutes', 'cmc_process_campaigns');
+        wp_schedule_event(time(), 'cmc_campaign_cron', 'cmc_process_campaigns');
     }
 
     /**

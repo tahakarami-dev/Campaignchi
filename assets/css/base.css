@@ -167,6 +167,7 @@
   overflow-y: auto;
   padding: var(--cmc-space-6);
   background: var(--cmc-bg);
+  margin-bottom: 40px;
 }
 
 /* Content max-width container */
@@ -819,7 +820,7 @@
      and would otherwise keep the desktop max-width, breaking the layout. */
   .cmc-modal,
   .cmc-modal--wide {
-    max-width: 100% !important;
+    max-width: 370px !important;
     width: 100%;
     margin: 0;
     max-height: 92vh;
