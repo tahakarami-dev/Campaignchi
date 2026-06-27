@@ -73,6 +73,22 @@ class CampaignProductResolver
     // -------------------------------------------------------
 
     /**
+     * Resolve product IDs that match the campaign's attribute rules.
+     *
+     * BUG FIX: WooCommerce assigns attribute terms to both the parent
+     * product AND its variations. However, `get_objects_in_term()` may
+     * return variation post IDs instead of (or in addition to) the parent
+     * product ID. Because `PricingServiceProvider::filterPrice()` always
+     * looks up the PARENT product ID in the pricing map, any variation ID
+     * that leaked into the map would never match — the campaign would
+     * appear not to apply even though the attribute was correctly configured.
+     *
+     * Fix: after collecting all object IDs from the taxonomy terms, resolve
+     * each one to its parent post ID when the post type is
+     * `product_variation`. This guarantees the map always contains the
+     * parent product ID regardless of whether WC stored the term on the
+     * parent or the variation.
+     *
      * @return int[]
      */
     private function productsByAttributeRules(int $campaignId): array
@@ -84,7 +100,7 @@ class CampaignProductResolver
             return [];
         }
 
-        // Group term IDs by taxonomy so we run one query per taxonomy
+        // Group term IDs by taxonomy so we run one query per taxonomy.
         $byTaxonomy = [];
         foreach ($attrRules as $rule) {
             $taxonomy = $rule['taxonomy'] ?? '';
@@ -97,12 +113,58 @@ class CampaignProductResolver
             $byTaxonomy[$taxonomy][] = $termId;
         }
 
-        $productIds = [];
+        $rawIds = [];
         foreach ($byTaxonomy as $taxonomy => $termIds) {
-            $productIds = array_merge($productIds, $this->productsInTerms($termIds, $taxonomy));
+            $rawIds = array_merge($rawIds, $this->productsInTerms($termIds, $taxonomy));
         }
 
+        // Resolve variation IDs → parent product IDs so the pricing map
+        // always uses the same ID that filterPrice() looks up.
+        $productIds = $this->normalizeToParentProductIds(array_unique($rawIds));
+
         return array_values(array_unique($productIds));
+    }
+
+    /**
+     * Convert any `product_variation` post IDs to their parent product IDs.
+     *
+     * WooCommerce attribute terms can be stored on both `product` and
+     * `product_variation` posts. The pricing engine always works with the
+     * parent `product` ID (see `PricingServiceProvider::filterPrice()`),
+     * so we must normalise here to avoid misses in the pricing map.
+     *
+     * @param int[] $postIds Mixed list of product and/or variation post IDs.
+     * @return int[] List containing only parent product IDs (deduplicated).
+     */
+    private function normalizeToParentProductIds(array $postIds): array
+    {
+        if (empty($postIds)) {
+            return [];
+        }
+
+        $parentIds = [];
+
+        foreach ($postIds as $postId) {
+            $postId = (int) $postId;
+
+            if ($postId <= 0) {
+                continue;
+            }
+
+            // If this is a variation, get_post_parent() returns the parent product ID.
+            // For a normal product, get_post_type() returns 'product' and we use it as-is.
+            if (get_post_type($postId) === 'product_variation') {
+                $parentId = (int) wp_get_post_parent_id($postId);
+
+                // Guard: if for some reason the parent lookup fails, fall
+                // back to the original ID rather than silently dropping it.
+                $parentIds[] = $parentId > 0 ? $parentId : $postId;
+            } else {
+                $parentIds[] = $postId;
+            }
+        }
+
+        return $parentIds;
     }
 
     // -------------------------------------------------------

@@ -293,26 +293,68 @@ class AnalyticsService
         return (int) round(min(100, ($totalStock / $maxPossible) * 100));
     }
 
+    /**
+     * Determine whether a campaign is in its "urgent" phase (ending very soon).
+     *
+     * BUG FIX (timezone): `$campaign->endsAt` is a naive, site-local DATETIME
+     * string written by the admin's date-picker — it represents the site's local
+     * time, NOT UTC. PHP's `strtotime()` with no explicit timezone parses it as
+     * if it were in the PHP default timezone (typically UTC on most hosts).
+     *
+     * On a site with timezone UTC+3:30 (Asia/Tehran):
+     *   - endsAt stored: "2024-01-01 10:00:00" (Tehran local = 06:30 UTC)
+     *   - strtotime("2024-01-01 10:00:00") → Unix ts for 2024-01-01 10:00 UTC
+     *   - time()                             → actual UTC now
+     *   - diff = 10:00 UTC-stored minus real-UTC-now = inflated by 3.5 hours
+     *
+     * Fix: diff against `current_time('timestamp')` — WordPress's "site-local
+     * Unix timestamp" — which applies the same UTC-offset convention that
+     * `strtotime()` uses on the naive datetime string.
+     *
+     * @param Campaign $campaign
+     * @return bool True when the campaign ends within 3 hours from now.
+     */
     private function isUrgent(Campaign $campaign): bool
     {
         if ($campaign->type !== 'flash_sale' || empty($campaign->endsAt)) {
             return false;
         }
 
+        // strtotime() on a naive site-local string + current_time('timestamp')
+        // both use the same "site-local Unix timestamp" convention.
         $endTs = strtotime($campaign->endsAt);
-        $now   = time();
+        $now   = current_time('timestamp');
 
         return ($endTs - $now) <= (3 * HOUR_IN_SECONDS) && $endTs > $now;
     }
 
+    /**
+     * Build a human-readable "time remaining" label for a campaign.
+     *
+     * BUG FIX (timezone): Same root cause as isUrgent() above.
+     * `$campaign->endsAt` is a naive, site-local DATETIME string.
+     * Using `time()` (true UTC) for the diff inflates the result by the
+     * site's UTC offset — e.g. a campaign expiring in 1 minute appears to
+     * have 3 hours 31 minutes left on a UTC+3:30 site.
+     *
+     * Fix: use `current_time('timestamp')` so both sides of the subtraction
+     * use the same "naive site-local" timezone convention.
+     *
+     * @param Campaign $campaign
+     * @return string Localised label like "۵ دقیقه مانده" or "بدون محدودیت زمانی".
+     */
     private function timeRemainingLabel(Campaign $campaign): string
     {
         if ($campaign->type === 'amazing_offer' || empty($campaign->endsAt)) {
             return __('بدون محدودیت زمانی', 'campaignchi');
         }
 
+        // strtotime() on a naive, site-local DATETIME uses the PHP default
+        // timezone (UTC on most hosts), producing a "site-local Unix timestamp".
+        // current_time('timestamp') returns the same convention: UTC epoch
+        // PLUS the site's UTC offset.  The diff is therefore correct.
         $endTs = strtotime($campaign->endsAt);
-        $now   = time();
+        $now   = current_time('timestamp');
         $diff  = $endTs - $now;
 
         if ($diff <= 0) {
