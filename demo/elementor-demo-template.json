@@ -1,0 +1,428 @@
+{
+  "version": "0.4",
+  "title": "Campaignchi Demo Page",
+  "type": "page",
+  "content": [
+    {
+      "id": "hero-section",
+      "elType": "section",
+      "settings": {
+        "background_background": "gradient",
+        "background_color": "#1A1625",
+        "background_color_b": "#2D1B69",
+        "background_gradient_angle": {
+          "unit": "deg",
+          "size": 135
+        },
+        "padding": {
+          "unit": "px",
+          "top": "100",
+          "right": "20",
+          "bottom": "100",
+          "left": "20",
+          "isLinked": false
+        },
+        "layout": "full_width",
+        "content_width": {
+          "unit": "px",
+          "size": 1200
+        }
+      },
+      "elements": [
+        {
+          "id": "hero-col",
+          "elType": "column",
+          "settings": { "_column_size": 100, "align": "center" },
+          "elements": [
+            {
+              "id": "hero-badge",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div style=\"display:inline-flex;align-items:center;gap:8px;background:rgba(108,71,255,0.18);border:1px solid rgba(108,71,255,0.4);border-radius:999px;padding:6px 18px;margin-bottom:24px;\"><span style=\"display:inline-block;width:8px;height:8px;border-radius:50%;background:#6C47FF;\"></span><span style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;color:#A78BFF;font-weight:500;\">نسخه ۱.۰ — هم‌اکنون در دسترس است</span></div>"
+              }
+            },
+            {
+              "id": "hero-title",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "مدیریت هوشمند\nکمپین‌های فروش",
+                "header_size": "h1",
+                "align": "center",
+                "typography_typography": "custom",
+                "typography_font_family": "Vazirmatn",
+                "typography_font_size": { "unit": "px", "size": 54 },
+                "typography_font_weight": "800",
+                "typography_line_height": { "unit": "em", "size": 1.25 },
+                "title_color": "#FFFFFF",
+                "custom_css": ".elementor-heading-title { background: linear-gradient(135deg, #FFFFFF 30%, #A78BFF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }"
+              }
+            },
+            {
+              "id": "hero-subtitle",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:18px;line-height:1.8;color:rgba(255,255,255,0.65);text-align:center;max-width:620px;margin:0 auto;\">با کمپین‌چی فلش‌سیل‌های حرفه‌ای بسازید، تایمر شمارش معکوس نمایش دهید و فروشتان را متحول کنید — همه چیز در یک افزونه قدرتمند.</p>",
+                "align": "center"
+              }
+            },
+            {
+              "id": "hero-btns",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div style=\"display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:40px;\"><a href=\"#features\" style=\"display:inline-flex;align-items:center;gap:8px;background:#6C47FF;color:#fff;border-radius:14px;padding:14px 32px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:15px;font-weight:600;text-decoration:none;transition:all 200ms;\">مشاهده امکانات <svg width=\"16\" height=\"16\" fill=\"none\" viewBox=\"0 0 24 24\"><path stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M15 19l-7-7 7-7\"/></svg></a><a href=\"#demo\" style=\"display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:14px 32px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:15px;font-weight:600;text-decoration:none;\">مشاهده دمو</a></div>"
+              }
+            },
+            {
+              "id": "hero-stats",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div style=\"display:flex;gap:48px;justify-content:center;flex-wrap:wrap;margin-top:64px;padding-top:40px;border-top:1px solid rgba(255,255,255,0.08);\"><div style=\"text-align:center;\"><div style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:32px;font-weight:800;color:#A78BFF;\">+۵</div><div style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;\">قالب اسلایدر</div></div><div style=\"text-align:center;\"><div style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:32px;font-weight:800;color:#A78BFF;\">۱۰۰٪</div><div style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;\">سازگار با ووکامرس</div></div><div style=\"text-align:center;\"><div style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:32px;font-weight:800;color:#A78BFF;\">RTL</div><div style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;\">پشتیبانی کامل</div></div><div style=\"text-align:center;\"><div style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:32px;font-weight:800;color:#FF6B35;\">زنده</div><div style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;\">آنالیتیکس آنی</div></div></div>"
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "features-section",
+      "elType": "section",
+      "settings": {
+        "background_background": "classic",
+        "background_color": "#F7F8FC",
+        "padding": {
+          "unit": "px",
+          "top": "80",
+          "right": "20",
+          "bottom": "80",
+          "left": "20",
+          "isLinked": false
+        },
+        "layout": "full_width",
+        "content_width": { "unit": "px", "size": 1200 },
+        "custom_id": "features"
+      },
+      "elements": [
+        {
+          "id": "features-col",
+          "elType": "column",
+          "settings": { "_column_size": 100 },
+          "elements": [
+            {
+              "id": "features-label",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div style=\"text-align:center;margin-bottom:12px;\"><span style=\"display:inline-block;background:#EDE9FF;color:#6C47FF;border-radius:999px;padding:6px 18px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:600;\">امکانات</span></div>"
+              }
+            },
+            {
+              "id": "features-title",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "همه ابزارهایی که برای فروش بیشتر نیاز دارید",
+                "header_size": "h2",
+                "align": "center",
+                "typography_font_family": "Vazirmatn",
+                "typography_font_size": { "unit": "px", "size": 36 },
+                "typography_font_weight": "800",
+                "title_color": "#111827"
+              }
+            },
+            {
+              "id": "features-desc",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:16px;line-height:1.8;color:#6B7280;text-align:center;max-width:560px;margin:0 auto 56px;\">از ساخت کمپین تا آنالیز عملکرد، همه چیز در اختیار شماست.</p>",
+                "align": "center"
+              }
+            },
+            {
+              "id": "features-grid",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;direction:rtl;\">\n\n<div style=\"background:#fff;border-radius:20px;padding:28px;border:1px solid #E5E7EB;box-shadow:0 4px 12px rgba(0,0,0,0.06);transition:all 200ms;\">\n  <div style=\"width:48px;height:48px;border-radius:14px;background:#EDE9FF;display:flex;align-items:center;justify-content:center;margin-bottom:16px;\">\n    <svg width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\"><path stroke=\"#6C47FF\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M13 2L3 14h9l-1 8 10-12h-9l1-8z\"/></svg>\n  </div>\n  <h3 style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:17px;font-weight:700;color:#111827;margin:0 0 8px;\">فلش سیل آنی</h3>\n  <p style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;line-height:1.7;color:#6B7280;margin:0;\">کمپین فروش فوری بسازید با تایمر شمارش معکوس فارسی و تخفیف درصدی یا مبلغی مشخص.</p>\n</div>\n\n<div style=\"background:#fff;border-radius:20px;padding:28px;border:1px solid #E5E7EB;box-shadow:0 4px 12px rgba(0,0,0,0.06);\">\n  <div style=\"width:48px;height:48px;border-radius:14px;background:#FFF0EB;display:flex;align-items:center;justify-content:center;margin-bottom:16px;\">\n    <svg width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" stroke=\"#FF6B35\" stroke-width=\"2\"/><path stroke=\"#FF6B35\" stroke-width=\"2\" stroke-linecap=\"round\" d=\"M16 2v4M8 2v4M3 10h18\"/></svg>\n  </div>\n  <h3 style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:17px;font-weight:700;color:#111827;margin:0 0 8px;\">زمان‌بندی هوشمند</h3>\n  <p style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;line-height:1.7;color:#6B7280;margin:0;\">تاریخ شروع و پایان با تقویم شمسی تنظیم کنید. کمپین خودکار فعال و منقضی می‌شود.</p>\n</div>\n\n<div style=\"background:#fff;border-radius:20px;padding:28px;border:1px solid #E5E7EB;box-shadow:0 4px 12px rgba(0,0,0,0.06);\">\n  <div style=\"width:48px;height:48px;border-radius:14px;background:#F0FDF4;display:flex;align-items:center;justify-content:center;margin-bottom:16px;\">\n    <svg width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\"><path stroke=\"#22C55E\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M3 3v18h18\"/><path stroke=\"#22C55E\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M7 16l4-4 4 4 4-6\"/></svg>\n  </div>\n  <h3 style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:17px;font-weight:700;color:#111827;margin:0 0 8px;\">آنالیتیکس آنی</h3>\n  <p style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;line-height:1.7;color:#6B7280;margin:0;\">نرخ تبدیل، بازدید، فروش روزانه و عملکرد هر کمپین را لحظه‌به‌لحظه رصد کنید.</p>\n</div>\n\n<div style=\"background:#fff;border-radius:20px;padding:28px;border:1px solid #E5E7EB;box-shadow:0 4px 12px rgba(0,0,0,0.06);\">\n  <div style=\"width:48px;height:48px;border-radius:14px;background:#EFF6FF;display:flex;align-items:center;justify-content:center;margin-bottom:16px;\">\n    <svg width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\"><rect x=\"2\" y=\"7\" width=\"20\" height=\"14\" rx=\"2\" stroke=\"#3B82F6\" stroke-width=\"2\"/><path stroke=\"#3B82F6\" stroke-width=\"2\" stroke-linecap=\"round\" d=\"M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2\"/></svg>\n  </div>\n  <h3 style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:17px;font-weight:700;color:#111827;margin:0 0 8px;\">۵ قالب اسلایدر</h3>\n  <p style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;line-height:1.7;color:#6B7280;margin:0;\">از Flux پر انرژی تا Minimal مینیمال — قالب مناسب برند خود را انتخاب کنید.</p>\n</div>\n\n<div style=\"background:#fff;border-radius:20px;padding:28px;border:1px solid #E5E7EB;box-shadow:0 4px 12px rgba(0,0,0,0.06);\">\n  <div style=\"width:48px;height:48px;border-radius:14px;background:#FFFBEB;display:flex;align-items:center;justify-content:center;margin-bottom:16px;\">\n    <svg width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"3\" stroke=\"#F59E0B\" stroke-width=\"2\"/><path stroke=\"#F59E0B\" stroke-width=\"2\" stroke-linecap=\"round\" d=\"M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42\"/></svg>\n  </div>\n  <h3 style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:17px;font-weight:700;color:#111827;margin:0 0 8px;\">شخصی‌سازی رنگ‌ها</h3>\n  <p style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;line-height:1.7;color:#6B7280;margin:0;\">رنگ، فونت و ظاهر اسلایدرها را از پنل ظاهر تنظیم کنید بدون نیاز به کد.</p>\n</div>\n\n<div style=\"background:linear-gradient(135deg,#6C47FF,#9B6AFF);border-radius:20px;padding:28px;border:none;box-shadow:0 12px 30px rgba(108,71,255,0.25);\">\n  <div style=\"width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;margin-bottom:16px;\">\n    <svg width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\"><path stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"/></svg>\n  </div>\n  <h3 style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:17px;font-weight:700;color:#fff;margin:0 0 8px;\">المنتور و شورت‌کد</h3>\n  <p style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;line-height:1.7;color:rgba(255,255,255,0.8);margin:0;\">با ویجت المنتور یا شورت‌کد <code style=\"background:rgba(0,0,0,0.2);padding:2px 8px;border-radius:6px;\">[campaignchi_slider]</code> در هر صفحه‌ای استفاده کنید.</p>\n</div>\n\n</div>"
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "dashboard-preview-section",
+      "elType": "section",
+      "settings": {
+        "background_background": "classic",
+        "background_color": "#FFFFFF",
+        "padding": {
+          "unit": "px",
+          "top": "80",
+          "right": "20",
+          "bottom": "80",
+          "left": "20",
+          "isLinked": false
+        },
+        "layout": "full_width",
+        "content_width": { "unit": "px", "size": 1200 }
+      },
+      "elements": [
+        {
+          "id": "dashboard-col",
+          "elType": "column",
+          "settings": { "_column_size": 100 },
+          "elements": [
+            {
+              "id": "dashboard-label",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div style=\"text-align:center;margin-bottom:12px;\"><span style=\"display:inline-block;background:#FFF0EB;color:#FF6B35;border-radius:999px;padding:6px 18px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:600;\">داشبورد</span></div>"
+              }
+            },
+            {
+              "id": "dashboard-title",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "پنل مدیریت سطح SaaS",
+                "header_size": "h2",
+                "align": "center",
+                "typography_font_family": "Vazirmatn",
+                "typography_font_size": { "unit": "px", "size": 36 },
+                "typography_font_weight": "800",
+                "title_color": "#111827"
+              }
+            },
+            {
+              "id": "dashboard-sub",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:16px;line-height:1.8;color:#6B7280;text-align:center;max-width:520px;margin:0 auto 48px;\">یک داشبورد زیبا با آنالیتیکس آنی، نمودار هفتگی و فید فعالیت‌های اخیر.</p>",
+                "align": "center"
+              }
+            },
+            {
+              "id": "dashboard-mockup",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div style=\"background:#1A1625;border-radius:20px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.25);direction:rtl;font-family:Vazirmatn,Tahoma,sans-serif;\">\n\n  <!-- Topbar -->\n  <div style=\"background:#201B2E;height:56px;display:flex;align-items:center;padding:0 20px;gap:16px;border-bottom:1px solid rgba(255,255,255,0.06);\">\n    <div style=\"width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#6C47FF,#9B6AFF);display:flex;align-items:center;justify-content:center;\">\n      <svg width=\"16\" height=\"16\" fill=\"none\" viewBox=\"0 0 24 24\"><path stroke=\"#fff\" stroke-width=\"2.5\" stroke-linecap=\"round\" d=\"M13 2L3 14h9l-1 8 10-12h-9l1-8z\"/></svg>\n    </div>\n    <span style=\"color:#fff;font-size:14px;font-weight:700;\">کمپین‌چی</span>\n    <div style=\"flex:1;\"></div>\n    <span style=\"color:rgba(255,255,255,0.4);font-size:12px;\">داشبورد</span>\n  </div>\n\n  <div style=\"display:flex;\">\n\n    <!-- Sidebar -->\n    <div style=\"width:200px;min-height:380px;background:#1A1625;border-left:1px solid rgba(255,255,255,0.06);padding:16px 0;flex-shrink:0;\">\n      <div style=\"padding:8px 12px;margin:0 8px;border-radius:10px;background:rgba(108,71,255,0.18);display:flex;align-items:center;gap:10px;margin-bottom:4px;\">\n        <svg width=\"16\" height=\"16\" fill=\"none\" viewBox=\"0 0 24 24\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\" stroke=\"#A78BFF\" stroke-width=\"2\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\" stroke=\"#A78BFF\" stroke-width=\"2\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\" stroke=\"#A78BFF\" stroke-width=\"2\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\" stroke=\"#A78BFF\" stroke-width=\"2\"/></svg>\n        <span style=\"color:#A78BFF;font-size:13px;font-weight:600;\">داشبورد</span>\n      </div>\n      <div style=\"padding:8px 12px;margin:0 8px;border-radius:10px;display:flex;align-items:center;gap:10px;margin-bottom:4px;\">\n        <svg width=\"16\" height=\"16\" fill=\"none\" viewBox=\"0 0 24 24\"><path stroke=\"rgba(255,255,255,0.4)\" stroke-width=\"2\" stroke-linecap=\"round\" d=\"M13 2L3 14h9l-1 8 10-12h-9l1-8z\"/></svg>\n        <span style=\"color:rgba(255,255,255,0.4);font-size:13px;\">کمپین‌ها</span>\n      </div>\n      <div style=\"padding:8px 12px;margin:0 8px;border-radius:10px;display:flex;align-items:center;gap:10px;margin-bottom:4px;\">\n        <svg width=\"16\" height=\"16\" fill=\"none\" viewBox=\"0 0 24 24\"><rect x=\"2\" y=\"7\" width=\"20\" height=\"14\" rx=\"2\" stroke=\"rgba(255,255,255,0.4)\" stroke-width=\"2\"/></svg>\n        <span style=\"color:rgba(255,255,255,0.4);font-size:13px;\">قالب‌ها</span>\n      </div>\n      <div style=\"padding:8px 12px;margin:0 8px;border-radius:10px;display:flex;align-items:center;gap:10px;\">\n        <svg width=\"16\" height=\"16\" fill=\"none\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"3\" stroke=\"rgba(255,255,255,0.4)\" stroke-width=\"2\"/><path stroke=\"rgba(255,255,255,0.4)\" stroke-width=\"2\" stroke-linecap=\"round\" d=\"M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42\"/></svg>\n        <span style=\"color:rgba(255,255,255,0.4);font-size:13px;\">ظاهر</span>\n      </div>\n    </div>\n\n    <!-- Main Content -->\n    <div style=\"flex:1;padding:20px;background:#F7F8FC;\">\n\n      <!-- Stat Cards -->\n      <div style=\"display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;\">\n        <div style=\"background:#fff;border-radius:14px;padding:16px;border:1px solid #E5E7EB;\">\n          <div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;\">\n            <span style=\"font-size:11px;color:#6B7280;\">کمپین‌های فعال</span>\n            <div style=\"width:28px;height:28px;border-radius:8px;background:#EDE9FF;display:flex;align-items:center;justify-content:center;\">\n              <svg width=\"13\" height=\"13\" fill=\"none\" viewBox=\"0 0 24 24\"><path stroke=\"#6C47FF\" stroke-width=\"2.5\" stroke-linecap=\"round\" d=\"M13 2L3 14h9l-1 8 10-12h-9l1-8z\"/></svg>\n            </div>\n          </div>\n          <div style=\"font-size:22px;font-weight:800;color:#111827;\">۳</div>\n          <div style=\"font-size:11px;color:#22C55E;margin-top:4px;\">▲ ۱ نسبت به هفته قبل</div>\n        </div>\n        <div style=\"background:#fff;border-radius:14px;padding:16px;border:1px solid #E5E7EB;\">\n          <div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;\">\n            <span style=\"font-size:11px;color:#6B7280;\">فروش امروز</span>\n            <div style=\"width:28px;height:28px;border-radius:8px;background:#FFF0EB;display:flex;align-items:center;justify-content:center;\">\n              <svg width=\"13\" height=\"13\" fill=\"none\" viewBox=\"0 0 24 24\"><path stroke=\"#FF6B35\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14v-4m0-4h.01\"/></svg>\n            </div>\n          </div>\n          <div style=\"font-size:22px;font-weight:800;color:#111827;\">۲.۴M</div>\n          <div style=\"font-size:11px;color:#22C55E;margin-top:4px;\">▲ ۱۸٪ رشد</div>\n        </div>\n        <div style=\"background:#fff;border-radius:14px;padding:16px;border:1px solid #E5E7EB;\">\n          <div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;\">\n            <span style=\"font-size:11px;color:#6B7280;\">نرخ تبدیل</span>\n            <div style=\"width:28px;height:28px;border-radius:8px;background:#F0FDF4;display:flex;align-items:center;justify-content:center;\">\n              <svg width=\"13\" height=\"13\" fill=\"none\" viewBox=\"0 0 24 24\"><path stroke=\"#22C55E\" stroke-width=\"2.5\" stroke-linecap=\"round\" d=\"M3 3v18h18\"/><path stroke=\"#22C55E\" stroke-width=\"2.5\" stroke-linecap=\"round\" d=\"M7 16l4-4 4 4 4-6\"/></svg>\n            </div>\n          </div>\n          <div style=\"font-size:22px;font-weight:800;color:#111827;\">۴.۷٪</div>\n          <div style=\"font-size:11px;color:#EF4444;margin-top:4px;\">▼ ۰.۳٪</div>\n        </div>\n        <div style=\"background:#fff;border-radius:14px;padding:16px;border:1px solid #E5E7EB;\">\n          <div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;\">\n            <span style=\"font-size:11px;color:#6B7280;\">بازدید امروز</span>\n            <div style=\"width:28px;height:28px;border-radius:8px;background:#EFF6FF;display:flex;align-items:center;justify-content:center;\">\n              <svg width=\"13\" height=\"13\" fill=\"none\" viewBox=\"0 0 24 24\"><path stroke=\"#3B82F6\" stroke-width=\"2.5\" stroke-linecap=\"round\" d=\"M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z\"/><circle cx=\"12\" cy=\"12\" r=\"3\" stroke=\"#3B82F6\" stroke-width=\"2.5\"/></svg>\n            </div>\n          </div>\n          <div style=\"font-size:22px;font-weight:800;color:#111827;\">۱,۲۴۷</div>\n          <div style=\"font-size:11px;color:#22C55E;margin-top:4px;\">▲ ۳۴٪ رشد</div>\n        </div>\n      </div>\n\n      <!-- Chart placeholder -->\n      <div style=\"background:#fff;border-radius:14px;padding:16px;border:1px solid #E5E7EB;margin-bottom:16px;\">\n        <div style=\"font-size:13px;font-weight:700;color:#111827;margin-bottom:12px;\">فروش هفتگی</div>\n        <div style=\"display:flex;align-items:flex-end;gap:8px;height:80px;\">\n          <div style=\"flex:1;background:#EDE9FF;border-radius:6px 6px 0 0;height:40%;\"></div>\n          <div style=\"flex:1;background:#EDE9FF;border-radius:6px 6px 0 0;height:60%;\"></div>\n          <div style=\"flex:1;background:#EDE9FF;border-radius:6px 6px 0 0;height:35%;\"></div>\n          <div style=\"flex:1;background:#EDE9FF;border-radius:6px 6px 0 0;height:80%;\"></div>\n          <div style=\"flex:1;background:#EDE9FF;border-radius:6px 6px 0 0;height:55%;\"></div>\n          <div style=\"flex:1;background:#EDE9FF;border-radius:6px 6px 0 0;height:90%;\"></div>\n          <div style=\"flex:1;background:#6C47FF;border-radius:6px 6px 0 0;height:70%;\"></div>\n        </div>\n        <div style=\"display:flex;gap:8px;margin-top:6px;\">\n          <div style=\"flex:1;text-align:center;font-size:10px;color:#9CA3AF;\">ش</div>\n          <div style=\"flex:1;text-align:center;font-size:10px;color:#9CA3AF;\">ی</div>\n          <div style=\"flex:1;text-align:center;font-size:10px;color:#9CA3AF;\">د</div>\n          <div style=\"flex:1;text-align:center;font-size:10px;color:#9CA3AF;\">س</div>\n          <div style=\"flex:1;text-align:center;font-size:10px;color:#9CA3AF;\">چ</div>\n          <div style=\"flex:1;text-align:center;font-size:10px;color:#9CA3AF;\">پ</div>\n          <div style=\"flex:1;text-align:center;font-size:10px;color:#6C47FF;font-weight:600;\">ج</div>\n        </div>\n      </div>\n\n    </div>\n  </div>\n</div>"
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "sliders-section",
+      "elType": "section",
+      "settings": {
+        "background_background": "classic",
+        "background_color": "#F7F8FC",
+        "padding": {
+          "unit": "px",
+          "top": "80",
+          "right": "20",
+          "bottom": "80",
+          "left": "20",
+          "isLinked": false
+        },
+        "layout": "full_width",
+        "content_width": { "unit": "px", "size": 1200 },
+        "custom_id": "demo"
+      },
+      "elements": [
+        {
+          "id": "sliders-col",
+          "elType": "column",
+          "settings": { "_column_size": 100 },
+          "elements": [
+            {
+              "id": "sliders-label",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div style=\"text-align:center;margin-bottom:12px;\"><span style=\"display:inline-block;background:#EDE9FF;color:#6C47FF;border-radius:999px;padding:6px 18px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:600;\">قالب‌های اسلایدر</span></div>"
+              }
+            },
+            {
+              "id": "sliders-title",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "۵ قالب منحصربه‌فرد برای هر سبک",
+                "header_size": "h2",
+                "align": "center",
+                "typography_font_family": "Vazirmatn",
+                "typography_font_size": { "unit": "px", "size": 36 },
+                "typography_font_weight": "800",
+                "title_color": "#111827"
+              }
+            },
+            {
+              "id": "sliders-sub",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:16px;line-height:1.8;color:#6B7280;text-align:center;max-width:520px;margin:0 auto 48px;\">هر قالب با شخصیت متفاوت — از انرژی Flux تا سادگی Minimal انتخاب کنید.</p>",
+                "align": "center"
+              }
+            },
+            {
+              "id": "slider-cards",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;direction:rtl;font-family:Vazirmatn,Tahoma,sans-serif;\">\n\n<!-- FLUX -->\n<div style=\"border-radius:20px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,0.12);\">\n  <div style=\"background:linear-gradient(135deg,#1A1625 0%,#2D1B69 100%);padding:20px;position:relative;min-height:220px;\">\n    <div style=\"position:absolute;top:12px;right:12px;background:linear-gradient(135deg,#FF6B35,#FF4500);border-radius:999px;padding:4px 12px;font-size:11px;font-weight:700;color:#fff;\">⚡ فلش سیل</div>\n    <div style=\"margin-top:36px;\">\n      <div style=\"width:64px;height:64px;border-radius:12px;background:rgba(255,255,255,0.1);margin-bottom:12px;\"></div>\n      <div style=\"font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;\">هدفون بیتس Studio</div>\n      <div style=\"font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:12px;\">لوازم جانبی</div>\n      <div style=\"display:flex;align-items:center;gap:8px;\">\n        <span style=\"font-size:18px;font-weight:800;color:#FF6B35;\">۱,۲۰۰,۰۰۰ ت</span>\n        <span style=\"font-size:12px;color:rgba(255,255,255,0.4);text-decoration:line-through;\">۱,۹۰۰,۰۰۰ ت</span>\n      </div>\n    </div>\n    <div style=\"margin-top:16px;background:rgba(255,255,255,0.06);border-radius:10px;padding:10px;\">\n      <div style=\"font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:6px;\">تایمر شمارش معکوس</div>\n      <div style=\"display:flex;gap:6px;\">\n        <div style=\"background:rgba(0,0,0,0.3);border-radius:6px;padding:4px 8px;text-align:center;\">\n          <div style=\"font-size:16px;font-weight:800;color:#fff;\">۰۲</div>\n          <div style=\"font-size:9px;color:rgba(255,255,255,0.4);\">روز</div>\n        </div>\n        <div style=\"color:rgba(255,255,255,0.3);font-size:16px;padding-top:4px;\">:</div>\n        <div style=\"background:rgba(0,0,0,0.3);border-radius:6px;padding:4px 8px;text-align:center;\">\n          <div style=\"font-size:16px;font-weight:800;color:#fff;\">۱۴</div>\n          <div style=\"font-size:9px;color:rgba(255,255,255,0.4);\">ساعت</div>\n        </div>\n        <div style=\"color:rgba(255,255,255,0.3);font-size:16px;padding-top:4px;\">:</div>\n        <div style=\"background:rgba(0,0,0,0.3);border-radius:6px;padding:4px 8px;text-align:center;\">\n          <div style=\"font-size:16px;font-weight:800;color:#fff;\">۳۷</div>\n          <div style=\"font-size:9px;color:rgba(255,255,255,0.4);\">دقیقه</div>\n        </div>\n      </div>\n    </div>\n  </div>\n  <div style=\"background:#201B2E;padding:12px 16px;\">\n    <div style=\"display:flex;align-items:center;justify-content:space-between;\">\n      <span style=\"font-size:13px;font-weight:700;color:#A78BFF;\">Flux</span>\n      <span style=\"font-size:11px;color:rgba(255,255,255,0.3);\">پر انرژی — فروش فوری</span>\n    </div>\n  </div>\n</div>\n\n<!-- MINIMAL -->\n<div style=\"border-radius:20px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.08);border:1px solid #E5E7EB;\">\n  <div style=\"background:#fff;padding:20px;min-height:220px;\">\n    <div style=\"display:inline-block;border:1px solid #6C47FF;border-radius:999px;padding:3px 12px;font-size:11px;font-weight:600;color:#6C47FF;margin-bottom:16px;\">پیشنهاد ویژه</div>\n    <div style=\"width:64px;height:64px;border-radius:12px;background:#F3F4F6;margin-bottom:12px;\"></div>\n    <div style=\"font-size:14px;font-weight:700;color:#111827;margin-bottom:4px;\">کفش رانینگ نایک</div>\n    <div style=\"font-size:11px;color:#9CA3AF;margin-bottom:12px;\">پوشاک ورزشی</div>\n    <div style=\"display:flex;align-items:center;gap:8px;margin-bottom:16px;\">\n      <span style=\"font-size:18px;font-weight:800;color:#111827;\">۸۹۰,۰۰۰ ت</span>\n      <span style=\"font-size:12px;color:#D1D5DB;text-decoration:line-through;\">۱,۲۰۰,۰۰۰ ت</span>\n    </div>\n    <div style=\"display:flex;gap:6px;\">\n      <div style=\"border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;text-align:center;\">\n        <div style=\"font-size:14px;font-weight:700;color:#374151;\">۰۵</div>\n        <div style=\"font-size:9px;color:#9CA3AF;\">روز</div>\n      </div>\n      <div style=\"color:#D1D5DB;font-size:14px;padding-top:4px;\">:</div>\n      <div style=\"border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;text-align:center;\">\n        <div style=\"font-size:14px;font-weight:700;color:#374151;\">۰۸</div>\n        <div style=\"font-size:9px;color:#9CA3AF;\">ساعت</div>\n      </div>\n      <div style=\"color:#D1D5DB;font-size:14px;padding-top:4px;\">:</div>\n      <div style=\"border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;text-align:center;\">\n        <div style=\"font-size:14px;font-weight:700;color:#374151;\">۲۲</div>\n        <div style=\"font-size:9px;color:#9CA3AF;\">دقیقه</div>\n      </div>\n    </div>\n  </div>\n  <div style=\"background:#F9FAFB;padding:12px 16px;border-top:1px solid #E5E7EB;\">\n    <div style=\"display:flex;align-items:center;justify-content:space-between;\">\n      <span style=\"font-size:13px;font-weight:700;color:#6C47FF;\">Minimal</span>\n      <span style=\"font-size:11px;color:#9CA3AF;\">تمیز — فروشگاه عمومی</span>\n    </div>\n  </div>\n</div>\n\n<!-- GLASS -->\n<div style=\"border-radius:20px;overflow:hidden;box-shadow:0 12px 30px rgba(108,71,255,0.2);\">\n  <div style=\"background:linear-gradient(135deg,#6C47FF 0%,#A78BFF 50%,#FF6B35 100%);padding:20px;min-height:220px;position:relative;\">\n    <div style=\"position:absolute;inset:0;backdrop-filter:blur(2px);\"></div>\n    <div style=\"position:relative;\">\n      <div style=\"display:inline-block;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:999px;padding:3px 12px;font-size:11px;font-weight:600;color:#fff;margin-bottom:16px;\">✨ پیشنهاد شگفت‌انگیز</div>\n      <div style=\"background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-radius:12px;padding:12px;margin-bottom:12px;\">\n        <div style=\"width:48px;height:48px;border-radius:10px;background:rgba(255,255,255,0.2);margin-bottom:10px;\"></div>\n        <div style=\"font-size:14px;font-weight:700;color:#fff;\">ساعت هوشمند Apple</div>\n        <div style=\"font-size:11px;color:rgba(255,255,255,0.7);margin-bottom:8px;\">تکنولوژی</div>\n        <div style=\"font-size:17px;font-weight:800;color:#fff;\">۴,۵۰۰,۰۰۰ ت</div>\n      </div>\n      <div style=\"display:flex;gap:6px;\">\n        <div style=\"background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-radius:6px;padding:4px 8px;text-align:center;flex:1;\">\n          <div style=\"font-size:14px;font-weight:700;color:#fff;\">۰۱</div>\n          <div style=\"font-size:9px;color:rgba(255,255,255,0.6);\">روز</div>\n        </div>\n        <div style=\"background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-radius:6px;padding:4px 8px;text-align:center;flex:1;\">\n          <div style=\"font-size:14px;font-weight:700;color:#fff;\">۲۳</div>\n          <div style=\"font-size:9px;color:rgba(255,255,255,0.6);\">ساعت</div>\n        </div>\n        <div style=\"background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-radius:6px;padding:4px 8px;text-align:center;flex:1;\">\n          <div style=\"font-size:14px;font-weight:700;color:#fff;\">۵۹</div>\n          <div style=\"font-size:9px;color:rgba(255,255,255,0.6);\">دقیقه</div>\n        </div>\n      </div>\n    </div>\n  </div>\n  <div style=\"background:#2D1B69;padding:12px 16px;\">\n    <div style=\"display:flex;align-items:center;justify-content:space-between;\">\n      <span style=\"font-size:13px;font-weight:700;color:#A78BFF;\">Glass</span>\n      <span style=\"font-size:11px;color:rgba(255,255,255,0.3);\">گلاسمورفیسم — لوکس</span>\n    </div>\n  </div>\n</div>\n\n<!-- BOLD -->\n<div style=\"border-radius:20px;overflow:hidden;box-shadow:0 12px 30px rgba(255,107,53,0.2);\">\n  <div style=\"background:#111827;padding:20px;min-height:220px;\">\n    <div style=\"display:flex;gap:12px;\">\n      <div style=\"flex:1;\">\n        <div style=\"font-size:48px;font-weight:900;color:#FF6B35;line-height:1;\">۳۵٪</div>\n        <div style=\"font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:12px;\">تخفیف ویژه</div>\n        <div style=\"font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;\">بلندگو JBL</div>\n        <div style=\"font-size:17px;font-weight:800;color:#FF6B35;margin-bottom:12px;\">۷۸۰,۰۰۰ ت</div>\n        <div style=\"display:flex;gap:4px;\">\n          <div style=\"background:#1F2937;border-radius:6px;padding:4px 6px;text-align:center;\">\n            <div style=\"font-size:12px;font-weight:700;color:#fff;\">۰۰</div>\n            <div style=\"font-size:8px;color:rgba(255,255,255,0.3);\">روز</div>\n          </div>\n          <div style=\"color:rgba(255,255,255,0.2);padding-top:3px;\">:</div>\n          <div style=\"background:#1F2937;border-radius:6px;padding:4px 6px;text-align:center;\">\n            <div style=\"font-size:12px;font-weight:700;color:#FF6B35;\">۰۶</div>\n            <div style=\"font-size:8px;color:rgba(255,255,255,0.3);\">ساعت</div>\n          </div>\n          <div style=\"color:rgba(255,255,255,0.2);padding-top:3px;\">:</div>\n          <div style=\"background:#1F2937;border-radius:6px;padding:4px 6px;text-align:center;\">\n            <div style=\"font-size:12px;font-weight:700;color:#FF6B35;\">۱۵</div>\n            <div style=\"font-size:8px;color:rgba(255,255,255,0.3);\">دقیقه</div>\n          </div>\n        </div>\n      </div>\n      <div style=\"width:80px;height:80px;border-radius:12px;background:#1F2937;\"></div>\n    </div>\n  </div>\n  <div style=\"background:#0F172A;padding:12px 16px;\">\n    <div style=\"display:flex;align-items:center;justify-content:space-between;\">\n      <span style=\"font-size:13px;font-weight:700;color:#FF6B35;\">Bold</span>\n      <span style=\"font-size:11px;color:rgba(255,255,255,0.3);\">پر تضاد — بنر فروش</span>\n    </div>\n  </div>\n</div>\n\n<!-- COMPACT -->\n<div style=\"border-radius:20px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.08);border:1px solid #E5E7EB;\">\n  <div style=\"background:#fff;padding:16px;min-height:220px;\">\n    <div style=\"display:flex;gap:12px;align-items:center;margin-bottom:12px;\">\n      <div style=\"width:48px;height:48px;border-radius:10px;background:#F3F4F6;flex-shrink:0;\"></div>\n      <div style=\"flex:1;\">\n        <div style=\"font-size:12px;font-weight:700;color:#111827;\">مانیتور دل ۲۷\"</div>\n        <div style=\"font-size:10px;color:#9CA3AF;\">کامپیوتر</div>\n        <div style=\"font-size:14px;font-weight:800;color:#6C47FF;\">۳,۲۰۰,۰۰۰ ت</div>\n      </div>\n      <div style=\"width:32px;height:32px;border-radius:50%;background:#6C47FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;\">\n        <svg width=\"14\" height=\"14\" fill=\"none\" viewBox=\"0 0 24 24\"><path stroke=\"#fff\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z\"/></svg>\n      </div>\n    </div>\n    <div style=\"border-top:1px solid #F3F4F6;padding-top:12px;\">\n      <div style=\"display:flex;gap:4px;\">\n        <div style=\"flex:1;background:#F9FAFB;border-radius:6px;padding:4px;text-align:center;\">\n          <div style=\"font-size:11px;font-weight:700;color:#374151;\">۰۳</div>\n          <div style=\"font-size:8px;color:#9CA3AF;\">روز</div>\n        </div>\n        <div style=\"color:#D1D5DB;font-size:11px;padding-top:3px;\">:</div>\n        <div style=\"flex:1;background:#F9FAFB;border-radius:6px;padding:4px;text-align:center;\">\n          <div style=\"font-size:11px;font-weight:700;color:#374151;\">۱۱</div>\n          <div style=\"font-size:8px;color:#9CA3AF;\">ساعت</div>\n        </div>\n        <div style=\"color:#D1D5DB;font-size:11px;padding-top:3px;\">:</div>\n        <div style=\"flex:1;background:#F9FAFB;border-radius:6px;padding:4px;text-align:center;\">\n          <div style=\"font-size:11px;font-weight:700;color:#374151;\">۴۸</div>\n          <div style=\"font-size:8px;color:#9CA3AF;\">دقیقه</div>\n        </div>\n      </div>\n    </div>\n    <div style=\"margin-top:10px;display:flex;gap:6px;align-items:center;\">\n      <span style=\"font-size:11px;color:#6C47FF;background:#EDE9FF;border-radius:999px;padding:2px 10px;\">فلش سیل</span>\n      <span style=\"font-size:11px;color:#9CA3AF;text-decoration:line-through;\">۴,۵۰۰,۰۰۰ ت</span>\n    </div>\n  </div>\n  <div style=\"background:#F9FAFB;padding:10px 16px;border-top:1px solid #E5E7EB;\">\n    <div style=\"display:flex;align-items:center;justify-content:space-between;\">\n      <span style=\"font-size:13px;font-weight:700;color:#6C47FF;\">Compact</span>\n      <span style=\"font-size:11px;color:#9CA3AF;\">فشرده — کاتالوگ</span>\n    </div>\n  </div>\n</div>\n\n</div>"
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "how-section",
+      "elType": "section",
+      "settings": {
+        "background_background": "classic",
+        "background_color": "#FFFFFF",
+        "padding": {
+          "unit": "px",
+          "top": "80",
+          "right": "20",
+          "bottom": "80",
+          "left": "20",
+          "isLinked": false
+        },
+        "layout": "full_width",
+        "content_width": { "unit": "px", "size": 1200 }
+      },
+      "elements": [
+        {
+          "id": "how-col",
+          "elType": "column",
+          "settings": { "_column_size": 100 },
+          "elements": [
+            {
+              "id": "how-label",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div style=\"text-align:center;margin-bottom:12px;\"><span style=\"display:inline-block;background:#F0FDF4;color:#22C55E;border-radius:999px;padding:6px 18px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:600;\">روش کار</span></div>"
+              }
+            },
+            {
+              "id": "how-title",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "در ۳ قدم شروع کنید",
+                "header_size": "h2",
+                "align": "center",
+                "typography_font_family": "Vazirmatn",
+                "typography_font_size": { "unit": "px", "size": 36 },
+                "typography_font_weight": "800",
+                "title_color": "#111827"
+              }
+            },
+            {
+              "id": "how-steps",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0;direction:rtl;margin-top:48px;font-family:Vazirmatn,Tahoma,sans-serif;\">\n\n<div style=\"text-align:center;padding:32px 24px;position:relative;\">\n  <div style=\"width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,#6C47FF,#9B6AFF);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;\">\n    <span style=\"font-size:24px;font-weight:900;color:#fff;\">۱</span>\n  </div>\n  <h3 style=\"font-size:18px;font-weight:700;color:#111827;margin:0 0 10px;\">نصب افزونه</h3>\n  <p style=\"font-size:14px;line-height:1.7;color:#6B7280;margin:0;\">فایل ZIP را از پنل خریدتان دانلود و در وردپرس نصب کنید. پیکربندی اولیه خودکار انجام می‌شود.</p>\n</div>\n\n<div style=\"text-align:center;padding:32px 24px;background:#F7F8FC;border-radius:20px;\">\n  <div style=\"width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,#FF6B35,#FF8C5A);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;\">\n    <span style=\"font-size:24px;font-weight:900;color:#fff;\">۲</span>\n  </div>\n  <h3 style=\"font-size:18px;font-weight:700;color:#111827;margin:0 0 10px;\">ساخت کمپین</h3>\n  <p style=\"font-size:14px;line-height:1.7;color:#6B7280;margin:0;\">از منو کمپین‌چی، کمپین جدید بسازید، محصولات را اضافه کنید و تخفیف و زمان را تنظیم کنید.</p>\n</div>\n\n<div style=\"text-align:center;padding:32px 24px;\">\n  <div style=\"width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,#22C55E,#4ADE80);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;\">\n    <span style=\"font-size:24px;font-weight:900;color:#fff;\">۳</span>\n  </div>\n  <h3 style=\"font-size:18px;font-weight:700;color:#111827;margin:0 0 10px;\">نمایش اسلایدر</h3>\n  <p style=\"font-size:14px;line-height:1.7;color:#6B7280;margin:0;\">شورت‌کد یا ویجت المنتور را در صفحه دلخواه اضافه کنید. اسلایدر کمپین خودکار نمایش داده می‌شود.</p>\n</div>\n\n</div>"
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "cta-section",
+      "elType": "section",
+      "settings": {
+        "background_background": "gradient",
+        "background_color": "#6C47FF",
+        "background_color_b": "#2D1B69",
+        "background_gradient_angle": { "unit": "deg", "size": 135 },
+        "padding": {
+          "unit": "px",
+          "top": "80",
+          "right": "20",
+          "bottom": "80",
+          "left": "20",
+          "isLinked": false
+        },
+        "layout": "full_width",
+        "content_width": { "unit": "px", "size": 800 }
+      },
+      "elements": [
+        {
+          "id": "cta-col",
+          "elType": "column",
+          "settings": { "_column_size": 100, "align": "center" },
+          "elements": [
+            {
+              "id": "cta-title",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "آماده‌اید فروشتان را متحول کنید؟",
+                "header_size": "h2",
+                "align": "center",
+                "typography_font_family": "Vazirmatn",
+                "typography_font_size": { "unit": "px", "size": 36 },
+                "typography_font_weight": "800",
+                "title_color": "#FFFFFF"
+              }
+            },
+            {
+              "id": "cta-sub",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:17px;line-height:1.8;color:rgba(255,255,255,0.7);text-align:center;\">کمپین‌چی را همین الان نصب کنید و اولین فلش‌سیل خود را در کمتر از ۵ دقیقه راه‌اندازی کنید.</p>",
+                "align": "center"
+              }
+            },
+            {
+              "id": "cta-btns",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div style=\"display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:32px;\"><a href=\"#\" style=\"display:inline-flex;align-items:center;gap:8px;background:#fff;color:#6C47FF;border-radius:14px;padding:16px 40px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:16px;font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,0.15);\">دریافت افزونه</a><a href=\"#\" style=\"display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:14px;padding:16px 40px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:16px;font-weight:600;text-decoration:none;\">مستندات</a></div>"
+              }
+            },
+            {
+              "id": "cta-shortcode",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div style=\"margin-top:40px;background:rgba(0,0,0,0.2);border-radius:14px;padding:16px 24px;display:inline-block;\"><span style=\"font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;color:rgba(255,255,255,0.5);\">شورت‌کد: </span><code style=\"font-family:monospace;font-size:14px;color:#A78BFF;\">[campaignchi_slider id=\"1\" template=\"flux\"]</code></div>"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "page_settings": {
+    "post_title": "کمپین‌چی — مدیریت هوشمند فروش",
+    "hide_title": "yes",
+    "body_background_background": "classic",
+    "body_background_color": "#F7F8FC"
+  }
+}
