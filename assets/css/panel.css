@@ -48,6 +48,7 @@
 .cmc-content {
   height: calc(100vh - var(--cmc-topbar-height));
   overflow-y: auto;
+  margin-bottom: 30px !important;
 }
 
 /* ==========================================================================
