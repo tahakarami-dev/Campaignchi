@@ -1,0 +1,88 @@
+<!-- ====== کمپین‌چی | سکشن پیش‌نمایش — فقط همین بلاک را کپی کنید ====== -->
+<div class="cmcpv" dir="rtl">
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+    .cmcpv *{box-sizing:border-box;font-family:Vazirmatn,Tahoma,sans-serif;}
+    .cmcpv{position:relative;overflow:hidden;padding:90px 24px;text-align:center;
+      background:radial-gradient(1100px 600px at 50% -10%,rgba(108,71,255,.4),transparent 60%),
+                 radial-gradient(800px 500px at 85% 30%,rgba(255,107,53,.16),transparent 55%),#120E1C;}
+    .cmcpv__glow{position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:560px;height:420px;
+      border-radius:50%;background:radial-gradient(circle,rgba(108,71,255,.4),transparent 65%);filter:blur(48px);
+      animation:cmcpvGlow 7s ease-in-out infinite;}
+    @keyframes cmcpvGlow{0%,100%{opacity:.55}50%{opacity:1}}
+    @keyframes cmcpvShake{10%,90%{transform:translateX(-2px)}30%,70%{transform:translateX(4px)}50%{transform:translateX(-4px)}}
+    .cmcpv__wrap{position:relative;z-index:2;max-width:760px;margin:0 auto;}
+    .cmcpv__badge{display:inline-block;background:rgba(167,139,255,.12);border:1px solid rgba(167,139,255,.35);
+      border-radius:999px;padding:7px 18px;font-size:13px;color:#C9BBFF;font-weight:700;margin-bottom:22px;}
+    .cmcpv__title{font-size:clamp(28px,5vw,46px);font-weight:900;color:#fff;margin:0 0 14px;letter-spacing:-1px;}
+    .cmcpv__sub{font-size:16px;line-height:1.9;color:rgba(255,255,255,.6);max-width:480px;margin:0 auto 44px;}
+    .cmcpv__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;}
+    .cmcpv__card{background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:32px 26px;backdrop-filter:blur(12px);
+      box-shadow:0 20px 50px rgba(0,0,0,.35);}
+    .cmcpv__ico{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+      margin:0 auto 18px;font-size:26px;}
+    .cmcpv__cardttl{font-size:18px;font-weight:800;color:#fff;margin:0 0 8px;}
+    .cmcpv__cardtxt{font-size:13px;line-height:1.8;color:rgba(255,255,255,.55);margin:0 0 22px;}
+    .cmcpv__btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;border:none;cursor:pointer;
+      border-radius:14px;padding:15px;font-size:15px;font-weight:800;text-decoration:none;font-family:inherit;transition:transform .2s;}
+    .cmcpv__btn:hover{transform:translateY(-2px);}
+    .cmcpv__btn--admin{background:linear-gradient(135deg,#6C47FF,#9B6AFF);color:#fff;box-shadow:0 12px 34px rgba(108,71,255,.4);}
+    .cmcpv__btn--store{background:linear-gradient(135deg,#FF6B35,#FF8C5A);color:#fff;box-shadow:0 12px 34px rgba(255,107,53,.4);}
+    .cmcpv__pass{margin-top:16px;display:none;}
+    .cmcpv__pass.is-open{display:block;}
+    .cmcpv__input{width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.15);border-radius:12px;
+      padding:13px 14px;color:#fff;font-size:14px;font-family:inherit;text-align:center;direction:ltr;outline:none;}
+    .cmcpv__input:focus{border-color:#A78BFF;}
+    .cmcpv__input.is-error{border-color:#EF4444;animation:cmcpvShake .4s;}
+    .cmcpv__err{display:none;color:#FF8A8A;font-size:12px;margin-top:8px;}
+    .cmcpv__err.is-show{display:block;}
+    .cmcpv__go{margin-top:10px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18);}
+  </style>
+
+  <div class="cmcpv__glow"></div>
+  <div class="cmcpv__wrap">
+    <span class="cmcpv__badge">👀 پیش‌نمایش</span>
+    <h2 class="cmcpv__title">پیش‌نمایش کمپین‌چی</h2>
+    <p class="cmcpv__sub">پنل مدیریت یا نمای فروشگاه را همین‌جا ببینید. ورود به پیش‌نمایش ادمین نیازمند رمز عبور است.</p>
+
+    <div class="cmcpv__grid">
+      <!-- پیش‌نمایش ادمین -->
+      <div class="cmcpv__card">
+        <div class="cmcpv__ico" style="background:rgba(108,71,255,.2);">🔐</div>
+        <h3 class="cmcpv__cardttl">پیش‌نمایش ادمین</h3>
+        <p class="cmcpv__cardtxt">ورود به داشبورد و پنل مدیریت کمپین‌چی (نیازمند رمز).</p>
+        <button type="button" class="cmcpv__btn cmcpv__btn--admin" onclick="cmcpvToggle()">ورود به پنل ادمین</button>
+        <div class="cmcpv__pass" id="cmcpvPass">
+          <input type="password" class="cmcpv__input" id="cmcpvInput" placeholder="رمز عبور را وارد کنید"
+                 onkeydown="if(event.key==='Enter')cmcpvCheck()">
+          <div class="cmcpv__err" id="cmcpvErr">رمز عبور نادرست است.</div>
+          <button type="button" class="cmcpv__btn cmcpv__go" onclick="cmcpvCheck()">تأیید و ورود</button>
+        </div>
+      </div>
+
+      <!-- پیش‌نمایش فروشگاه -->
+      <div class="cmcpv__card">
+        <div class="cmcpv__ico" style="background:rgba(255,107,53,.18);">🛍️</div>
+        <h3 class="cmcpv__cardttl">پیش‌نمایش فروشگاه</h3>
+        <p class="cmcpv__cardtxt">مشاهده‌ی اسلایدرهای کمپین در نمای واقعی فروشگاه.</p>
+        <a class="cmcpv__btn cmcpv__btn--store" href="https://example.com/shop" target="_blank" rel="noopener">ورود به فروشگاه</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* === فقط این دو آدرس را با لینک واقعی خودت عوض کن === */
+    var CMCPV_ADMIN_URL = "https://example.com/wp-admin";
+    var CMCPV_PASSWORD  = "admin-1234";
+
+    function cmcpvToggle(){ document.getElementById('cmcpvPass').classList.toggle('is-open');
+      var i=document.getElementById('cmcpvInput'); if(i) setTimeout(function(){i.focus();},50); }
+    function cmcpvCheck(){
+      var i=document.getElementById('cmcpvInput'), e=document.getElementById('cmcpvErr');
+      if(i.value===CMCPV_PASSWORD){ window.location.href=CMCPV_ADMIN_URL; }
+      else{ i.classList.remove('is-error'); void i.offsetWidth; i.classList.add('is-error'); e.classList.add('is-show'); }
+    }
+  </script>
+</div>
+<!-- ====== پایان سکشن پیش‌نمایش ====== -->
