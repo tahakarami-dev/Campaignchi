@@ -1,0 +1,126 @@
+{
+  "version": "0.4",
+  "title": "Campaignchi — Store Preview",
+  "type": "page",
+  "content": [
+    {
+      "id": "csp_sec",
+      "elType": "section",
+      "settings": {
+        "background_background": "classic",
+        "background_color": "#FFFFFF",
+        "padding": { "unit": "px", "top": "20", "right": "16", "bottom": "60", "left": "16", "isLinked": false },
+        "layout": "boxed",
+        "content_width": { "unit": "px", "size": 1200 }
+      },
+      "elements": [
+        {
+          "id": "csp_col",
+          "elType": "column",
+          "settings": { "_column_size": 100 },
+          "elements": [
+            {
+              "id": "csp_style",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<style>\n@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');\n.cmcsp{font-family:Vazirmatn,Tahoma,sans-serif;direction:rtl;}\n.cmcsp__head{text-align:center;margin:48px 0 24px;}\n.cmcsp__badge{display:inline-block;background:#EDE9FF;color:#6C47FF;border-radius:999px;padding:6px 18px;font-size:13px;font-weight:700;margin-bottom:12px;}\n.cmcsp__title{font-size:clamp(24px,4vw,34px);font-weight:800;color:#111827;margin:0;letter-spacing:-.5px;}\n.cmcsp__sub{font-size:14px;color:#6B7280;margin:8px 0 0;}\n.cmcsp__skin{display:flex;align-items:center;gap:12px;margin:34px 0 14px;direction:rtl;}\n.cmcsp__skin::after{content:\"\";flex:1;height:1px;background:#E5E7EB;}\n.cmcsp__chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #E5E7EB;border-radius:999px;padding:8px 18px;font-size:14px;font-weight:800;color:#6C47FF;box-shadow:0 2px 8px rgba(17,24,39,.04);white-space:nowrap;}\n.cmcsp__chip span{font-size:12px;font-weight:500;color:#9CA3AF;}\n</style>"
+              }
+            },
+            {
+              "id": "csp_head_shop",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div class=\"cmcsp\"><div class=\"cmcsp__head\" style=\"margin-top:8px;\"><span class=\"cmcsp__badge\">🛍️ فروشگاه</span><h2 class=\"cmcsp__title\">محصولات فروشگاه</h2><p class=\"cmcsp__sub\">نمای استاندارد کارت‌های محصول ووکامرس</p></div></div>"
+              }
+            },
+            {
+              "id": "csp_products",
+              "elType": "widget",
+              "widgetType": "shortcode",
+              "settings": { "shortcode": "[products limit=\"8\" columns=\"4\" orderby=\"popularity\"]" }
+            },
+            {
+              "id": "csp_head_sliders",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<div class=\"cmcsp\"><div class=\"cmcsp__head\"><span class=\"cmcsp__badge\">⚡ کمپین‌چی</span><h2 class=\"cmcsp__title\">۵ اسلایدر کمپین</h2><p class=\"cmcsp__sub\">همان محصولات حراج، در پنج اسکین حرفه‌ای</p></div></div>"
+              }
+            },
+
+            {
+              "id": "csp_lbl1",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": { "html": "<div class=\"cmcsp\"><div class=\"cmcsp__skin\"><span class=\"cmcsp__chip\">اسلایدر ۱ <span>فلاکس — نئون پرانرژی</span></span></div></div>" }
+            },
+            {
+              "id": "csp_s1",
+              "elType": "widget",
+              "widgetType": "shortcode",
+              "settings": { "shortcode": "[campaignchi_slider id=\"1\"]" }
+            },
+
+            {
+              "id": "csp_lbl2",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": { "html": "<div class=\"cmcsp\"><div class=\"cmcsp__skin\"><span class=\"cmcsp__chip\">اسلایدر ۲ <span>بولد — بنری پررنگ</span></span></div></div>" }
+            },
+            {
+              "id": "csp_s2",
+              "elType": "widget",
+              "widgetType": "shortcode",
+              "settings": { "shortcode": "[campaignchi_slider id=\"2\"]" }
+            },
+
+            {
+              "id": "csp_lbl3",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": { "html": "<div class=\"cmcsp\"><div class=\"cmcsp__skin\"><span class=\"cmcsp__chip\">اسلایدر ۳ <span>مینیمال — تجاری و تمیز</span></span></div></div>" }
+            },
+            {
+              "id": "csp_s3",
+              "elType": "widget",
+              "widgetType": "shortcode",
+              "settings": { "shortcode": "[campaignchi_slider id=\"3\"]" }
+            },
+
+            {
+              "id": "csp_lbl4",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": { "html": "<div class=\"cmcsp\"><div class=\"cmcsp__skin\"><span class=\"cmcsp__chip\">اسلایدر ۴ <span>گلس — شیشه‌ای مدرن</span></span></div></div>" }
+            },
+            {
+              "id": "csp_s4",
+              "elType": "widget",
+              "widgetType": "shortcode",
+              "settings": { "shortcode": "[campaignchi_slider id=\"4\"]" }
+            },
+
+            {
+              "id": "csp_lbl5",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": { "html": "<div class=\"cmcsp\"><div class=\"cmcsp__skin\"><span class=\"cmcsp__chip\">اسلایدر ۵ <span>بولد — بنری پررنگ</span></span></div></div>" }
+            },
+            {
+              "id": "csp_s5",
+              "elType": "widget",
+              "widgetType": "shortcode",
+              "settings": { "shortcode": "[campaignchi_slider id=\"5\"]" }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "page_settings": {
+    "post_title": "پیش‌نمایش فروشگاه کمپین‌چی",
+    "hide_title": "yes"
+  }
+}
