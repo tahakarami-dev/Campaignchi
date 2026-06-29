@@ -240,7 +240,7 @@ class AppearancePage extends AbstractPage
     <?php
     }
 
-    /** Shared "label + hint + toggle" row, matching the exact pattern already used elsewhere in the panel (see Admin\Pages\StubPages SettingsPage). */
+    /** Shared "label + hint + toggle" row, matching the exact pattern already used elsewhere in the panel. */
     private function renderToggleRow(string $id, string $label, bool $checked): void
     {
     ?>

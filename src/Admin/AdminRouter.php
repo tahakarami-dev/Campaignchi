@@ -20,7 +20,6 @@ class AdminRouter
     private array $routes = [
         'dashboard'  => Pages\DashboardPage::class,
         'campaigns'  => Pages\CampaignsPage::class,
-        'schedule'   => Pages\SchedulePage::class,
         'templates'  => Pages\TemplatesPage::class,
         'appearance' => Pages\AppearancePage::class,
         'settings'   => Pages\SettingsPage::class,
@@ -44,6 +43,12 @@ class AdminRouter
         $slug = sanitize_key($_GET['cmc_page'] ?? self::DEFAULT_PAGE);
 
         $pageClass = $this->routes[$slug] ?? $this->routes[self::DEFAULT_PAGE];
+
+        // Defensive guard: never let an unknown/typo'd route class produce a
+        // fatal "class not found" on the panel — fall back to the dashboard.
+        if (!class_exists($pageClass)) {
+            $pageClass = $this->routes[self::DEFAULT_PAGE];
+        }
 
         return new $pageClass();
     }
