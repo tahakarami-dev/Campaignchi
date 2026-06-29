@@ -10,7 +10,6 @@
       border-radius:50%;background:radial-gradient(circle,rgba(108,71,255,.4),transparent 65%);filter:blur(48px);
       animation:cmcpvGlow 7s ease-in-out infinite;}
     @keyframes cmcpvGlow{0%,100%{opacity:.55}50%{opacity:1}}
-    @keyframes cmcpvShake{10%,90%{transform:translateX(-2px)}30%,70%{transform:translateX(4px)}50%{transform:translateX(-4px)}}
     .cmcpv__wrap{position:relative;z-index:2;max-width:760px;margin:0 auto;}
     .cmcpv__badge{display:inline-block;background:rgba(167,139,255,.12);border:1px solid rgba(167,139,255,.35);
       border-radius:999px;padding:7px 18px;font-size:13px;color:#C9BBFF;font-weight:700;margin-bottom:22px;}
@@ -24,21 +23,12 @@
       margin:0 auto 18px;font-size:26px;}
     .cmcpv__cardttl{font-size:18px;font-weight:800;color:#fff;margin:0 0 8px;}
     .cmcpv__cardtxt{font-size:13px;line-height:1.8;color:rgba(255,255,255,.55);margin:0 0 22px;}
-    .cmcpv__btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;border:none;cursor:pointer;
+    .cmcpv__btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;
       border-radius:14px;padding:15px;font-size:15px;font-weight:800;text-decoration:none;font-family:inherit;transition:transform .2s;}
     .cmcpv__btn:hover{transform:translateY(-2px);}
     .cmcpv__btn--admin{background:linear-gradient(135deg,#6C47FF,#9B6AFF);color:#fff;box-shadow:0 12px 34px rgba(108,71,255,.4);}
     .cmcpv__btn--store{background:linear-gradient(135deg,#FF6B35,#FF8C5A);color:#fff;box-shadow:0 12px 34px rgba(255,107,53,.4);}
-    .cmcpv__pass{margin-top:16px;display:none;}
-    .cmcpv__pass.is-open{display:block;}
-    .cmcpv__input{width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.15);border-radius:12px;
-      padding:13px 14px;color:#fff;font-size:14px;font-family:inherit;text-align:center;direction:ltr;outline:none;}
-    .cmcpv__input:focus{border-color:#A78BFF;}
-    .cmcpv__input.is-error{border-color:#EF4444;animation:cmcpvShake .4s;}
-    .cmcpv__err{display:none;color:#FF8A8A;font-size:12px;margin-top:8px;}
-    .cmcpv__err.is-show{display:block;}
-    .cmcpv__go{margin-top:10px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18);}
-    .cmcpv__cred{margin-top:14px;font-size:12px;color:rgba(255,255,255,.4);direction:ltr;}
+    .cmcpv__cred{margin-top:14px;font-size:13px;color:rgba(255,255,255,.5);direction:ltr;}
     .cmcpv__cred b{color:#C9BBFF;}
   </style>
 
@@ -46,22 +36,16 @@
   <div class="cmcpv__wrap">
     <span class="cmcpv__badge">👀 پیش‌نمایش</span>
     <h2 class="cmcpv__title">پیش‌نمایش کمپین‌چی</h2>
-    <p class="cmcpv__sub">پنل مدیریت یا نمای فروشگاه را همین‌جا ببینید. ورود به پیش‌نمایش ادمین نیازمند رمز عبور است.</p>
+    <p class="cmcpv__sub">پنل مدیریت یا نمای فروشگاه را همین‌جا ببینید.</p>
 
     <div class="cmcpv__grid">
       <!-- پیش‌نمایش ادمین -->
       <div class="cmcpv__card">
         <div class="cmcpv__ico" style="background:rgba(108,71,255,.2);">🔐</div>
         <h3 class="cmcpv__cardttl">پیش‌نمایش ادمین</h3>
-        <p class="cmcpv__cardtxt">ورود به پنل مدیریت کمپین‌چی (نیازمند رمز).</p>
-        <button type="button" class="cmcpv__btn cmcpv__btn--admin" onclick="cmcpvToggle()">ورود به پنل ادمین</button>
-        <div class="cmcpv__pass" id="cmcpvPass">
-          <input type="password" class="cmcpv__input" id="cmcpvInput" placeholder="رمز عبور را وارد کنید"
-                 onkeydown="if(event.key==='Enter')cmcpvCheck()">
-          <div class="cmcpv__err" id="cmcpvErr">رمز عبور نادرست است.</div>
-          <button type="button" class="cmcpv__btn cmcpv__go" onclick="cmcpvCheck()">تأیید و ورود</button>
-        </div>
-        <div class="cmcpv__cred">user: <b>admin</b> &middot; pass: <b>1234</b></div>
+        <p class="cmcpv__cardtxt">ورود به پنل مدیریت کمپین‌چی.</p>
+        <a class="cmcpv__btn cmcpv__btn--admin" href="https://wordpress-dev.ir/my-account/" target="_blank" rel="noopener">ورود به پنل ادمین</a>
+        <div class="cmcpv__cred">user: <b>demo</b> &middot; pass: <b>1234</b></div>
       </div>
 
       <!-- پیش‌نمایش فروشگاه -->
@@ -73,19 +57,5 @@
       </div>
     </div>
   </div>
-
-  <script>
-    /* === در صورت نیاز فقط این مقادیر را عوض کن === */
-    var CMCPV_ADMIN_URL = "https://wordpress-dev.ir/my-account/";
-    var CMCPV_PASSWORD  = "admin-1234";
-
-    function cmcpvToggle(){ document.getElementById('cmcpvPass').classList.toggle('is-open');
-      var i=document.getElementById('cmcpvInput'); if(i) setTimeout(function(){i.focus();},50); }
-    function cmcpvCheck(){
-      var i=document.getElementById('cmcpvInput'), e=document.getElementById('cmcpvErr');
-      if(i.value===CMCPV_PASSWORD){ window.location.href=CMCPV_ADMIN_URL; }
-      else{ i.classList.remove('is-error'); void i.offsetWidth; i.classList.add('is-error'); e.classList.add('is-show'); }
-    }
-  </script>
 </div>
 <!-- ====== پایان سکشن پیش‌نمایش ====== -->
