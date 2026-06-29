@@ -38,6 +38,8 @@
     .cmcpv__err{display:none;color:#FF8A8A;font-size:12px;margin-top:8px;}
     .cmcpv__err.is-show{display:block;}
     .cmcpv__go{margin-top:10px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18);}
+    .cmcpv__cred{margin-top:14px;font-size:12px;color:rgba(255,255,255,.4);direction:ltr;}
+    .cmcpv__cred b{color:#C9BBFF;}
   </style>
 
   <div class="cmcpv__glow"></div>
@@ -51,7 +53,7 @@
       <div class="cmcpv__card">
         <div class="cmcpv__ico" style="background:rgba(108,71,255,.2);">🔐</div>
         <h3 class="cmcpv__cardttl">پیش‌نمایش ادمین</h3>
-        <p class="cmcpv__cardtxt">ورود به داشبورد و پنل مدیریت کمپین‌چی (نیازمند رمز).</p>
+        <p class="cmcpv__cardtxt">ورود به پنل مدیریت کمپین‌چی (نیازمند رمز).</p>
         <button type="button" class="cmcpv__btn cmcpv__btn--admin" onclick="cmcpvToggle()">ورود به پنل ادمین</button>
         <div class="cmcpv__pass" id="cmcpvPass">
           <input type="password" class="cmcpv__input" id="cmcpvInput" placeholder="رمز عبور را وارد کنید"
@@ -59,6 +61,7 @@
           <div class="cmcpv__err" id="cmcpvErr">رمز عبور نادرست است.</div>
           <button type="button" class="cmcpv__btn cmcpv__go" onclick="cmcpvCheck()">تأیید و ورود</button>
         </div>
+        <div class="cmcpv__cred">user: <b>admin</b> &middot; pass: <b>1234</b></div>
       </div>
 
       <!-- پیش‌نمایش فروشگاه -->
@@ -66,14 +69,14 @@
         <div class="cmcpv__ico" style="background:rgba(255,107,53,.18);">🛍️</div>
         <h3 class="cmcpv__cardttl">پیش‌نمایش فروشگاه</h3>
         <p class="cmcpv__cardtxt">مشاهده‌ی اسلایدرهای کمپین در نمای واقعی فروشگاه.</p>
-        <a class="cmcpv__btn cmcpv__btn--store" href="https://example.com/shop" target="_blank" rel="noopener">ورود به فروشگاه</a>
+        <a class="cmcpv__btn cmcpv__btn--store" href="https://wordpress-dev.ir/shop" target="_blank" rel="noopener">ورود به فروشگاه</a>
       </div>
     </div>
   </div>
 
   <script>
-    /* === فقط این دو آدرس را با لینک واقعی خودت عوض کن === */
-    var CMCPV_ADMIN_URL = "https://example.com/wp-admin";
+    /* === در صورت نیاز فقط این مقادیر را عوض کن === */
+    var CMCPV_ADMIN_URL = "https://wordpress-dev.ir/my-account/";
     var CMCPV_PASSWORD  = "admin-1234";
 
     function cmcpvToggle(){ document.getElementById('cmcpvPass').classList.toggle('is-open');
