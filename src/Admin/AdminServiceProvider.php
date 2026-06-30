@@ -6,6 +6,7 @@ namespace Msi\Campaignchi\Admin;
 
 use Msi\Campaignchi\Admin\Pages\SettingsPage;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
+use Msi\Campaignchi\Core\License;
 use Msi\Campaignchi\Core\ServiceProvider;
 use Msi\Campaignchi\Core\Hooks;
 
@@ -71,6 +72,17 @@ class AdminServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // -------------------------------------------------------
+        // License gate — until the product is activated, the
+        // "کمپین‌چی" dashboard menu is never registered and the
+        // panel never renders. Only a guidance notice is shown.
+        // (License check lives in Core\License — see RTL snippet.)
+        // -------------------------------------------------------
+        if (!License::isActive()) {
+            Hooks::action('admin_notices', [$this, 'renderLicenseNotice']);
+            return;
+        }
+
         // WP admin menu entry
         Hooks::action('admin_menu', [$this, 'registerMenu']);
 
@@ -86,6 +98,25 @@ class AdminServiceProvider extends ServiceProvider
         // Register AJAX controllers
         $this->container->make(Controllers\CampaignController::class)->register();
         $this->container->make(Controllers\SettingsAjaxController::class)->register();
+    }
+
+    // -------------------------------------------------------
+    // License Notice
+    // -------------------------------------------------------
+
+    /**
+     * Inform capable admins that the panel is locked until the
+     * RTL license is activated. Shown in place of the menu/panel.
+     */
+    public function renderLicenseNotice(): void
+    {
+        if (!current_user_can(self::CAPABILITY)) {
+            return;
+        }
+
+        echo '<div class="notice notice-warning"><p>'
+            . esc_html__('کمپین‌چی: تا زمانی که لایسنس فعال نشود، پیشخوان نمایش داده نمی‌شود. لطفاً ابتدا لایسنس خود را فعال کنید.', 'campaignchi')
+            . '</p></div>';
     }
 
     // -------------------------------------------------------
