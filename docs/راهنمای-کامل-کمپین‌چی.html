@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>راهنمای کامل کمپین‌چی</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+
+  :root {
+    --primary: #6C47FF;
+    --primary-dark: #5435d6;
+    --primary-light: #f1ecff;
+    --accent: #FF6B35;
+    --accent-light: #fff0ea;
+    --bg: #f7f8fc;
+    --surface: #ffffff;
+    --surface-2: #f9fafb;
+    --text: #2d3142;
+    --text-muted: #6b7280;
+    --text-heading: #1a1c2b;
+    --border: #e5e7eb;
+    --border-light: #f0f1f5;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 4px 24px rgba(108, 71, 255, 0.06);
+    --shadow-lg: 0 12px 40px rgba(108, 71, 255, 0.1);
+    --success: #16a34a;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --info: #2563eb;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 2;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== Layout ===== */
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    max-width: 1280px;
+    margin: 0 auto;
+    gap: 0;
+    align-items: start;
+  }
+
+  /* ===== Sidebar / TOC ===== */
+  .toc {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    padding: 28px 20px;
+  }
+  .toc__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: var(--text-heading);
+    margin-bottom: 4px;
+  }
+  .toc__brand .logo {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 11px;
+    display: grid; place-items: center;
+    color: #fff; font-size: 1.1rem;
+    box-shadow: 0 6px 16px rgba(108,71,255,.3);
+  }
+  .toc__ver {
+    font-size: .72rem;
+    color: var(--text-muted);
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .toc nav a {
+    display: block;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: .9rem;
+    padding: 8px 12px;
+    border-radius: 9px;
+    margin-bottom: 2px;
+    transition: all .18s ease;
+    border-right: 3px solid transparent;
+  }
+  .toc nav a:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+  .toc nav a.active {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 700;
+    border-right-color: var(--primary);
+  }
+  .toc nav a .num {
+    display: inline-block;
+    width: 22px; height: 22px;
+    line-height: 22px;
+    text-align: center;
+    background: var(--surface-2);
+    border-radius: 6px;
+    font-size: .72rem;
+    margin-left: 8px;
+    color: var(--text-muted);
+  }
+  .toc nav a:hover .num, .toc nav a.active .num {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  /* ===== Main content ===== */
+  .content { padding: 0 48px 80px; min-width: 0; }
+
+  /* ===== Hero ===== */
+  .hero {
+    background: linear-gradient(135deg, #6C47FF 0%, #8b5cf6 55%, #FF6B35 160%);
+    color: #fff;
+    border-radius: 0 0 28px 28px;
+    padding: 56px 48px 48px;
+    margin: 0 -48px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    left: -60px; bottom: -80px;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(255,255,255,.18), transparent 70%);
+    border-radius: 50%;
+  }
+  .hero__badge {
+    display: inline-block;
+    background: rgba(255,255,255,.18);
+    backdrop-filter: blur(8px);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: .82rem;
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: 2.6rem;
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 14px;
+  }
+  .hero p {
+    font-size: 1.05rem;
+    opacity: .95;
+    max-width: 640px;
+    line-height: 1.9;
+  }
+  .hero__meta {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .hero__meta span {
+    background: rgba(255,255,255,.16);
+    padding: 7px 16px;
+    border-radius: 10px;
+    font-size: .85rem;
+    font-weight: 600;
+  }
+
+  /* ===== Sections ===== */
+  section { scroll-margin-top: 24px; margin-bottom: 18px; }
+
+  h2 {
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: var(--text-heading);
+    margin: 48px 0 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2 .h2num {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    font-size: 1.05rem;
+    font-weight: 700;
+    box-shadow: 0 6px 16px rgba(108,71,255,.25);
+  }
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin: 28px 0 12px;
+  }
+  h4 {
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin: 20px 0 8px;
+  }
+
+  p { margin-bottom: 14px; }
+
+  ul, ol { margin: 0 0 16px; padding-right: 22px; }
+  li { margin-bottom: 8px; }
+
+  strong { color: var(--text-heading); font-weight: 700; }
+
+  a { color: var(--primary); }
+
+  /* ===== Cards ===== */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 26px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  /* ===== Tables ===== */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 22px;
+    box-shadow: var(--shadow);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    font-size: .92rem;
+  }
+  thead th {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-weight: 700;
+    text-align: right;
+    padding: 14px 18px;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody td {
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-2); }
+  td code, th code, p code, li code {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: .85em;
+    font-family: 'Vazirmatn', monospace;
+    direction: ltr;
+    display: inline-block;
+  }
+
+  /* ===== Callouts ===== */
+  .note {
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    margin: 18px 0;
+    border-right: 4px solid;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: .94rem;
+    line-height: 1.85;
+  }
+  .note .ico { font-size: 1.2rem; flex-shrink: 0; line-height: 1.6; }
+  .note p { margin: 0; }
+  .note--tip { background: var(--primary-light); border-color: var(--primary); }
+  .note--info { background: #eff6ff; border-color: var(--info); }
+  .note--warn { background: #fffbeb; border-color: var(--warning); }
+  .note--danger { background: #fef2f2; border-color: var(--danger); }
+
+  /* ===== Code blocks ===== */
+  pre {
+    background: #1e1b2e;
+    color: #e9e6ff;
+    padding: 18px 22px;
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    margin: 14px 0 20px;
+    direction: ltr;
+    text-align: left;
+    font-size: .9rem;
+    line-height: 1.7;
+    border: 1px solid #2d2a40;
+  }
+  pre code {
+    font-family: 'Vazirmatn', 'Courier New', monospace;
+    background: none;
+    color: inherit;
+    padding: 0;
+  }
+
+  /* ===== Feature grid ===== */
+  .fgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .fgrid .fcard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .fgrid .fcard:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+  }
+  .fgrid .fcard .emoji { font-size: 1.6rem; display: block; margin-bottom: 8px; }
+  .fgrid .fcard strong { display: block; margin-bottom: 4px; }
+  .fgrid .fcard span { font-size: .88rem; color: var(--text-muted); }
+
+  /* ===== FAQ ===== */
+  details.faq {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: box-shadow .2s ease;
+  }
+  details.faq[open] { box-shadow: var(--shadow); border-color: var(--primary); }
+  details.faq summary {
+    cursor: pointer;
+    padding: 16px 20px;
+    font-weight: 700;
+    color: var(--text-heading);
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+  }
+  details.faq summary::-webkit-details-marker { display: none; }
+  details.faq summary::before {
+    content: "؟";
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    background: var(--accent-light);
+    color: var(--accent);
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-weight: 800;
+  }
+  details.faq summary::after {
+    content: "▾";
+    margin-right: auto;
+    color: var(--text-muted);
+    transition: transform .2s ease;
+  }
+  details.faq[open] summary::after { transform: rotate(180deg); }
+  details.faq .faq__body {
+    padding: 0 20px 18px 20px;
+    color: var(--text);
+    font-size: .94rem;
+  }
+
+  /* ===== Footer ===== */
+  .doc-footer {
+    text-align: center;
+    margin-top: 60px;
+    padding: 36px;
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: #fff;
+    border-radius: var(--radius);
+  }
+  .doc-footer strong { color: #fff; font-size: 1.15rem; }
+  .doc-footer p { opacity: .9; margin: 8px 0 0; font-size: .9rem; }
+
+  /* ===== Scroll-to-top ===== */
+  #top-btn {
+    position: fixed;
+    bottom: 28px; left: 28px;
+    width: 48px; height: 48px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease;
+    z-index: 50;
+  }
+  #top-btn.show { opacity: 1; pointer-events: auto; }
+  #top-btn:hover { transform: translateY(-3px); background: var(--primary-dark); }
+
+  /* Mobile menu toggle */
+  #menu-btn {
+    display: none;
+    position: fixed;
+    top: 16px; right: 16px;
+    z-index: 60;
+    width: 46px; height: 46px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; }
+    .toc {
+      position: fixed;
+      top: 0; right: 0;
+      width: 280px;
+      z-index: 55;
+      transform: translateX(110%);
+      transition: transform .3s ease;
+      box-shadow: -8px 0 30px rgba(0,0,0,.12);
+    }
+    .toc.open { transform: translateX(0); }
+    #menu-btn { display: grid; place-items: center; }
+    .content { padding: 0 20px 60px; }
+    .hero { margin: 0 -20px 36px; padding: 70px 24px 38px; border-radius: 0 0 22px 22px; }
+    .hero h1 { font-size: 1.9rem; }
+    h2 { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<button id="menu-btn" aria-label="فهرست">☰</button>
+
+<div class="layout">
+
+  <!-- ===== Table of contents ===== -->
+  <aside class="toc" id="toc">
+    <div class="toc__brand">
+      <span class="logo">⚡</span>
+      <span>کمپین‌چی</span>
+    </div>
+    <div class="toc__ver">راهنمای کامل · نسخه ۱.۰.۰</div>
+    <nav>
+      <a href="#s1"><span class="num">۱</span>کمپین‌چی چیست؟</a>
+      <a href="#s2"><span class="num">۲</span>پیش‌نیازها و نصب</a>
+      <a href="#s3"><span class="num">۳</span>مفاهیم کلیدی</a>
+      <a href="#s4"><span class="num">۴</span>آشنایی با پنل مدیریت</a>
+      <a href="#s5"><span class="num">۵</span>داشبورد</a>
+      <a href="#s6"><span class="num">۶</span>ساخت و مدیریت کمپین</a>
+      <a href="#s7"><span class="num">۷</span>روش‌های انتخاب محصول</a>
+      <a href="#s8"><span class="num">۸</span>زمان‌بندی و وضعیت‌ها</a>
+      <a href="#s9"><span class="num">۹</span>قالب‌ها و اسلایدر</a>
+      <a href="#s10"><span class="num">۱۰</span>نمایش در سایت</a>
+      <a href="#s11"><span class="num">۱۱</span>صفحه ظاهر</a>
+      <a href="#s12"><span class="num">۱۲</span>صفحه تنظیمات</a>
+      <a href="#s13"><span class="num">۱۳</span>منطق قیمت‌گذاری</a>
+      <a href="#s14"><span class="num">۱۴</span>گزارش‌ها و آمار فروش</a>
+      <a href="#s15"><span class="num">۱۵</span>امنیت و عملکرد</a>
+      <a href="#s16"><span class="num">۱۶</span>سؤالات متداول</a>
+      <a href="#s17"><span class="num">۱۷</span>واژه‌نامه</a>
+    </nav>
+  </aside>
+
+  <!-- ===== Main content ===== -->
+  <main class="content">
+
+    <!-- Hero -->
+    <div class="hero">
+      <span class="hero__badge">📕 مستندات رسمی محصول</span>
+      <h1>راهنمای کامل کمپین‌چی</h1>
+      <p>حرفه‌ای‌ترین سیستم مدیریت کمپین‌های تخفیف و پیشنهاد شگفت‌انگیز برای ووکامرس. این راهنما برای کاربران و مدیران فروشگاه نوشته شده است.</p>
+      <div class="hero__meta">
+        <span>🏷️ نسخه افزونه ۱.۰.۰</span>
+        <span>🗄️ نسخه دیتابیس ۱.۲.۰</span>
+        <span>🛒 مخصوص ووکامرس</span>
+      </div>
+    </div>
+
+    <!-- ===== 1 ===== -->
+    <section id="s1">
+      <h2><span class="h2num">۱</span>کمپین‌چی چیست؟</h2>
+      <p>کمپین‌چی یک افزونه‌ی پرقدرت برای <strong>وردپرس + ووکامرس</strong> است که فروشگاه شما را به یک موتور فروش حرفه‌ای تبدیل می‌کند. با کمپین‌چی می‌توانید بدون درگیر شدن با قیمت تک‌تک محصولات، <strong>کمپین‌های تخفیف هوشمند</strong> بسازید که خودشان در زمان مشخص فعال و غیرفعال می‌شوند، روی گروهی از محصولات اعمال می‌شوند و نتیجه‌شان به‌صورت آمار دقیق به شما گزارش داده می‌شود.</p>
+
+      <h3>چه کارهایی با کمپین‌چی می‌توانید انجام دهید؟</h3>
+      <div class="fgrid">
+        <div class="fcard"><span class="emoji">🔥</span><strong>فلش‌سیل</strong><span>حراج زمان‌دار با شمارش معکوس</span></div>
+        <div class="fcard"><span class="emoji">⭐</span><strong>پیشنهاد شگفت‌انگیز</strong><span>تخفیف دائمی بدون محدودیت زمانی</span></div>
+        <div class="fcard"><span class="emoji">🏷️</span><strong>تخفیف انعطاف‌پذیر</strong><span>درصدی یا مبلغ ثابت</span></div>
+        <div class="fcard"><span class="emoji">🎯</span><strong>۶ روش انتخاب محصول</strong><span>دستی، دسته، برچسب، ویژگی، برند، همه</span></div>
+        <div class="fcard"><span class="emoji">⏰</span><strong>زمان‌بندی خودکار</strong><span>روشن و خاموش شدن خودکار کمپین</span></div>
+        <div class="fcard"><span class="emoji">🎨</span><strong>اسلایدر زیبا</strong><span>۵ طرح آماده و حرفه‌ای</span></div>
+        <div class="fcard"><span class="emoji">🧩</span><strong>شورت‌کد و المنتور</strong><span>افزودن آسان به هر صفحه</span></div>
+        <div class="fcard"><span class="emoji">📊</span><strong>داشبورد آماری زنده</strong><span>فروش، بازدید و نرخ تبدیل</span></div>
+      </div>
+
+      <h3>چرا کمپین‌چی؟</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ویژگی</th><th>توضیح</th></tr></thead>
+          <tbody>
+            <tr><td><strong>بدون دستکاری قیمت محصول</strong></td><td>قیمت اصلی محصولات شما دست‌نخورده می‌ماند؛ تخفیف فقط هنگام نمایش و خرید اعمال می‌شود.</td></tr>
+            <tr><td><strong>کاملاً فارسی و راست‌چین</strong></td><td>رابط کاربری، تاریخ شمسی و اعداد فارسی به‌صورت بومی پشتیبانی می‌شوند.</td></tr>
+            <tr><td><strong>پنل اختصاصی SaaS</strong></td><td>پنل مدرن و سریع، جدا از شلوغی پیشخوان وردپرس.</td></tr>
+            <tr><td><strong>هوشمند و خودکار</strong></td><td>کمپین‌ها بر اساس تاریخ، خودشان وضعیتشان را عوض می‌کنند.</td></tr>
+            <tr><td><strong>سبک و سریع</strong></td><td>با استفاده از کش و جداول اختصاصی، فشاری روی فروشگاه شما وارد نمی‌کند.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== 2 ===== -->
+    <section id="s2">
+      <h2><span class="h2num">۲</span>پیش‌نیازها و نصب</h2>
+
+      <h3>پیش‌نیازهای سیستم</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>مورد</th><th>حداقل نسخه</th></tr></thead>
+          <tbody>
+            <tr><td>وردپرس</td><td>۶.۰ یا بالاتر</td></tr>
+            <tr><td>ووکامرس</td><td>فعال و نصب‌شده (الزامی)</td></tr>
+            <tr><td>PHP</td><td>۷.۴ یا بالاتر</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note note--warn">
+        <span class="ico">⚠️</span>
+        <p>کمپین‌چی برای کار کردن به <strong>ووکامرس</strong> نیاز دارد. اگر ووکامرس نصب یا فعال نباشد، افزونه یک پیام هشدار نمایش می‌دهد و فعال نمی‌شود.</p>
+      </div>
+
+      <h3>مراحل نصب</h3>
+      <ol>
+        <li>فایل افزونه را در مسیر <code>/wp-content/plugins/</code> آپلود کنید (یا از طریق <strong>افزونه‌ها › افزودن</strong> در وردپرس نصب کنید).</li>
+        <li>افزونه را <strong>فعال</strong> کنید.</li>
+        <li>هنگام فعال‌سازی، کمپین‌چی به‌صورت خودکار جداول موردنیاز خود را در دیتابیس می‌سازد، تنظیمات پیش‌فرض را تنظیم می‌کند و زمان‌بند خودکار (Cron) را راه‌اندازی می‌کند.</li>
+        <li>از منوی راست وردپرس، روی آیتم <strong>«کمپین‌چی»</strong> کلیک کنید تا وارد پنل شوید.</li>
+      </ol>
+
+      <h3>بعد از نصب، چه چیزهایی ساخته می‌شود؟</h3>
+      <p>کمپین‌چی برای حفظ سرعت و دقت، اطلاعات خود را در جداول اختصاصی نگه می‌دارد (به‌جای شلوغ کردن جداول وردپرس):</p>
+      <ul>
+        <li>جدول <strong>کمپین‌ها</strong> — اطلاعات اصلی هر کمپین</li>
+        <li>جدول <strong>محصولات کمپین</strong> — ارتباط کمپین‌ها با محصولات انتخابی</li>
+        <li>جدول <strong>قوانین کمپین</strong> — انتخاب گروهی (دسته/برچسب/ویژگی/برند)</li>
+        <li>جدول <strong>آمار کمپین</strong> — شمارش بازدیدها</li>
+        <li>جدول <strong>اسلایدرها</strong> — پریست‌های اسلایدر ذخیره‌شده</li>
+        <li>جدول <strong>فروش کمپین</strong> — ثبت دقیق هر فروش زیر کمپین (برای گزارش‌گیری)</li>
+      </ul>
+    </section>
+
+    <!-- ===== 3 ===== -->
+    <section id="s3">
+      <h2><span class="h2num">۳</span>مفاهیم کلیدی</h2>
+      <p>پیش از کار با افزونه، بهتر است با چند مفهوم اصلی آشنا شوید.</p>
+
+      <h3>کمپین (Campaign)</h3>
+      <p>واحد اصلی کار در کمپین‌چی. هر کمپین یک «بسته‌ی تخفیف» است که مشخص می‌کند چه <strong>میزان تخفیفی</strong> (درصدی یا مبلغ ثابت)، روی <strong>کدام محصولات</strong> و در <strong>چه بازه‌ی زمانی</strong> اعمال شود.</p>
+
+      <h3>دو نوع کمپین</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>نوع</th><th>نماد</th><th>کاربرد</th><th>محدودیت زمانی</th></tr></thead>
+          <tbody>
+            <tr><td><strong>فلش‌سیل</strong> (Flash Sale)</td><td>⚡</td><td>حراج‌های کوتاه‌مدت و فوری با حس فوریت</td><td>دارد (شروع و پایان مشخص + شمارش معکوس)</td></tr>
+            <tr><td><strong>پیشنهاد شگفت‌انگیز</strong> (Amazing Offer)</td><td>⭐</td><td>تخفیف‌های دائمی یا بلندمدت</td><td>ندارد (تا زمانی که خودتان خاموشش کنید فعال است)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>دو نوع تخفیف</h3>
+      <ul>
+        <li><strong>درصدی (Percent):</strong> مثلاً ۳۰٪ از قیمت هر محصول کم می‌شود.</li>
+        <li><strong>مبلغ ثابت (Fixed):</strong> مثلاً ۵۰٬۰۰۰ تومان از قیمت هر محصول کم می‌شود.</li>
+      </ul>
+      <div class="note note--tip">
+        <span class="ico">💡</span>
+        <p>در حالت <strong>مبلغ ثابت</strong>، درصد تخفیف واقعی روی هر محصول متفاوت است (۵۰٬۰۰۰ تومان روی محصول ۲۰۰٬۰۰۰ تومانی یعنی ۲۵٪) و کمپین‌چی این درصد را <strong>برای هر محصول جداگانه</strong> و هنگام نمایش محاسبه می‌کند.</p>
+      </div>
+
+      <h3>چهار وضعیت کمپین</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>وضعیت</th><th>برچسب فارسی</th><th>معنی</th></tr></thead>
+          <tbody>
+            <tr><td><code>draft</code></td><td>پیش‌نویس</td><td>ذخیره شده ولی روی سایت اعمال نمی‌شود.</td></tr>
+            <tr><td><code>scheduled</code></td><td>زمان‌بندی شده</td><td>تاریخ شروعش هنوز نرسیده؛ منتظر فعال شدن خودکار است.</td></tr>
+            <tr><td><code>active</code></td><td>فعال</td><td>همین حالا روی سایت اجرا می‌شود و قیمت‌ها را تغییر می‌دهد.</td></tr>
+            <tr><td><code>ended</code></td><td>پایان یافته</td><td>تاریخ پایانش گذشته و دیگر اعمال نمی‌شود.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== 4 ===== -->
+    <section id="s4">
+      <h2><span class="h2num">۴</span>آشنایی با پنل مدیریت</h2>
+      <p>کمپین‌چی یک <strong>پنل اختصاصی تمام‌صفحه</strong> دارد که جدا از پیشخوان شلوغ وردپرس طراحی شده تا تجربه‌ای سریع و تمیز داشته باشید. این پنل کاملاً <strong>راست‌چین، فارسی و واکنش‌گرا (Responsive)</strong> است و روی موبایل و تبلت هم به‌خوبی کار می‌کند.</p>
+
+      <h3>ساختار منوی پنل</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>صفحه</th><th>کاربرد</th></tr></thead>
+          <tbody>
+            <tr><td>🏠 <strong>داشبورد</strong></td><td>نمای کلی آماری از عملکرد کمپین‌ها</td></tr>
+            <tr><td>⚡ <strong>کمپین‌ها</strong></td><td>ساخت، ویرایش و مدیریت کمپین‌ها</td></tr>
+            <tr><td>📅 <strong>زمان‌بندی</strong></td><td>نمای زمانی کمپین‌ها</td></tr>
+            <tr><td>🎨 <strong>قالب‌ها</strong></td><td>ساخت و مدیریت اسلایدرهای کمپین</td></tr>
+            <tr><td>🖌️ <strong>ظاهر</strong></td><td>تنظیمات سراسری نمایش و رنگ‌ها</td></tr>
+            <tr><td>⚙️ <strong>تنظیمات</strong></td><td>موتور کمپین، عملکرد و نگهداری</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note note--info">
+        <span class="ico">🔔</span>
+        <p><strong>نشانگر نوار مدیریت:</strong> اگر فعال باشد، تعداد کمپین‌های فعال شما به‌صورت زنده در نوار بالای وردپرس (Admin Bar) نمایش داده می‌شود تا همیشه در یک نگاه بدانید چند کمپین در حال اجراست.</p>
+      </div>
+    </section>
+
+    <!-- ===== 5 ===== -->
+    <section id="s5">
+      <h2><span class="h2num">۵</span>داشبورد</h2>
+      <p>داشبورد، صفحه‌ی اول پنل و قلب آماری کمپین‌چی است. تمام اعداد این صفحه <strong>فقط بر اساس فروش‌هایی محاسبه می‌شوند که واقعاً زیر یک کمپین انجام شده‌اند</strong> — نه کل فروش فروشگاه.</p>
+
+      <h4>۱. کارت‌های آماری (ردیف بالا)</h4>
+      <p>چهار شاخص کلیدی که هرکدام با دیروز مقایسه شده و درصد رشد/کاهش را نشان می‌دهند:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>کارت</th><th>معنی</th></tr></thead>
+          <tbody>
+            <tr><td><strong>کمپین‌های فعال</strong></td><td>تعداد کمپین‌هایی که هم‌اکنون در حال اجرا هستند + تعداد کمپین‌های جدید این هفته</td></tr>
+            <tr><td><strong>فروش امروز</strong></td><td>مجموع درآمد حاصل از محصولات کمپین در امروز</td></tr>
+            <tr><td><strong>نرخ تبدیل</strong></td><td>نسبت سفارش‌های کمپینی به تعداد بازدیدها</td></tr>
+            <tr><td><strong>بازدید امروز</strong></td><td>تعداد دفعاتی که محصولات کمپین نمایش داده شده‌اند</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>۲. نمودار فروش هفتگی</h4>
+      <p>نمودار میله‌ای فروش کمپین در <strong>هفته‌ی جاری شمسی (شنبه تا جمعه)</strong>. روز جاری به‌صورت برجسته مشخص می‌شود.</p>
+
+      <h4>۳. کمپین‌های فعال</h4>
+      <p>فهرستی از کمپین‌های در حال اجرا، همراه با:</p>
+      <ul>
+        <li>تعداد محصولات هر کمپین</li>
+        <li><strong>زمان باقی‌مانده</strong> تا پایان (مثلاً «۵ ساعت مانده»)</li>
+        <li><strong>نوار درصد موجودی</strong> محصولات</li>
+        <li>نشان <strong>«فوری»</strong> برای کمپین‌هایی که کمتر از ۳ ساعت تا پایانشان مانده</li>
+      </ul>
+
+      <h4>۴. پرفروش‌ترین محصولات کمپین</h4>
+      <p>محصولاتی که امروز در کمپین‌ها بیشترین فروش را داشته‌اند، همراه با تعداد فروش، قیمت تخفیف‌خورده و قیمت اصلی.</p>
+
+      <h4>۵. فعالیت‌های اخیر</h4>
+      <p>جریان زنده‌ای از رویدادها: فعال شدن کمپین، زمان‌بندی، پایان کمپین و ثبت سفارش‌های شامل محصولات کمپین — هرکدام با برچسب «… پیش» (مثلاً «۱۰ دقیقه پیش»).</p>
+
+      <div class="note note--tip">
+        <span class="ico">💡</span>
+        <p>داده‌های داشبورد به‌صورت هوشمند <strong>کش</strong> می‌شوند تا صفحه سریع باز شود، ولی به‌محض ثبت یک سفارش جدید، آمار امروز بلافاصله به‌روزرسانی می‌شود.</p>
+      </div>
+    </section>
+
+    <!-- ===== 6 ===== -->
+    <section id="s6">
+      <h2><span class="h2num">۶</span>ساخت و مدیریت کمپین</h2>
+      <p>از صفحه‌ی <strong>کمپین‌ها</strong> می‌توانید کمپین‌های خود را بسازید، ویرایش، کپی یا حذف کنید. برای ساخت کمپین جدید روی دکمه‌ی <strong>«کمپین جدید»</strong> بزنید.</p>
+
+      <h3>فیلدهای یک کمپین</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>فیلد</th><th>توضیح</th></tr></thead>
+          <tbody>
+            <tr><td><strong>عنوان کمپین</strong></td><td>نام کمپین (مثلاً «فلش سیل یلدا»)</td></tr>
+            <tr><td><strong>نوع کمپین</strong></td><td>فلش‌سیل یا پیشنهاد شگفت‌انگیز</td></tr>
+            <tr><td><strong>میزان تخفیف</strong></td><td>عدد تخفیف</td></tr>
+            <tr><td><strong>نوع تخفیف</strong></td><td>درصدی یا مبلغ ثابت</td></tr>
+            <tr><td><strong>روش انتخاب محصول</strong></td><td>دستی / دسته‌بندی / برچسب / ویژگی / برند / همه محصولات</td></tr>
+            <tr><td><strong>محصولات / گروه هدف</strong></td><td>بسته به روش انتخاب، محصولات یا گروه موردنظر</td></tr>
+            <tr><td><strong>تاریخ شروع</strong></td><td>(برای فلش‌سیل) با تاریخ‌گیر شمسی</td></tr>
+            <tr><td><strong>تاریخ پایان</strong></td><td>(برای فلش‌سیل) با تاریخ‌گیر شمسی</td></tr>
+            <tr><td><strong>توضیحات</strong></td><td>توضیح اختیاری</td></tr>
+            <tr><td><strong>وضعیت</strong></td><td>پیش‌نویس / فعال (سیستم به‌صورت هوشمند اصلاح می‌کند — بخش ۸)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>جست‌وجوی محصول</h3>
+      <p>در حالت <strong>انتخاب دستی</strong>، یک جست‌وجوگر زنده در اختیار دارید که محصولات را با نام نمایش می‌دهد، همراه با <strong>تصویر بندانگشتی، قیمت و کد محصول (SKU)</strong>. نتایج به‌صورت صفحه‌بندی‌شده (هر بار ۲۰ محصول) بارگذاری می‌شوند تا حتی روی فروشگاه‌های بزرگ هم سریع بماند.</p>
+
+      <h3>عملیات روی کمپین‌ها</h3>
+      <ul>
+        <li><strong>ویرایش</strong> کمپین موجود</li>
+        <li><strong>حذف</strong> کمپین (همراه با آمار و محصولاتش)</li>
+        <li>مشاهده‌ی وضعیت، نوع، تخفیف و روش انتخاب هر کمپین در فهرست</li>
+      </ul>
+    </section>
+
+    <!-- ===== 7 ===== -->
+    <section id="s7">
+      <h2><span class="h2num">۷</span>روش‌های انتخاب محصول</h2>
+      <p>یکی از قدرتمندترین قابلیت‌های کمپین‌چی این است که لازم نیست همیشه محصولات را تک‌تک انتخاب کنید. شش روش انتخاب وجود دارد:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>روش</th><th>برچسب</th><th>چه‌زمانی مناسب است؟</th></tr></thead>
+          <tbody>
+            <tr><td><strong>دستی</strong></td><td>انتخاب دستی</td><td>وقتی می‌خواهید دقیقاً چند محصول مشخص را تخفیف بدهید.</td></tr>
+            <tr><td><strong>دسته‌بندی</strong></td><td>دسته‌بندی</td><td>تخفیف روی همه‌ی محصولات یک یا چند دسته (مثلاً «همه‌ی کفش‌ها»).</td></tr>
+            <tr><td><strong>برچسب</strong></td><td>برچسب</td><td>تخفیف روی محصولاتی که برچسب خاصی دارند.</td></tr>
+            <tr><td><strong>ویژگی</strong></td><td>ویژگی</td><td>تخفیف بر اساس ویژگی محصول (مثلاً همه‌ی محصولات «رنگ قرمز»).</td></tr>
+            <tr><td><strong>برند</strong></td><td>برند</td><td>تخفیف روی همه‌ی محصولات یک برند.</td></tr>
+            <tr><td><strong>همه محصولات</strong></td><td>همه محصولات</td><td>تخفیف سراسری روی کل فروشگاه.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>نکات مهم درباره‌ی انتخاب گروهی</h3>
+      <ul>
+        <li>✅ <strong>به‌روزرسانی خودکار:</strong> اگر بعداً محصول جدیدی به یک دسته/برند اضافه کنید، آن محصول هم به‌صورت خودکار وارد کمپین می‌شود؛ نیازی به ویرایش دستی کمپین نیست.</li>
+        <li>✅ <strong>پشتیبانی از محصولات متغیر:</strong> کمپین‌چی به‌درستی محصولات متغیر (Variable) و متغیرهای آن‌ها را مدیریت می‌کند و تخفیف را روی محصول مادر اعمال می‌کند.</li>
+        <li>✅ <strong>تشخیص خودکار برند:</strong> کمپین‌چی به‌صورت خودکار افزونه‌ی برند فعال روی سایت شما را تشخیص می‌دهد (برند ووکامرس، YITH، BeRocket یا Perfect Brands).</li>
+      </ul>
+
+      <div class="note note--warn">
+        <span class="ico">⚠️</span>
+        <p>اگر دو کمپین روی یک محصول هم‌پوشانی داشته باشند، کمپین با <strong>اولویت بالاتر</strong> اعمال می‌شود (فلش‌سیل‌ها بر پیشنهادهای شگفت‌انگیز و کمپین‌های جدیدتر اولویت دارند).</p>
+      </div>
+    </section>
+
+    <!-- ===== 8 ===== -->
+    <section id="s8">
+      <h2><span class="h2num">۸</span>زمان‌بندی و وضعیت‌های کمپین</h2>
+      <p>کمپین‌چی یک <strong>سیستم زمان‌بندی خودکار هوشمند</strong> دارد که نیاز به دخالت دستی شما را به حداقل می‌رساند.</p>
+
+      <h3>تغییر وضعیت خودکار (Auto-Transition)</h3>
+      <p>یک زمان‌بند پس‌زمینه (Cron) به‌صورت دوره‌ای کمپین‌ها را بررسی می‌کند و:</p>
+      <ol>
+        <li><strong>فعال‌سازی:</strong> کمپین‌های زمان‌بندی‌شده‌ای که تاریخ شروعشان رسیده را به‌صورت خودکار <strong>فعال</strong> می‌کند.</li>
+        <li><strong>پایان‌دهی:</strong> کمپین‌های فعالی که تاریخ پایانشان گذشته را به‌صورت خودکار <strong>پایان‌یافته</strong> (یا پیش‌نویس) می‌کند.</li>
+      </ol>
+      <p>پس از هر تغییر، قیمت محصولات بلافاصله در فروشگاه به‌روز می‌شود — بدون نیاز به پاک کردن کش دستی.</p>
+
+      <div class="note note--info">
+        <span class="ico">⏱️</span>
+        <p>فاصله‌ی این بررسی (هر ۵، ۱۰، ۱۵ یا ۳۰ دقیقه) از صفحه‌ی <strong>تنظیمات › موتور کمپین</strong> قابل تغییر است.</p>
+      </div>
+
+      <h3>قوانین هوشمند وضعیت</h3>
+      <p>کمپین‌چی هنگام ذخیره‌ی کمپین، وضعیت را به‌صورت هوشمند تصحیح می‌کند تا از اشتباه جلوگیری شود:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>اگر شما...</th><th>کمپین‌چی...</th></tr></thead>
+          <tbody>
+            <tr><td>کمپین را «فعال» بزنید ولی تاریخ شروعش در آینده باشد</td><td>آن را به <strong>«زمان‌بندی شده»</strong> تبدیل می‌کند تا تخفیف زودتر از موعد اعمال نشود.</td></tr>
+            <tr><td>تاریخ پایانی در گذشته بدهید</td><td>آن را مستقیماً <strong>«پایان یافته»</strong> می‌کند.</td></tr>
+            <tr><td>یک «پیشنهاد شگفت‌انگیز» را «زمان‌بندی شده» بزنید</td><td>چون این نوع تاریخ ندارد، آن را <strong>«فعال»</strong> می‌کند.</td></tr>
+            <tr><td>کمپین را «پیش‌نویس» ذخیره کنید</td><td>هیچ تغییری نمی‌دهد (انتخاب شما محترم است).</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>تاریخ شمسی</h3>
+      <p>تمام تاریخ‌ها در کمپین‌چی با <strong>تقویم شمسی (جلالی)</strong> و اعداد فارسی نمایش و وارد می‌شوند، و محاسبات زمانی با دقت کامل نسبت به <strong>منطقه‌ی زمانی سایت</strong> انجام می‌شوند.</p>
+    </section>
+
+    <!-- ===== 9 ===== -->
+    <section id="s9">
+      <h2><span class="h2num">۹</span>قالب‌ها و اسلایدر کمپین</h2>
+      <p>از صفحه‌ی <strong>قالب‌ها</strong> می‌توانید <strong>اسلایدر کمپین</strong> بسازید — یک اسلایدر زیبا و حرفه‌ای که محصولات یک کمپین را روی سایت شما به نمایش می‌گذارد.</p>
+
+      <h3>۵ قالب (Skin) آماده</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>قالب</th><th>نام</th><th>مناسب برای</th></tr></thead>
+          <tbody>
+            <tr><td><strong>فلاکس</strong></td><td>نئون پرانرژی</td><td>گرادیان پرانرژی با درخشش نئون و تصویر تمام‌قد محصول — فلش‌سیل‌های فوری</td></tr>
+            <tr><td><strong>مینیمال</strong></td><td>تجاری و تمیز</td><td>کارت سفید و مینیمال — فروشگاه‌های با هویت بصری آرام و حرفه‌ای</td></tr>
+            <tr><td><strong>گلس</strong></td><td>شیشه‌ای مدرن</td><td>افکت شیشه‌ای (Glassmorphism) — برندهای مدرن و لایف‌استایلی</td></tr>
+            <tr><td><strong>بولد</strong></td><td>بنری پررنگ</td><td>رنگ تخت و عدد درصد تخفیف بزرگ — کمپین‌های پرتاکید و تبلیغاتی</td></tr>
+            <tr><td><strong>کامپکت</strong></td><td>متراکم فروشگاهی</td><td>کارت کوچک و فشرده برای نمایش محصولات بیشتر — کمپین‌های پرمحصول</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>پریست اسلایدر (Saved Preset)</h3>
+      <p>می‌توانید یک اسلایدر را با تمام تنظیماتش (قالب، کمپین، رنگ‌ها، رفتار و …) <strong>ذخیره</strong> کنید و بعداً با یک شناسه‌ی ساده در هر جای سایت استفاده کنید. این کار باعث می‌شود نیازی به تکرار تنظیمات نداشته باشید.</p>
+
+      <h3>تنظیمات قابل سفارشی‌سازی هر اسلایدر</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>دسته</th><th>گزینه‌ها</th></tr></thead>
+          <tbody>
+            <tr><td><strong>چیدمان و محتوا</strong></td><td>تعداد محصولات، ترتیب نمایش (اولویت/جدیدترین/تصادفی)، عنوان دلخواه</td></tr>
+            <tr><td><strong>رفتار</strong></td><td>پخش خودکار، سرعت پخش، چرخه پیوسته، فلش‌های ناوبری، نقاط ناوبری</td></tr>
+            <tr><td><strong>عناصر محصول</strong></td><td>نمایش شمارش معکوس، نمایش نوار موجودی</td></tr>
+            <tr><td><strong>رنگ و ظاهر</strong></td><td>رنگ اصلی، رنگ تاکیدی، گردی گوشه‌ها، حالت تیره</td></tr>
+            <tr><td><strong>متن‌ها</strong></td><td>متن دکمه CTA، متن بج تخفیف، متن بج نوع کمپین</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== 10 ===== -->
+    <section id="s10">
+      <h2><span class="h2num">۱۰</span>نمایش در سایت</h2>
+      <p>محصولات کمپین به سه روش روی سایت شما نمایش داده می‌شوند.</p>
+
+      <h3>الف) شورت‌کد اسلایدر</h3>
+      <p>ساده‌ترین راه برای افزودن اسلایدر به هر صفحه، نوشته یا ویجت:</p>
+      <pre><code>[campaignchi_slider]</code></pre>
+      <p>این شورت‌کد دو حالت استفاده دارد:</p>
+      <p><strong>۱. استفاده از پریست ذخیره‌شده:</strong></p>
+      <pre><code>[campaignchi_slider id="3"]</code></pre>
+      <p><strong>۲. پیکربندی مستقیم (بدون پریست):</strong></p>
+      <pre><code>[campaignchi_slider template="glass" campaign="12" limit="6" autoplay="true" show_countdown="true"]</code></pre>
+
+      <h4>مهم‌ترین پارامترهای شورت‌کد</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>پارامتر</th><th>کاربرد</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td><td>شناسه‌ی پریست ذخیره‌شده</td></tr>
+            <tr><td><code>template</code></td><td>قالب اسلایدر (<code>flux</code>, <code>minimal</code>, <code>glass</code>, <code>bold</code>, <code>compact</code>)</td></tr>
+            <tr><td><code>campaign</code></td><td>شناسه‌ی کمپین موردنظر (خالی = انتخاب خودکار با بالاترین اولویت)</td></tr>
+            <tr><td><code>limit</code></td><td>تعداد محصولات</td></tr>
+            <tr><td><code>order</code></td><td>ترتیب (<code>priority</code>, <code>newest</code>, <code>random</code>)</td></tr>
+            <tr><td><code>autoplay</code> / <code>autoplay_speed</code></td><td>پخش خودکار و سرعت آن</td></tr>
+            <tr><td><code>arrows</code> / <code>dots</code> / <code>loop</code></td><td>کنترل‌های ناوبری</td></tr>
+            <tr><td><code>show_countdown</code> / <code>show_stock</code></td><td>نمایش شمارش معکوس و نوار موجودی</td></tr>
+            <tr><td><code>primary_color</code> / <code>accent_color</code> / <code>radius</code> / <code>dark_mode</code></td><td>رنگ و ظاهر</td></tr>
+            <tr><td><code>cta_text</code> / <code>badge_text</code> / <code>type_badge_text</code> / <code>title</code></td><td>متن‌های دلخواه</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note note--tip">
+        <span class="ico">💡</span>
+        <p>هر پارامتری که در شورت‌کد تعیین نکنید، به‌صورت خودکار از <strong>تنظیمات سراسری صفحه‌ی ظاهر</strong> خوانده می‌شود.</p>
+      </div>
+
+      <h3>ب) ویجت المنتور</h3>
+      <p>اگر از <strong>المنتور</strong> استفاده می‌کنید، یک ویجت اختصاصی با نام <strong>«اسلایدر کمپین کمپین‌چی»</strong> در دسته‌ی «کمپین‌چی» در اختیار دارید. این ویجت دقیقاً همان امکانات شورت‌کد را به‌صورت <strong>بصری و کشیدنی (Drag &amp; Drop)</strong> فراهم می‌کند: انتخاب پریست یا پیکربندی دستی، کنترل کامل محتوا، رفتار و ظاهر — همگی با پیش‌نمایش زنده در ویرایشگر المنتور.</p>
+
+      <h3>ج) بج تخفیف روی کارت محصول</h3>
+      <p>مستقل از اسلایدر، کمپین‌چی می‌تواند روی <strong>کارت محصولات در صفحه‌ی فروشگاه و صفحه‌ی تک‌محصول</strong>، یک <strong>بج درصد تخفیف</strong> (مثلاً «۳۰٪ تخفیف») نمایش دهد. رنگ پس‌زمینه و متن این بج از صفحه‌ی ظاهر قابل تنظیم است.</p>
+      <p>علاوه بر این، کمپین‌چی به‌صورت خودکار قیمت محصولات کمپین را در کل ووکامرس <strong>«حراج» (On Sale)</strong> نشان می‌دهد، یعنی قیمت اصلی به‌صورت <strong>خط‌خورده</strong> و قیمت تخفیف‌خورده در کنارش نمایش داده می‌شود.</p>
+    </section>
+
+    <!-- ===== 11 ===== -->
+    <section id="s11">
+      <h2><span class="h2num">۱۱</span>صفحه ظاهر</h2>
+      <p>صفحه‌ی <strong>ظاهر</strong> محل تنظیم <strong>پیش‌فرض‌های سراسری نمایش</strong> است. هر شورت‌کد یا ویجتی که مقدار خاصی تعیین نکرده باشد، از این مقادیر استفاده می‌کند. مزیت بزرگ این است که با تغییر یک مقدار اینجا، <strong>همه‌ی اسلایدرهای موجود</strong> هم به‌صورت خودکار به‌روز می‌شوند — بدون نیاز به ویرایش تک‌تک.</p>
+
+      <h3>بخش‌های صفحه ظاهر</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>بخش</th><th>تنظیمات</th></tr></thead>
+          <tbody>
+            <tr><td><strong>کلید اصلی</strong></td><td>فعال/غیرفعال کردن کل قابلیت اسلایدر کمپین در سراسر سایت</td></tr>
+            <tr><td><strong>چیدمان و محتوا</strong></td><td>قالب پیش‌فرض، تعداد محصولات، ترتیب نمایش، سرعت پخش، متن دکمه CTA، متن بج نوع کمپین</td></tr>
+            <tr><td><strong>رنگ و ظاهر</strong></td><td>رنگ اصلی، رنگ تاکیدی، گردی گوشه‌ها، حالت تیره</td></tr>
+            <tr><td><strong>رفتار اسلایدر</strong></td><td>پخش خودکار، فلش‌ها، نقاط، شمارش معکوس، نوار موجودی</td></tr>
+            <tr><td><strong>بج تخفیف کلاسیک</strong></td><td>فعال/غیرفعال کردن بج روی کارت محصول + رنگ پس‌زمینه و متن آن</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note note--warn">
+        <span class="ico">⚠️</span>
+        <p>اگر <strong>کلید اصلی اسلایدر</strong> را خاموش کنید، هیچ شورت‌کد یا ویجتی در کل سایت نمایش داده نمی‌شود. این یک سوییچ سراسری است.</p>
+      </div>
+    </section>
+
+    <!-- ===== 12 ===== -->
+    <section id="s12">
+      <h2><span class="h2num">۱۲</span>صفحه تنظیمات</h2>
+      <p>صفحه‌ی <strong>تنظیمات</strong> کنترل‌گاه مرکزی رفتار، موتور و عملکرد افزونه است و چهار زبانه دارد. <strong>هر گزینه در این صفحه به یک رفتار واقعی متصل است</strong> — هیچ تنظیم تزئینی و بی‌اثری وجود ندارد.</p>
+
+      <h3>زبانه‌ی ۱: عمومی</h3>
+      <ul>
+        <li><strong>نشانگر نوار ادمین:</strong> نمایش تعداد کمپین‌های فعال در نوار بالای وردپرس.</li>
+      </ul>
+
+      <h3>زبانه‌ی ۲: موتور کمپین</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>تنظیم</th><th>توضیح</th></tr></thead>
+          <tbody>
+            <tr><td><strong>حداکثر تخفیف درصدی</strong></td><td>سقف ایمنی برای تخفیف درصدی (۱ تا ۱۰۰). هیچ کمپینی نمی‌تواند بیش از این مقدار تخفیف بدهد. پیش‌فرض: ۹۰٪</td></tr>
+            <tr><td><strong>حداکثر تخفیف ثابت</strong></td><td>سقف مبلغ تخفیف ثابت (۰ = بدون محدودیت)</td></tr>
+            <tr><td><strong>تناوب کران</strong></td><td>فاصله‌ی بررسی خودکار کمپین‌ها: هر ۵، ۱۰، ۱۵ یا ۳۰ دقیقه</td></tr>
+            <tr><td><strong>وضعیت پس از انقضا</strong></td><td>کمپین پس از پایان به «پایان‌یافته» یا «پیش‌نویس» تبدیل شود</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>زبانه‌ی ۳: پرفورمنس (عملکرد)</h3>
+      <p>این زبانه به شما کنترل کامل روی <strong>سیستم کش</strong> می‌دهد:</p>
+      <ul>
+        <li><strong>وضعیت زنده‌ی کش‌ها:</strong> ببینید کدام کش‌ها فعال (گرم) هستند.</li>
+        <li><strong>دکمه‌ی پاکسازی همه‌ی کش‌ها</strong></li>
+        <li><strong>تنظیم مدت اعتبار (TTL) کش‌ها:</strong> کش قیمت‌گذاری (پیشنهاد: ۳۰۰ ثانیه)، کش آنالیتیکس (پیشنهاد: ۶۰ ثانیه)، کش لیست کمپین‌ها (پیشنهاد: ۶۰۰ ثانیه)</li>
+      </ul>
+      <div class="note note--tip">
+        <span class="ico">💡</span>
+        <p>عدد کمتر = داده‌ی تازه‌تر ولی کمی کندتر · عدد بیشتر = سریع‌تر ولی ممکن است کمی قدیمی باشد.</p>
+      </div>
+
+      <h3>زبانه‌ی ۴: نگهداری</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>بخش</th><th>امکانات</th></tr></thead>
+          <tbody>
+            <tr><td><strong>اطلاعات سیستم</strong></td><td>نسخه‌ی افزونه، دیتابیس، PHP، ووکامرس، وردپرس و تعداد کل کمپین‌ها</td></tr>
+            <tr><td><strong>پاکسازی داده</strong></td><td>حذف آمار قدیمی (بیش از ۹۰ روز)، قوانین یتیم، لاگ فروش قدیمی (بیش از یک سال)، فلاش کش</td></tr>
+            <tr><td><strong>منطقه‌ی خطر</strong></td><td>حذف همه‌ی کمپین‌های پایان‌یافته · <strong>بازنشانی کامل افزونه</strong> (Factory Reset)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note note--danger">
+        <span class="ico">🛑</span>
+        <p><strong>هشدار:</strong> عملیات «منطقه‌ی خطر» <strong>کاملاً برگشت‌ناپذیر</strong> هستند. پیش از انجام آن‌ها حتماً از دیتابیس بک‌آپ بگیرید. بازنشانی کامل، تمام جداول، تنظیمات و کمپین‌ها را حذف می‌کند و افزونه را به حالت نصب تازه برمی‌گرداند.</p>
+      </div>
+    </section>
+
+    <!-- ===== 13 ===== -->
+    <section id="s13">
+      <h2><span class="h2num">۱۳</span>منطق قیمت‌گذاری و سقف تخفیف</h2>
+      <p>درک نحوه‌ی محاسبه‌ی قیمت به شما کمک می‌کند نتیجه‌ی دلخواه را دقیق بگیرید.</p>
+
+      <h3>چطور قیمت نهایی محاسبه می‌شود؟</h3>
+      <ul>
+        <li><strong>تخفیف درصدی:</strong> قیمت نهایی = قیمت اصلی × (۱ − درصد ÷ ۱۰۰)</li>
+        <li><strong>تخفیف ثابت:</strong> قیمت نهایی = قیمت اصلی − مبلغ تخفیف</li>
+      </ul>
+
+      <h3>محافظ‌های ایمنی (Safety Guards)</h3>
+      <p>کمپین‌چی چند لایه‌ی محافظت دارد تا هرگز قیمتی غلط روی سایت نرود:</p>
+      <ul>
+        <li>✅ قیمت نهایی <strong>هرگز منفی</strong> نمی‌شود.</li>
+        <li>✅ تخفیف درصدی همیشه بین ۰ تا ۱۰۰ محدود می‌شود.</li>
+        <li>✅ <strong>سقف تخفیف</strong> تعیین‌شده در تنظیمات همیشه رعایت می‌شود (مثلاً اگر سقف ۹۰٪ باشد، تخفیف ۹۵٪ به ۹۰٪ کاهش می‌یابد).</li>
+        <li>✅ اگر محصولی قیمت اصلی نداشته باشد، تخفیف روی آن اعمال نمی‌شود.</li>
+        <li>✅ اگر قیمت نهایی به هر دلیل بیشتر یا مساوی قیمت اصلی شود، قیمت اصلی دست‌نخورده می‌ماند.</li>
+        <li>✅ قیمت نهایی بر اساس تعداد اعشار تعریف‌شده در ووکامرس <strong>گرد</strong> می‌شود.</li>
+      </ul>
+      <div class="note note--tip">
+        <span class="ico">🔒</span>
+        <p>قیمت <strong>اصلی</strong> محصول شما در دیتابیس هیچ‌وقت تغییر نمی‌کند. کمپین‌چی فقط هنگام نمایش و خرید، قیمت را «روی پرواز» محاسبه می‌کند. به محض پایان کمپین، همه‌چیز به حالت اول برمی‌گردد.</p>
+      </div>
+    </section>
+
+    <!-- ===== 14 ===== -->
+    <section id="s14">
+      <h2><span class="h2num">۱۴</span>گزارش‌ها و آمار فروش</h2>
+      <p>کمپین‌چی فروش‌های کمپینی را با <strong>دقت بالا</strong> ثبت می‌کند. برخلاف روش‌های تخمینی، کمپین‌چی در <strong>لحظه‌ی ثبت سفارش</strong> — دقیقاً همان لحظه‌ای که می‌توان با قطعیت گفت کدام کمپین اعمال شده — یک عکس فوری (Snapshot) از هر قلم کالای کمپینی ذخیره می‌کند.</p>
+
+      <h3>چه چیزی ثبت می‌شود؟</h3>
+      <p>برای هر فروش زیر کمپین، این اطلاعات ذخیره می‌شود:</p>
+      <ul>
+        <li>شناسه‌ی سفارش، کمپین و محصول</li>
+        <li>تعداد و <strong>درآمد واقعی</strong> (مبلغی که مشتری بعد از تخفیف پرداخته، بدون مالیات)</li>
+        <li>نام و ایمیل مشتری</li>
+        <li>وضعیت سفارش و تاریخ فروش (به وقت محلی سایت)</li>
+      </ul>
+
+      <h3>ویژگی‌های مهم سیستم گزارش</h3>
+      <ul>
+        <li>✅ <strong>فقط فروش‌های واقعی کمپین:</strong> محصولاتی که زیر هیچ کمپینی نبوده‌اند هرگز در گزارش‌ها نمی‌آیند.</li>
+        <li>✅ <strong>بدون شمارش تکراری:</strong> اگر یک سفارش چند بار پردازش شود، فروش دوبار حساب نمی‌شود.</li>
+        <li>✅ <strong>پشتیبانی از همه‌ی روش‌های خرید:</strong> پرداخت کلاسیک، پرداخت بلوکی (Block Checkout) و سفارش‌های ادمین.</li>
+        <li>✅ <strong>همگام با وضعیت سفارش:</strong> وضعیت سفارش (در حال انجام، تکمیل‌شده و …) همیشه به‌روز نگه داشته می‌شود تا گزارش‌های مبتنی بر فروش قطعی دقیق باشند.</li>
+      </ul>
+      <div class="note note--info">
+        <span class="ico">ℹ️</span>
+        <p>سفارش‌هایی با وضعیت <strong>«در حال انجام» (processing)</strong> و <strong>«تکمیل‌شده» (completed)</strong> به‌عنوان فروش قطعی محسوب می‌شوند.</p>
+      </div>
+    </section>
+
+    <!-- ===== 15 ===== -->
+    <section id="s15">
+      <h2><span class="h2num">۱۵</span>امنیت و عملکرد</h2>
+
+      <h3>امنیت</h3>
+      <p>کمپین‌چی با رعایت بهترین شیوه‌های امنیتی وردپرس ساخته شده:</p>
+      <ul>
+        <li>🔐 <strong>بررسی سطح دسترسی:</strong> فقط کاربران دارای دسترسی مدیریت (<code>manage_options</code>) به پنل دسترسی دارند.</li>
+        <li>🔐 <strong>اعتبارسنجی Nonce:</strong> تمام درخواست‌های AJAX با توکن امنیتی محافظت می‌شوند.</li>
+        <li>🔐 <strong>پاک‌سازی ورودی‌ها:</strong> تمام داده‌های ورودی پیش از ذخیره ضدعفونی می‌شوند.</li>
+        <li>🔐 <strong>فرار خروجی‌ها:</strong> تمام خروجی‌ها برای جلوگیری از حملات XSS امن‌سازی می‌شوند.</li>
+      </ul>
+
+      <h3>عملکرد</h3>
+      <ul>
+        <li>⚡ <strong>بارگذاری شرطی فایل‌ها:</strong> فایل‌های CSS/JS فقط جایی که لازم‌اند بارگذاری می‌شوند.</li>
+        <li>⚡ <strong>جداول اختصاصی:</strong> به‌جای شلوغ کردن جدول postmeta وردپرس، داده‌ها در جداول بهینه ذخیره می‌شوند.</li>
+        <li>⚡ <strong>سیستم کش چندلایه:</strong> نقشه‌ی قیمت‌گذاری، لیست کمپین‌ها و آمار همگی کش می‌شوند و با هر تغییر به‌صورت هوشمند پاک می‌شوند.</li>
+        <li>⚡ <strong>محاسبات بهینه:</strong> آمار داشبورد در یک عبور (single-pass) محاسبه می‌شود تا فشار روی دیتابیس به حداقل برسد.</li>
+      </ul>
+    </section>
+
+    <!-- ===== 16 ===== -->
+    <section id="s16">
+      <h2><span class="h2num">۱۶</span>سؤالات متداول و عیب‌یابی</h2>
+
+      <details class="faq" open>
+        <summary>کمپین ساختم ولی تخفیف روی سایت اعمال نشده.</summary>
+        <div class="faq__body">بررسی کنید که: ۱) وضعیت کمپین <strong>«فعال»</strong> باشد (نه پیش‌نویس یا زمان‌بندی‌شده)، ۲) تاریخ شروع گذشته و تاریخ پایان نرسیده باشد، ۳) محصولات به‌درستی انتخاب شده باشند، ۴) محصول قیمت اصلی داشته باشد. اگر باز هم اعمال نشد، از <strong>تنظیمات › پرفورمنس</strong> کش‌ها را پاک کنید.</div>
+      </details>
+
+      <details class="faq">
+        <summary>کمپین زمان‌بندی‌شده‌ام در ساعت تعیین‌شده فعال نشد.</summary>
+        <div class="faq__body">فعال‌سازی خودکار به زمان‌بند وردپرس (WP-Cron) وابسته است که با بازدید از سایت اجرا می‌شود. اگر سایت شما ترافیک کمی دارد، ممکن است چند دقیقه تأخیر داشته باشد. فاصله‌ی بررسی را می‌توانید از <strong>تنظیمات › موتور کمپین</strong> کوتاه‌تر کنید.</div>
+      </details>
+
+      <details class="faq">
+        <summary>اسلایدر روی صفحه نمایش داده نمی‌شود.</summary>
+        <div class="faq__body">بررسی کنید که: ۱) <strong>کلید اصلی اسلایدر</strong> در صفحه‌ی ظاهر روشن باشد، ۲) یک کمپین <strong>فعال</strong> با محصول وجود داشته باشد، ۳) شناسه‌ی پریست یا کمپین درست باشد. (نکته: پیام‌های خطای اسلایدر فقط برای مدیر سایت نمایش داده می‌شوند و بازدیدکنندگان چیزی نمی‌بینند.)</div>
+      </details>
+
+      <details class="faq">
+        <summary>درصد تخفیف در حالت مبلغ ثابت روی محصولات مختلف فرق دارد.</summary>
+        <div class="faq__body">این طبیعی است. مبلغ ثابت روی همه یکسان کم می‌شود، ولی <strong>درصدِ</strong> آن نسبت به قیمت هر محصول متفاوت است.</div>
+      </details>
+
+      <details class="faq">
+        <summary>بج تخفیف روی کارت محصولات نمایش داده نمی‌شود.</summary>
+        <div class="faq__body">از <strong>صفحه‌ی ظاهر › بج تخفیف کلاسیک</strong>، گزینه‌ی «نمایش بج تخفیف کلاسیک» را روشن کنید.</div>
+      </details>
+
+      <details class="faq">
+        <summary>آمار داشبورد با فروش واقعی فرق دارد.</summary>
+        <div class="faq__body">آمار داشبورد فقط فروش محصولاتی را می‌شمارد که زیر کمپین بوده‌اند، نه کل فروش فروشگاه. همچنین فقط سفارش‌های «در حال انجام» و «تکمیل‌شده» محاسبه می‌شوند.</div>
+      </details>
+    </section>
+
+    <!-- ===== 17 ===== -->
+    <section id="s17">
+      <h2><span class="h2num">۱۷</span>واژه‌نامه</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>اصطلاح</th><th>معنی</th></tr></thead>
+          <tbody>
+            <tr><td><strong>فلش‌سیل (Flash Sale)</strong></td><td>حراج زمان‌دار کوتاه‌مدت با شمارش معکوس</td></tr>
+            <tr><td><strong>پیشنهاد شگفت‌انگیز (Amazing Offer)</strong></td><td>تخفیف دائمی بدون محدودیت زمانی</td></tr>
+            <tr><td><strong>پریست (Preset)</strong></td><td>اسلایدر ذخیره‌شده با تمام تنظیماتش</td></tr>
+            <tr><td><strong>اسکین / قالب (Skin)</strong></td><td>طرح بصری اسلایدر (فلاکس، مینیمال، گلس، بولد، کامپکت)</td></tr>
+            <tr><td><strong>شورت‌کد (Shortcode)</strong></td><td>کد کوتاهی که اسلایدر را در هر صفحه قرار می‌دهد</td></tr>
+            <tr><td><strong>کران (Cron)</strong></td><td>زمان‌بند پس‌زمینه برای تغییر خودکار وضعیت کمپین‌ها</td></tr>
+            <tr><td><strong>کش (Cache)</strong></td><td>حافظه‌ی موقت برای افزایش سرعت</td></tr>
+            <tr><td><strong>TTL</strong></td><td>مدت اعتبار کش بر حسب ثانیه</td></tr>
+            <tr><td><strong>بج (Badge)</strong></td><td>برچسب کوچک درصد تخفیف روی کارت محصول</td></tr>
+            <tr><td><strong>نرخ تبدیل (Conversion Rate)</strong></td><td>نسبت سفارش‌ها به بازدیدها</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <div class="doc-footer">
+      <strong>کمپین‌چی</strong>
+      <p>ساخته‌شده با تمرکز · طراحی‌شده برای سرعت · مهندسی‌شده برای فروش بیشتر</p>
+      <p>نسخه ۱.۰.۰ · توسعه‌دهنده: طاها کرمی</p>
+    </div>
+
+  </main>
+</div>
+
+<button id="top-btn" aria-label="بازگشت به بالا">↑</button>
+
+<script>
+  // Scroll-to-top button
+  var topBtn = document.getElementById('top-btn');
+  window.addEventListener('scroll', function () {
+    topBtn.classList.toggle('show', window.scrollY > 500);
+  });
+  topBtn.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Mobile TOC toggle
+  var menuBtn = document.getElementById('menu-btn');
+  var toc = document.getElementById('toc');
+  menuBtn.addEventListener('click', function () {
+    toc.classList.toggle('open');
+  });
+  toc.querySelectorAll('a').forEach(function (a) {
+    a.addEventListener('click', function () { toc.classList.remove('open'); });
+  });
+
+  // Active link highlighting on scroll (scroll-spy)
+  var links = Array.prototype.slice.call(toc.querySelectorAll('nav a'));
+  var sections = links.map(function (a) {
+    return document.querySelector(a.getAttribute('href'));
+  });
+  function onScroll() {
+    var pos = window.scrollY + 120;
+    var current = sections.length - 1;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i] && sections[i].offsetTop > pos) { current = i - 1; break; }
+    }
+    if (current < 0) current = 0;
+    links.forEach(function (l) { l.classList.remove('active'); });
+    if (links[current]) {
+      links[current].classList.add('active');
+      links[current].scrollIntoView({ block: 'nearest' });
+    }
+  }
+  window.addEventListener('scroll', onScroll);
+  onScroll();
+</script>
+
+</body>
+</html>
