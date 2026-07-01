@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Core;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Assets — Admin Asset Manager
  *

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Templates\Support;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Slider Attributes Normalizer
  *

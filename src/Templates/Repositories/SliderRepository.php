@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Templates\Repositories;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Slider Repository
  *

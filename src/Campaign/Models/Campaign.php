@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Campaign\Models;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Campaign Model
  *
@@ -64,7 +68,7 @@ class Campaign
     // Helpers
     // -------------------------------------------------------
 
-    /** Human-readable discount string: "۳۰٪" or "۵۰,۰۰۰ تومان" */
+    /** Human-readable discount string: "30٪" or "50,000 تومان" */
     public function discountLabel(): string
     {
         return $this->discountType === 'percent'

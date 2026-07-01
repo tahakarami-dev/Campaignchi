@@ -6,13 +6,17 @@ namespace Msi\Campaignchi\Templates\Skins\Concerns;
 
 use Msi\Campaignchi\Helpers\JalaliHelper;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * BadgeTextTrait
  *
  * Shared by every skin so the "discount badge" rule stays identical no
  * matter which of the 5 templates is rendering: an explicit admin override
  * (settings['badge_text']) always wins; otherwise we fall back to an
- * auto-generated "X% تخفیف" label computed from this specific product's
+ * auto-generated "X% off" label computed from this specific product's
  * own discount percentage (a fixed-amount campaign discount has a
  * different percent-off on every product, so this can never be
  * pre-computed once for the whole slider — see CampaignSliderDataService).

@@ -7,6 +7,10 @@ namespace Msi\Campaignchi\Admin\Pages;
 use Msi\Campaignchi\Core\Application;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Settings Page
  *

@@ -10,6 +10,10 @@ use Msi\Campaignchi\Core\Hooks;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 use Msi\Campaignchi\Helpers\JalaliHelper;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Pricing Service Provider
  *
@@ -363,7 +367,7 @@ class PricingServiceProvider extends ServiceProvider
      * Render the discount badge for a product in shop/product loops.
      *
      * Badge appearance (colors) is controlled by
-     * Appearance → "بج تخفیف کلاسیک" settings.
+     * Appearance → "Classic discount badge" settings.
      */
     public function renderBadge(): void
     {

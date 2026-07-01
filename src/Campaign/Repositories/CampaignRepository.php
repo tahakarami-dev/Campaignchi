@@ -7,6 +7,10 @@ namespace Msi\Campaignchi\Campaign\Repositories;
 use Msi\Campaignchi\Campaign\Models\Campaign;
 use Msi\Campaignchi\Campaign\DTOs\CreateCampaignDTO;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Campaign Repository
  *

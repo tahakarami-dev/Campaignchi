@@ -7,6 +7,10 @@ namespace Msi\Campaignchi\Templates\Skins;
 use Msi\Campaignchi\Templates\Contracts\SliderTemplateInterface;
 use Msi\Campaignchi\Templates\Skins\Concerns\BadgeTextTrait;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * "Compact" skin — small, dense catalog-style card.
  *

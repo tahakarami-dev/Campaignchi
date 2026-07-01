@@ -6,6 +6,10 @@ namespace Msi\Campaignchi\Campaign\Pricing;
 
 use Msi\Campaignchi\Admin\Pages\SettingsPage;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * PriceCalculator
  *

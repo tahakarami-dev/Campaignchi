@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Analytics\Repositories;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Campaign Sales Repository
  *

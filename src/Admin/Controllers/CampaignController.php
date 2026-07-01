@@ -6,6 +6,10 @@ namespace Msi\Campaignchi\Admin\Controllers;
 
 use Msi\Campaignchi\Campaign\Services\CampaignService;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Campaign AJAX Controller
  *
@@ -159,11 +163,8 @@ class CampaignController
                 'status'         => $campaign->status,
                 'discount'       => $campaign->discount,
                 'discount_type'  => $campaign->discountType,
-                // ⚠️ FIX باگ ۱: قبلاً این فیلد در پاسخ وجود نداشت و JS مجبور
-                // می‌شد همیشه روی "manual" fallback بزند — حتی اگر کمپین
-                // واقعاً با selection_mode = "all"/"category"/... ذخیره شده بود.
-                // نتیجه: تب اشتباه فعال می‌شد، محصولات/قوانین انتخابی رندر
-                // نمی‌شدند و خلاصه‌ی فرم «انتخاب نشده» نشان می‌داد.
+                // Needed so the edit form activates the correct tab and
+                // restores the previously selected products/rules.
                 'selection_mode' => $campaign->selectionMode,
                 'starts_at'      => $campaign->startsAt,
                 'ends_at'        => $campaign->endsAt,

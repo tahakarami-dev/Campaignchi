@@ -11,6 +11,10 @@ use Msi\Campaignchi\Templates\Skins\FluxTemplate;
 use Msi\Campaignchi\Templates\Skins\GlassTemplate;
 use Msi\Campaignchi\Templates\Skins\MinimalTemplate;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Template Registry
  *

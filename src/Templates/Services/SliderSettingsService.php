@@ -6,6 +6,10 @@ namespace Msi\Campaignchi\Templates\Services;
 
 use Msi\Campaignchi\Templates\TemplateRegistry;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Slider Settings Service
  *
@@ -64,9 +68,9 @@ class SliderSettingsService
             'radius'            => 16,
             'dark_mode'         => false,
             'cta_text'          => __('مشاهده محصول', 'campaignchi'),
-            'badge_text'        => '', // empty = auto-generated "X% تخفیف"
+            'badge_text'        => '', // empty = auto-generated "X% off"
             // Override text for the slider header's campaign-TYPE badge
-            // (e.g. "فلش سیل" / "پیشنهاد شگفت‌انگیز"). Empty = fall back to
+            // (e.g. "Flash Sale" / "Amazing Offer"). Empty = fall back to
             // Campaign::typeLabel() automatically (see SliderRenderer).
             // NOT to be confused with `badge_text` above, which overrides
             // the per-product DISCOUNT badge shown on each individual slide.

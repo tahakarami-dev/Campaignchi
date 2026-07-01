@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Analytics\Repositories;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Analytics Repository
  *
- * مسئول ثبت و خواندن داده‌های جدول wp_cmc_campaign_stats.
- * فعلاً فقط ستون impressions استفاده می‌شود — فروش/سفارش/نرخ تبدیل
- * به‌صورت لایو از سفارش‌های ووکامرس محاسبه می‌شوند (AnalyticsService).
+ * Reads and writes the wp_cmc_campaign_stats table.
+ * Currently only the impressions column is used — sales/orders/conversion
+ * rate are computed live from WooCommerce orders instead (AnalyticsService).
  *
  * @package Msi\Campaignchi\Analytics\Repositories
  */
@@ -22,8 +26,8 @@ class AnalyticsRepository
     }
 
     /**
-     * ثبت یک بازدید برای یک کمپین در تاریخ امروز.
-     * با UNIQUE KEY(campaign_id, stat_date) به‌صورت atomic افزایش می‌یابد.
+     * Record one impression for a campaign today.
+     * Increments atomically via UNIQUE KEY(campaign_id, stat_date).
      */
     public function recordImpression(int $campaignId): void
     {
@@ -42,7 +46,7 @@ class AnalyticsRepository
     }
 
     /**
-     * جمع کل بازدیدهای همه‌ی کمپین‌ها برای یک تاریخ مشخص (Y-m-d).
+     * Total impressions across all campaigns for a given date (Y-m-d).
      */
     public function getTotalImpressions(string $date): int
     {
@@ -58,9 +62,8 @@ class AnalyticsRepository
     }
 
     /**
-     * مجموع بازدیدهای هر کمپین در یک بازه‌ی تاریخی (Y-m-d تا Y-m-d).
-     * همان منبع و همان جدولی که getTotalImpressions از آن می‌خواند —
-     * فقط گروه‌بندی‌شده به‌ازای هر کمپین، برای جدول گزارش‌ها.
+     * Per-campaign impression totals over a date range (Y-m-d to Y-m-d),
+     * grouped by campaign for the reports table.
      *
      * @return array<int, int> campaign_id => impressions
      */

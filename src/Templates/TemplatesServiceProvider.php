@@ -15,6 +15,10 @@ use Msi\Campaignchi\Templates\Services\CampaignSliderDataService;
 use Msi\Campaignchi\Templates\Services\SliderSettingsService;
 use Msi\Campaignchi\Templates\Shortcode\CampaignSliderShortcode;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Templates Service Provider
  *

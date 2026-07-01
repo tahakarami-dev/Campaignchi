@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Campaign\DTOs;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * CreateCampaignDTO
  *
@@ -77,7 +81,7 @@ class CreateCampaignDTO
             (array) json_decode(sanitize_text_field($post['brand_ids'] ?? '[]'), true)
         );
 
-        // --- Optional dates (با validation کامل فرمت + رنج ساعت/دقیقه) ---
+        // --- Optional dates (full format + hour/minute range validation) ---
         $startsAt = !empty($post['starts_at'])
             ? self::validateDateTime(sanitize_text_field($post['starts_at']), __('تاریخ شروع', 'campaignchi'))
             : null;
@@ -86,7 +90,7 @@ class CreateCampaignDTO
             ? self::validateDateTime(sanitize_text_field($post['ends_at']), __('تاریخ پایان', 'campaignchi'))
             : null;
 
-        // --- منطق کسب‌وکار: تاریخ پایان باید بعد از تاریخ شروع باشد ---
+        // --- Business rule: end date must be after start date ---
         if ($startsAt !== null && $endsAt !== null) {
             $startsTs = strtotime($startsAt);
             $endsTs   = strtotime($endsAt);
@@ -103,7 +107,6 @@ class CreateCampaignDTO
             : null;
 
         // --- Selection mode ---
-        // ⚠️ FIX باگ ۳: 'brand' به لیست مقادیر مجاز اضافه شد
         $selectionMode = sanitize_key($post['selection_mode'] ?? 'manual');
         if (!in_array($selectionMode, ['manual', 'category', 'tag', 'attribute', 'brand', 'all'], true)) {
             $selectionMode = 'manual';
@@ -168,23 +171,23 @@ class CreateCampaignDTO
     // -------------------------------------------------------
 
     /**
-     * Validate و normalize کردن یک رشته‌ی تاریخ/ساعت ورودی از picker.
+     * Validate and normalize a date/time string coming from the picker.
      *
-     * فرمت‌های قابل قبول:
-     *   - 'YYYY-MM-DDTHH:MM'        (چیزی که datepicker.js می‌فرستد)
+     * Accepted formats:
+     *   - 'YYYY-MM-DDTHH:MM'        (what datepicker.js sends)
      *   - 'YYYY-MM-DD HH:MM'
      *   - 'YYYY-MM-DD HH:MM:SS'
      *
-     * قوانین اعتبارسنجی (مثل یک ساعت واقعی):
-     *   - تاریخ باید معتبر باشد (با checkdate)
-     *   - ساعت باید بین ۰۰ تا ۲۳ باشد
-     *   - دقیقه باید بین ۰۰ تا ۵۹ باشد
+     * Validation rules (same as a real clock):
+     *   - date must be valid (via checkdate)
+     *   - hour must be between 00 and 23
+     *   - minute must be between 00 and 59
      *
-     * خروجی همیشه به فرمت استاندارد MySQL DATETIME
-     * نرمال‌سازی می‌شود: 'YYYY-MM-DD HH:MM:SS'
+     * Output is always normalized to standard MySQL DATETIME format:
+     * 'YYYY-MM-DD HH:MM:SS'.
      *
      * @param string $value
-     * @param string $fieldLabel  برای پیام خطا (مثلاً «تاریخ شروع»)
+     * @param string $fieldLabel  Used in error messages (e.g. "start date")
      * @return string
      * @throws \InvalidArgumentException
      */
@@ -208,33 +211,33 @@ class CreateCampaignDTO
         $minute = (int) $m[5];
         $second = isset($m[6]) ? (int) $m[6] : 0;
 
-        // --- تاریخ معتبر باشد (مثلاً 31 فروردین/اسفند یا 30 بهمن سال غیرکبیسه رد شود) ---
+        // --- Date must be valid (e.g. reject Feb 30 or Feb 29 in a non-leap year) ---
         if (!checkdate($month, $day, $year)) {
             throw new \InvalidArgumentException(
                 sprintf(__('تاریخ «%s» نامعتبر است.', 'campaignchi'), $fieldLabel)
             );
         }
 
-        // --- ساعت: دقیقاً مثل یک ساعت واقعی، 00 تا 23 ---
+        // --- Hour: 00 to 23, same as a real clock ---
         if ($hour < 0 || $hour > 23) {
             throw new \InvalidArgumentException(
                 sprintf(__('ساعت «%s» باید بین ۰۰ تا ۲۳ باشد.', 'campaignchi'), $fieldLabel)
             );
         }
 
-        // --- دقیقه: دقیقاً مثل یک ساعت واقعی، 00 تا 59 ---
+        // --- Minute: 00 to 59, same as a real clock ---
         if ($minute < 0 || $minute > 59) {
             throw new \InvalidArgumentException(
                 sprintf(__('دقیقه «%s» باید بین ۰۰ تا ۵۹ باشد.', 'campaignchi'), $fieldLabel)
             );
         }
 
-        // --- ثانیه (در صورت وجود) ---
+        // --- Second (if present) ---
         if ($second < 0 || $second > 59) {
             $second = 0;
         }
 
-        // خروجی نرمال‌شده برای ذخیره در ستون DATETIME
+        // Normalized output for storage in the DATETIME column
         return sprintf('%04d-%02d-%02d %02d:%02d:%02d', $year, $month, $day, $hour, $minute, $second);
     }
 }
