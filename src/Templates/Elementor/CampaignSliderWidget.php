@@ -15,6 +15,10 @@ use Msi\Campaignchi\Templates\Services\SliderSettingsService;
 use Msi\Campaignchi\Templates\Support\SliderAttributesNormalizer;
 use Msi\Campaignchi\Templates\TemplateRegistry;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Campaign Slider — Elementor Widget
  *
@@ -217,8 +221,8 @@ final class CampaignSliderWidget extends Widget_Base
             'placeholder' => __('خالی = درصد تخفیف به‌صورت خودکار', 'campaignchi'),
         ]);
 
-        // ⚠️ NEW: lets the campaign-type badge shown in the slider header
-        // (e.g. "فلش سیل" / "پیشنهاد شگفت‌انگیز") be customized per widget
+        // Lets the campaign-type badge shown in the slider header
+        // (e.g. "Flash Sale" / "Amazing Offer") be customized per widget
         // instance, same as the shortcode's `type_badge_text` attribute.
         $this->add_control('type_badge_text', [
             'label'       => __('متن بج نوع کمپین (دلخواه)', 'campaignchi'),

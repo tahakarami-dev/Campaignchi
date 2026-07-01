@@ -7,6 +7,10 @@ namespace Msi\Campaignchi\Frontend;
 use Msi\Campaignchi\Core\ServiceProvider;
 use Msi\Campaignchi\Core\Hooks;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Frontend Service Provider
  *

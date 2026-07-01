@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Templates\Contracts;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Contract every slider "skin" (one of the 5 built-in designs) must
  * implement.

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Templates\Elementor;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Elementor Integration
  *

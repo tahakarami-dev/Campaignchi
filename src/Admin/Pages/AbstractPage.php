@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Admin\Pages;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Abstract Page
  *

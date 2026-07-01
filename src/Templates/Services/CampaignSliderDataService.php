@@ -9,6 +9,10 @@ use Msi\Campaignchi\Campaign\Pricing\CampaignProductResolver;
 use Msi\Campaignchi\Campaign\Pricing\PriceCalculator;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Campaign Slider Data Service
  *

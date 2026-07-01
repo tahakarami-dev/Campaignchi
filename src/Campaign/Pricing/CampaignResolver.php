@@ -8,6 +8,10 @@ use Msi\Campaignchi\Admin\Pages\SettingsPage;
 use Msi\Campaignchi\Campaign\Models\Campaign;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * CampaignResolver
  *

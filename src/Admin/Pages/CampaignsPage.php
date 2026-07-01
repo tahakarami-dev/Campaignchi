@@ -7,6 +7,10 @@ namespace Msi\Campaignchi\Admin\Pages;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 use Msi\Campaignchi\Helpers\JalaliHelper;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Campaigns Page
  *

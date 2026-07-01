@@ -8,6 +8,10 @@ use Msi\Campaignchi\Admin\Pages\SettingsPage;
 use Msi\Campaignchi\Campaign\Pricing\CampaignResolver;
 use Msi\Campaignchi\Analytics\Services\AnalyticsService;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Settings AJAX Controller
  *

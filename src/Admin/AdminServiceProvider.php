@@ -10,11 +10,15 @@ use Msi\Campaignchi\Core\License;
 use Msi\Campaignchi\Core\ServiceProvider;
 use Msi\Campaignchi\Core\Hooks;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Admin Service Provider
  *
  * Responsibilities:
- *  - Register "کمپین‌چی" menu item in WP admin sidebar
+ *  - Register the Campaignchi menu item in WP admin sidebar
  *  - Intercept the page load and render fully custom SaaS panel
  *  - Suppress WP admin chrome (sidebar, footer, notices)
  *  - Register all admin AJAX controllers
@@ -74,7 +78,7 @@ class AdminServiceProvider extends ServiceProvider
     {
         // -------------------------------------------------------
         // License gate — until the product is activated, the
-        // "کمپین‌چی" dashboard menu is never registered and the
+        // Campaignchi dashboard menu is never registered and the
         // panel never renders. Only a guidance notice is shown.
         // (License check lives in Core\License — see RTL snippet.)
         // -------------------------------------------------------

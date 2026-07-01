@@ -6,6 +6,10 @@ namespace Msi\Campaignchi\Templates\Renderers;
 
 use Msi\Campaignchi\Templates\TemplateRegistry;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Slider Renderer
  *
@@ -52,7 +56,7 @@ class SliderRenderer
             // instance override, in that priority order via
             // SliderSettingsService::resolve()) always wins when set;
             // otherwise fall back to the campaign's own automatic type
-            // label ("فلش سیل" / "پیشنهاد شگفت‌انگیز").
+            // label ("Flash Sale" / "Amazing Offer").
             'type_label' => !empty($settings['type_badge_text'])
                 ? (string) $settings['type_badge_text']
                 : $campaign->typeLabel(),

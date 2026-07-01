@@ -11,6 +11,10 @@ use Msi\Campaignchi\Templates\Renderers\SliderRenderer;
 use Msi\Campaignchi\Templates\Support\SliderAttributesNormalizer;
 use Msi\Campaignchi\Templates\TemplateRegistry;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Campaign Slider Shortcode
  *
@@ -87,7 +91,7 @@ class CampaignSliderShortcode
                 'cta_text'          => null,
                 'badge_text'        => null,
                 // Overrides the slider header's campaign-type badge text
-                // (e.g. [campaignchi_slider type_badge_text="ویژه امروز"]).
+                // (e.g. [campaignchi_slider type_badge_text="Today's Special"]).
                 'type_badge_text'   => null,
                 'title'             => null,
             ],

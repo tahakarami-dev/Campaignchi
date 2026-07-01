@@ -9,6 +9,10 @@ use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 use Msi\Campaignchi\Core\Application;
 use Msi\Campaignchi\Helpers\JalaliHelper;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Panel Layout
  *
@@ -27,15 +31,13 @@ class PanelLayout
         $activeSlug  = $this->router->currentSlug();
         $user        = wp_get_current_user();
         $userInitial = mb_substr($user->display_name, 0, 1, 'UTF-8');
-        // ⚠️ تاریخ شمسی زیر عنوان صفحه — مثال خروجی: «دوشنبه، ۲۵ خرداد ۱۴۰۵»
-        // قبلاً اینجا wp_date('l، j F Y') بود که تاریخ را به‌صورت میلادی
-        // (با نام روز/ماه فارسی) نمایش می‌داد. toFullDisplay() بدون آرگومان
-        // یعنی «اکنون بر اساس تایم‌زون سایت» و آن را به شمسی تبدیل می‌کند.
+        // Jalali (Persian calendar) date shown under the page title,
+        // e.g. "Monday, 25 Khordad 1405". toFullDisplay() with no
+        // argument means "now, in the site's timezone".
         $dateLabel   = JalaliHelper::toFullDisplay();
         $isAdmin     = is_admin_bar_showing();
 
-        // ⚠️ DYNAMIC BADGE: the "کمپین‌ها" sidebar item used to show a
-        // hardcoded '۴' placeholder. It now reflects the real, live count
+        // The "Campaigns" sidebar item reflects the real, live count
         // of currently active/scheduled-and-live campaigns (same "live"
         // definition the pricing engine and the dashboard stat card use —
         // see CampaignRepository::getLiveCampaigns()). The badge is

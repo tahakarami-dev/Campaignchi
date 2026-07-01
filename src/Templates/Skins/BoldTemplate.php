@@ -8,6 +8,10 @@ use Msi\Campaignchi\Helpers\JalaliHelper;
 use Msi\Campaignchi\Templates\Contracts\SliderTemplateInterface;
 use Msi\Campaignchi\Templates\Skins\Concerns\BadgeTextTrait;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * "Bold" skin — high-contrast banner-style card.
  *

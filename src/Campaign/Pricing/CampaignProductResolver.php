@@ -7,6 +7,10 @@ namespace Msi\Campaignchi\Campaign\Pricing;
 use Msi\Campaignchi\Campaign\Models\Campaign;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * CampaignProductResolver
  *

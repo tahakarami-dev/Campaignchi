@@ -4,23 +4,27 @@ declare(strict_types=1);
 
 namespace Msi\Campaignchi\Helpers;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * JalaliHelper
  *
- * تبدیل تاریخ میلادی به شمسی (جلالی) در PHP
- * بدون نیاز به extension خارجی
+ * Converts Gregorian dates to Jalali (Persian) dates in pure PHP,
+ * with no external extension required.
  *
  * @package Msi\Campaignchi\Helpers
  */
 class JalaliHelper
 {
     /**
-     * تبدیل تاریخ میلادی به شمسی
+     * Convert a Gregorian date to Jalali.
      *
-     * @param int $gy سال میلادی
-     * @param int $gm ماه میلادی
-     * @param int $gd روز میلادی
-     * @return array{0: int, 1: int, 2: int} [سال_شمسی, ماه_شمسی, روز_شمسی]
+     * @param int $gy Gregorian year
+     * @param int $gm Gregorian month
+     * @param int $gd Gregorian day
+     * @return array{0: int, 1: int, 2: int} [jalali_year, jalali_month, jalali_day]
      */
     public static function gregorianToJalali(int $gy, int $gm, int $gd): array
     {
@@ -55,14 +59,14 @@ class JalaliHelper
     }
 
     /**
-     * تبدیل datetime string میلادی به نمایش شمسی فارسی
-     * مثال: '2025-06-13 10:30:00' → '۱۴۰۴/۰۳/۲۳'
-     * مثال با ساعت: '2025-06-13 10:30:00' → '۱۴۰۴/۰۳/۲۳ ۱۰:۳۰'
+     * Convert a Gregorian datetime string to a Jalali display string.
+     * Example: '2025-06-13 10:30:00' -> '۱۴۰۴/۰۳/۲۳'
+     * Example with time: '2025-06-13 10:30:00' -> '۱۴۰۴/۰۳/۲۳ ۱۰:۳۰'
      *
-     * @param string|null $datetime  رشته تاریخ میلادی (Y-m-d یا Y-m-d H:i:s)
-     * @param bool        $withTime  آیا ساعت هم نمایش داده شود؟
-     * @param string      $separator جداکننده تاریخ (پیشفرض /)
-     * @return string تاریخ شمسی با اعداد فارسی یا '—' در صورت خالی بودن
+     * @param string|null $datetime  Gregorian date string (Y-m-d or Y-m-d H:i:s)
+     * @param bool        $withTime  Whether to also show the time
+     * @param string      $separator Date separator (default /)
+     * @return string Jalali date with Persian digits, or '—' when empty
      */
     public static function toDisplay(?string $datetime, bool $withTime = true, string $separator = '/'): string
     {
@@ -95,16 +99,16 @@ class JalaliHelper
     }
 
     /**
-     * نمایش کامل تاریخ شمسی همراه با نام روز هفته — برای هدر/زیرعنوان صفحات.
+     * Full Jalali date display including weekday name — for page headers/subtitles.
      *
-     * مثال خروجی: 'دوشنبه، ۲۵ خرداد ۱۴۰۵'
+     * Example output: 'دوشنبه، ۲۵ خرداد ۱۴۰۵'
      *
-     * اگر $datetime داده نشود، «اکنون» بر اساس تایم‌زون سایت در نظر
-     * گرفته می‌شود (با current_time('timestamp') که هم‌فرمت با
-     * current_time('mysql') است — همان منطقی که در CampaignResolver
-     * برای محاسبه‌ی دقیق TTL استفاده شد).
+     * If $datetime is omitted, "now" is taken in the site's timezone (via
+     * current_time('timestamp'), which is format-compatible with
+     * current_time('mysql') — the same convention CampaignResolver uses
+     * for its TTL calculations).
      *
-     * @param string|null $datetime رشته تاریخ میلادی (Y-m-d یا Y-m-d H:i:s) یا null برای «اکنون»
+     * @param string|null $datetime Gregorian date string (Y-m-d or Y-m-d H:i:s), or null for "now"
      * @return string
      */
     public static function toFullDisplay(?string $datetime = null): string
@@ -118,7 +122,7 @@ class JalaliHelper
         $gy = (int) date('Y', $ts);
         $gm = (int) date('m', $ts);
         $gd = (int) date('d', $ts);
-        $gw = (int) date('w', $ts); // 0 (یکشنبه) تا 6 (شنبه) — مستقل از تقویم شمسی/میلادی
+        $gw = (int) date('w', $ts); // 0 (Sunday) to 6 (Saturday) — independent of Jalali/Gregorian
 
         [$jy, $jm, $jd] = self::gregorianToJalali($gy, $gm, $gd);
 
@@ -132,11 +136,11 @@ class JalaliHelper
     }
 
     /**
-     * نام فارسی روز هفته بر اساس خروجی date('w', $ts)
-     * (۰ = یکشنبه ... ۶ = شنبه — نام‌های روزهای هفته مستقل از تقویم
-     * شمسی/میلادی هستند، چون شمسی هم از همان چرخه‌ی هفت‌روزه استفاده می‌کند)
+     * Persian weekday name for the output of date('w', $ts).
+     * (0 = Sunday ... 6 = Saturday — weekday names are independent of the
+     * Jalali/Gregorian calendar, since Jalali also uses the same 7-day cycle.)
      *
-     * @param int $gw خروجی date('w') — 0 تا 6
+     * @param int $gw Output of date('w') — 0 to 6
      * @return string
      */
     public static function weekdayName(int $gw): string
@@ -155,7 +159,7 @@ class JalaliHelper
     }
 
     /**
-     * نام ماه شمسی
+     * Jalali month name.
      */
     public static function monthName(int $jm): string
     {
@@ -164,10 +168,10 @@ class JalaliHelper
     }
 
     /**
-     * تبدیل تاریخ شمسی به میلادی (معکوس gregorianToJalali).
-     * پورت PHP همان الگوریتم j2g موجود در assets/js/datepicker.js.
+     * Convert a Jalali date to Gregorian (inverse of gregorianToJalali).
+     * PHP port of the same j2g algorithm used in assets/js/datepicker.js.
      *
-     * @return array{0:int, 1:int, 2:int} [سال_میلادی, ماه_میلادی, روز_میلادی]
+     * @return array{0:int, 1:int, 2:int} [gregorian_year, gregorian_month, gregorian_day]
      */
     public static function jalaliToGregorian(int $jy, int $jm, int $jd): array
     {
@@ -217,7 +221,7 @@ class JalaliHelper
     }
 
     /**
-     * تعداد روزهای یک ماه شمسی (با لحاظ سال کبیسه برای اسفند).
+     * Number of days in a Jalali month (accounting for leap years in Esfand).
      */
     public static function jDaysInMonth(int $jy, int $jm): int
     {
@@ -235,7 +239,7 @@ class JalaliHelper
     }
 
     /**
-     * تبدیل اعداد انگلیسی به فارسی
+     * Convert English digits to Persian digits.
      */
     public static function toPersianNums(string $str): string
     {

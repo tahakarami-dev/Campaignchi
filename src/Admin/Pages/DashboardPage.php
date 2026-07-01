@@ -8,12 +8,16 @@ use Msi\Campaignchi\Analytics\Services\AnalyticsService;
 use Msi\Campaignchi\Core\Application;
 use Msi\Campaignchi\Helpers\JalaliHelper;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Dashboard Page
  *
- * تمام اعداد این صفحه از AnalyticsService خوانده می‌شوند و
- * بر اساس محصولاتی که الان زیر یک کمپین زنده هستند محاسبه می‌شوند —
- * نه کل فروش/بازدید/سفارش‌های ووکامرس.
+ * All numbers on this page come from AnalyticsService and are computed
+ * only from products currently under a live campaign — not total
+ * WooCommerce sales/views/orders.
  *
  * @package Msi\Campaignchi\Admin\Pages
  */

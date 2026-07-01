@@ -7,6 +7,10 @@ namespace Msi\Campaignchi\Analytics\Services;
 use Msi\Campaignchi\Analytics\Repositories\CampaignSalesRepository;
 use Msi\Campaignchi\Campaign\Pricing\CampaignResolver;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Campaign Sales Recorder
  *

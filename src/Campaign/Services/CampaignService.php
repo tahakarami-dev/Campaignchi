@@ -7,6 +7,10 @@ namespace Msi\Campaignchi\Campaign\Services;
 use Msi\Campaignchi\Campaign\DTOs\CreateCampaignDTO;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Campaign Service
  *
@@ -29,7 +33,7 @@ use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
  *      - The pricing engine does NOT apply discounts yet (getLiveCampaigns
  *        only returns status='active' rows).
  *      - The cron will flip it to 'active' when starts_at arrives.
- *      - The admin UI shows the correct "زمان‌بندی شده" badge.
+ *      - The admin UI shows the correct "Scheduled" badge.
  *
  *  Rule 3 — Preserve 'draft':
  *    If the user explicitly saves as 'draft', no override happens.

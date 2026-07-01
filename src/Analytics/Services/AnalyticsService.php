@@ -12,26 +12,30 @@ use Msi\Campaignchi\Campaign\Pricing\CampaignResolver;
 use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 use Msi\Campaignchi\Helpers\JalaliHelper;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Analytics Service
  *
- * منبع واحد حقیقت برای داشبورد. تمام اعداد این سرویس فقط بر اساس
- * محصولاتی محاسبه می‌شوند که در لحظه‌ی مورد بررسی (نه فقط "الان"!)
- * زیر یک کمپین قرار داشتند — چه از لحاظ انتخاب محصول (دسته/برند/...)
- * چه از لحاظ بازه‌ی زمانی کمپین.
+ * Single source of truth for the dashboard. Every number this service
+ * produces is computed only from products that were under a campaign at
+ * the moment being examined (not just "now") — both in terms of product
+ * selection (category/brand/...) and the campaign's own date range.
  *
- * نکته‌ی مهم تایم‌زون:
- * در همه‌ی این کلاس، "الان" همیشه با time() (UTC واقعی) محاسبه می‌شود،
- * چون $order->get_date_created()->getTimestamp() همیشه UTC واقعی است و
- * created_at/updated_at کمپین‌ها هم از CampaignRepository به‌صورت GMT
- * (current_time('mysql', true)) نوشته می‌شوند — پس strtotime() روی آن‌ها
- * هم UTC واقعی برمی‌گرداند. استفاده از current_time('timestamp') اینجا
- * غلط است چون آن مقدار "الان + آفست تایم‌زون سایت" است.
+ * Important timezone note:
+ * Throughout this class, "now" is always computed with time() (real UTC),
+ * because $order->get_date_created()->getTimestamp() is always real UTC,
+ * and campaign created_at/updated_at are also written by CampaignRepository
+ * as GMT (current_time('mysql', true)) — so strtotime() on them also
+ * returns real UTC. Using current_time('timestamp') here would be wrong,
+ * since that value is "now + the site's timezone offset".
  *
- * starts_at/ends_at کمپین‌ها قاعده‌ی متفاوتی دارند: این‌ها مقادیر "naive"
- * هستند که ادمین از تاریخ‌گیر شمسی وارد کرده (زمان محلی سایت، بدون GMT)
- * و باید همیشه با current_time('mysql') (نه GMT) مقایسه شوند — همان‌طور
- * که در CampaignRepository::getLiveCampaigns() انجام می‌شود.
+ * Campaign starts_at/ends_at follow a different rule: these are "naive"
+ * values the admin entered via the Jalali date picker (site-local time,
+ * no GMT), and must always be compared against current_time('mysql')
+ * (not GMT) — the same way CampaignRepository::getLiveCampaigns() does.
  *
  * @package Msi\Campaignchi\Analytics\Services
  */
@@ -40,7 +44,7 @@ class AnalyticsService
     /** Versioned cache-key prefix for per-day campaign data. Bumped to v2 when the per-campaign breakdown was added. */
     private const DAILY_CACHE_PREFIX = 'cmc_daily_campaign_data_v2_';
 
-    /** وضعیت سفارش‌هایی که "فروش قطعی" محسوب می‌شوند */
+    /** Order statuses that count as a finalized sale */
     private const ORDER_STATUSES = ['processing', 'completed'];
 
     /** Transient key for the cached, priority-sorted list of non-draft campaigns + resolved product IDs */
@@ -104,7 +108,7 @@ class AnalyticsService
     ) {}
 
     // =========================================================
-    // 1) STAT CARDS — ردیف بالای داشبورد
+    // 1) STAT CARDS — top row of the dashboard
     // =========================================================
 
     /**
@@ -165,7 +169,7 @@ class AnalyticsService
     }
 
     // =========================================================
-    // 2) WEEKLY CHART — نمودار فروش کمپین، هفته جاری (شنبه تا جمعه)
+    // 2) WEEKLY CHART — campaign sales chart, current week (Saturday to Friday)
     // =========================================================
 
     /**
@@ -176,7 +180,7 @@ class AnalyticsService
         $tz  = wp_timezone();
         $now = new \DateTime('now', $tz);
 
-        // ⚠️ BUG FIX: the Persian calendar week starts on Saturday (شنبه).
+        // The Persian calendar week starts on Saturday.
         // PHP's date('w') returns 0=Sunday..6=Saturday, so "days elapsed
         // since last Saturday" = (current_dow + 1) % 7. Walking back that
         // many days from "today" always lands on the Saturday that opens
@@ -263,8 +267,8 @@ class AnalyticsService
     }
 
     /**
-     * درصد موجودی باقیمانده محصولات یک کمپین.
-     * فقط برای محصولاتی که مدیریت موجودی فعال دارند محاسبه می‌شود.
+     * Remaining stock percentage for a campaign's products.
+     * Only computed for products with stock management enabled.
      */
     private function calculateStock(array $productIds): ?int
     {
@@ -377,7 +381,7 @@ class AnalyticsService
     }
 
     // =========================================================
-    // 4) TOP CAMPAIGN PRODUCTS — پرفروش‌ترین‌های امروز در کمپین
+    // 4) TOP CAMPAIGN PRODUCTS — today's best-selling campaign products
     // =========================================================
 
     /**
@@ -432,7 +436,7 @@ class AnalyticsService
 
         $dailyData = $this->getDailyCampaignData($this->dayRange(0));
 
-        // ۵ سفارش "اخیرترین" (لیست از قبل بر اساس تاریخ نزولی است)
+        // 5 most recent orders (list is already sorted by date descending)
         foreach (array_slice($dailyData['order_activities'], 0, 5) as $order) {
             $activities[] = [
                 'icon_class' => 'cmc-activity-item__icon--success',
@@ -445,7 +449,7 @@ class AnalyticsService
             ];
         }
 
-        // ⚠️ ترتیب نهایی: همیشه از جدیدترین به قدیمی‌ترین (بر اساس timestamp واقعی)
+        // Final order: always newest to oldest (by real timestamp)
         usort($activities, fn($a, $b) => $b['time'] <=> $a['time']);
         $activities = array_slice($activities, 0, $limit);
 
@@ -668,18 +672,18 @@ class AnalyticsService
 
     // =========================================================
     // HISTORICAL CAMPAIGN MATCHING
-    // ⚠️ بخش کلیدی: همه‌ی محاسبات (چه امروز، چه روزهای دیگر هفته) فقط
-    // شامل محصولاتی می‌شوند که در همان تاریخ زیر یک کمپین بوده‌اند.
+    // Key rule: every calculation (whether for today or another day of the
+    // week) only includes products that were under a campaign on that date.
     // =========================================================
 
     /**
-     * لیست تمام کمپین‌های غیر-پیش‌نویس به همراه محصولات resolve‌شده‌ی هر کدام.
+     * List of all non-draft campaigns with each one's resolved products.
      *
-     * ⚠️ PERFORMANCE FIX: علاوه بر memoize شدن per-request (همان رفتار قبلی)،
-     * این نتیجه حالا در یک transient هم کش می‌شود. resolve() برای حالت‌های
-     * category/tag/attribute/brand چندین کوئری تاکسونومی (get_objects_in_term)
-     * اجرا می‌کند؛ بدون این کش، این کوئری‌ها روی هر بار لود داشبورد (و هر
-     * بار محاسبه‌ی هر روز از هفته) از نو اجرا می‌شدند.
+     * In addition to being memoized per-request, the result is also cached
+     * in a transient. resolve() runs several taxonomy queries
+     * (get_objects_in_term) for category/tag/attribute/brand modes; without
+     * this cache, those queries would re-run on every dashboard load (and
+     * every per-weekday calculation).
      *
      * @return array<int, array{campaign: Campaign, product_ids: array}>
      */
@@ -703,7 +707,7 @@ class AnalyticsService
             ];
         }
 
-        // اولویت: فلش‌سیل اول، بعد جدیدترین
+        // Priority: flash_sale first, then newest
         usort($candidates, function (array $a, array $b): int {
             $aFlash = $a['campaign']->type === 'flash_sale' ? 1 : 0;
             $bFlash = $b['campaign']->type === 'flash_sale' ? 1 : 0;
@@ -732,8 +736,8 @@ class AnalyticsService
     }
 
     /**
-     * آیا این محصول، در تاریخ مشخص‌شده، زیر یک کمپین بوده است؟
-     * اولین کمپین منطبق (بر اساس اولویت getCampaignCandidates) برگردانده می‌شود.
+     * Was this product under a campaign on the given date?
+     * Returns the first matching campaign, by getCampaignCandidates() priority.
      *
      * @param array<int, array{campaign: Campaign, product_ids: array}> $candidates
      */
@@ -760,15 +764,15 @@ class AnalyticsService
     }
 
     /**
-     * آیا یک کمپین، در تاریخ مشخص (Y-m-d، تایم‌زون سایت)، در حال اجرا محسوب می‌شده؟
+     * Was a campaign considered running on the given date (Y-m-d, site timezone)?
      *
-     * - flash_sale: بازه‌ی [starts_at, ends_at] چک می‌شود (بدون مرز = باز).
-     *   این مقادیر naive/site-local هستند (از تاریخ‌گیر شمسی)، پس مقایسه
-     *   مستقیم رشته‌ای صحیح است.
-     * - amazing_offer: تاریخ شروع/پایان مشخصی ندارد، پس تخمینی است:
-     *     - active    → پوشش از همان ابتدا تا الان
-     *     - ended     → پوشش تا تاریخ updated_at (تخمین تاریخ پایان)
-     *     - scheduled → از updated_at به بعد
+     * - flash_sale: checks the [starts_at, ends_at] range (no bound = open).
+     *   These values are naive/site-local (from the Jalali date picker), so
+     *   a direct string comparison is correct.
+     * - amazing_offer: has no explicit start/end date, so it's estimated:
+     *     - active    -> covered from the very beginning until now
+     *     - ended     -> covered until updated_at (estimated end date)
+     *     - scheduled -> from updated_at onward
      */
     private function campaignCoversDate(Campaign $campaign, string $date): bool
     {
@@ -809,8 +813,8 @@ class AnalyticsService
     // =========================================================
 
     /**
-     * بازه‌ی ابتدا/انتهای یک روز (بر اساس تایم‌زون سایت) به Unix timestamp (UTC) —
-     * دقیقاً همان چیزی که wc_get_orders برای date_created انتظار دارد.
+     * Start/end of a day (in the site's timezone) as Unix timestamps (UTC) —
+     * exactly what wc_get_orders expects for date_created.
      *
      * @return array{date:string, start:int, end:int}
      */

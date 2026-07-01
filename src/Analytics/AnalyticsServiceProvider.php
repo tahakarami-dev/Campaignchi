@@ -14,6 +14,10 @@ use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
 use Msi\Campaignchi\Core\Hooks;
 use Msi\Campaignchi\Core\ServiceProvider;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Analytics Service Provider
  *

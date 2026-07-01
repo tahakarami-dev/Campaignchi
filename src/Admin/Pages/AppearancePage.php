@@ -8,6 +8,10 @@ use Msi\Campaignchi\Core\Application;
 use Msi\Campaignchi\Templates\Services\SliderSettingsService;
 use Msi\Campaignchi\Templates\TemplateRegistry;
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Appearance Page
  *
