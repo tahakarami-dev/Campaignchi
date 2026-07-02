@@ -2,7 +2,7 @@
 Contributors: tahakarami
 Requires at least: 6.0
 Tested up to: 6.7
-Requires PHP: 7.4
+Requires PHP: 8.1
 Requires plugins: woocommerce
 Stable tag: 1.0.0
 License: Proprietary (commercial)

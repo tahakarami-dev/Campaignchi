@@ -6,7 +6,7 @@
  * Description: حرفه‌ای‌ترین سیستم مدیریت کمپین‌های تخفیف و پیشنهاد شگفت انگیز ووکامرس 
  * Version: 1.0.0
  * Requires at least: 6.0
- * Requires PHP: 7.4
+ * Requires PHP: 8.1
  * Author: طاها کرمی 
  * Author URI: https://www.rtl-theme.com/author/taha-karami
  * Text Domain: campaignchi
