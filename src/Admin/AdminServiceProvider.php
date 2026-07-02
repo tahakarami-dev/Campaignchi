@@ -1,258 +1,257 @@
-<?php //ICB0 81:0 82:28de                                                     ?><?php //00337
-// Encrypted by : www.Rtl-Theme.com
-// Encrypted at : 2026-06-30 09:30:36
-// Encrypt Sign : 186028-309864
-if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
-?>
-HR+cP/omSDv9BqaI57Fb/QOo2lnuTZPvmwWsmFu2YNB9aGmAauhu39zmpR4LAVR99gACIV2F3vgD
-oCXwuol5izahCs8ef7yeCBr9439DlH6fefxsCxECUbFtwcNj7UYrvSqjxVHXm4n7Z3CS+WbwL0xs
-1IXqcTs7YSjyljmSFho4P2cYms80Xz7WPSfGyZh78FnOQ1+Wmdn5VA9juMFTRaLYAF2pd3tC5N35
-8l2MaRV/dHF72xHOINDhzwJkNK+TbHVB/aXUXHsDcCQXggtXibCY2g54LEeDu5fj35eokbV/3TrM
-EbocKemsskt5bEICXXaeSoGZ4Nn8bpOemM21YsZEKOYt3LHZLDKI3lNlDMcCiUyi02oMfhYl98c2
-qibSXbqRn/Ms2uNhtsxDD2S+ayUUQ4olbmv8EzjmM4eUBjUDdLeAEQ9xR4YGPJ3Ebyi+qWAW2wlW
-reeun/7140PZth/JtVt/rjexFgoanOEalBkwffM+1duasVYKtcTrj3B7kJg81ZA150CMlBxQdVWw
-1hg8NiO+mxfVcMHzeq05ECO+r67aLzgzc80DHGgpdPPKwASd+WAfv8dCQ3O9EGkasF4RWs5BbfWW
-23MFHah5r59ZW6js6w4Yw3/ywEFGdQ3SAu6nDcs8ZWdW+BxLkBN0ubd/sS0khHv6EPCxzQiqE0ai
-JO+rHKvQ6E4pRkOO/WCBxclC9HIgNiftfhjjx/JfOYEwFyn4jnpPFze4OWKlIbXYybmjazhtMTna
-bHk30mr1B0KkMTM4xZM2erAd1FywYkRe2ObYyDsUFvkQT01xr3HZy+K9UQKiLQtG8n94A+nfYBmY
-zB8hiMiN7dFe5GCXknybhhFe0EWTV0mfyMVxxcf5JtfDpjr+9sXpQd9Uo3/QO8q+IOZljaD+Dj+E
-ezfI6wgymVeT982Vld841JPzIWZ9TUcFqEFiErhVpjg5Zphfh2Aly01fsjSL1AHYjT7ZdClBraK3
-BnB4tv8OTXrp9aBQLFynTFNtLwcUjt/9HprWNJvo8doDYqO8m8PoctRqYeeW2j2uNLzx/vuJsRXt
-RIu18gbnxVFKYlZJ5S5k4Mx5qnZAPqUU4tiGIbIG0aBBVNV/nKoimJ/EZ+FPgB5IeLbmz6XqikSC
-xR+VgkQeGc6gXWwboCNUWlUw6VLXqiFKoQeJ/rmNH/bQkooCSi1zd05KTn1ysf1t14Dgp4F/yuQn
-ZSvDQIGI2YJDpc5/Py41Y0EDDDNYd4vEL61MSmpJiCX62B7KCeSdKZUoN23+tMaVFYCX2TpKFwFp
-pPL/32MOFmroiGw8OQp+CBrJsluE2gLVDQSx82GxiMFGa9xZcgf3Bsy2L68cJUaqBw9nqKiO5b2d
-C0uVbKdqiTMLAcMT7zfFtpjKXQQWPT5Cmsj8buG+V3soj1luvj6HTy1+JloxvkzidEpNi1JJ2fTh
-IXgRVPzFUcVAvgF34e8zFQg+8j2tFTxZBIop90VR3tg1K1ThYbCavYjQ5/9sA+jSyKrhv7T8WS9m
-qFpnTOsam9IoCUrHO4O/8nzd9byUge0bk9vlbqTFL56FZUPJw7snSFFz/1k8Gqlt6n1kx25Ls4pw
-qAT36NamxsWDe14+wCUu7AkQKP/HTQ8JAPP0cNsO56YenkRebUE84p98SVFCMZrfZjtN6yMmGrXP
-Hde2TIy9ShRgO1hcB5ycN47/6V3sS1ES3PGbT/pyacrbY6DnGj7gQ8zoUvKQoP23hvivQKZ1JC+T
-1o+frAWpMsiq9hbsFtULrn1Ff4rYMTcAUbd3nAPZCFgf7xXCj9ZsAV3u1M8dcosjdBekUu2BEVdM
-ruvFpefSDztXNVxRqMa226TsNIdoYTS0vibV8jLHbUawexx/fepTt5JuOw450z79haEJfdjM2CUs
-XwODanuLscegoxcOMrBjIgot21svT5Jjr4jOnMz1caEO3jgZTvJwdQ6vd4keeuQBzIHypcOSOLyg
-s3u4hGYZVj4PWKaKczBQFfo4MvEC11rmzrqhGycJekuEwYENo5RbOdQHUBQRBIfcGeEqhFxg4r7X
-uywNIU2e8CUXgPxgDC8kfK5LGUGX9otsG8STcBT9IO2DgLoHtviuAbkjhXbhJbHnqi48f50ltaLe
-y1cWsaNBQCelU139+ezfI1xDD1HcwSCgSrxAV+j0RO9MM+DupN1kyHqYVeViaQIF4U51uBKVziWE
-TzfNhEsfuSomn3g7ZGWO8sa3tpgqibFb0nfHduj7KEguVT7jvo4xn1tLbtSd6zyPZXaU5+lbMDVG
-2+Jrcp6qONqo/PpDDXONlHqXfclOkDuE0qWlcWBvTadboY2DbaHn2Wt1InIASl6VS/IHVn0WuYe6
-83gi76YGCHPRxLcOr4+DU+eF0GgXDKomVwVKIgOPIxF2FJcyJb+0btJyu/XHQHdrgYW1pimOHes2
-uzT3rtotlFJl2FITza9O5pYTRgOxS43ZAJ5Po5L/n1kdzzcChcz8IiTk+5i7ngdcrvddPAB3n8zk
-+JIvbdU6IiNl/LyTbyut0+S2u0ZMris/UC3gCJtstxFXZrl+Vk07EjXVUn1YPGeGvpqWaRo9NuxQ
-1vOJD5ym75o5qFFp71LDx1ybSb9cYL373bsD4400Xqj6lvOVxL9uZA2hhtYlQoSp+P7dL3GeJ2L5
-HkxAhyxlbfpfQ6oXwURJ82bCFOsYYWW/MUTwIW0jjaT6nFINJPALaqFgFig4FGuGt0IMBOjtT1Le
-q421aFB3TMJ/3MejhEc2RcOK34xM/LSthpALS/dHalq42w6k7uh08ANIs0Hd9WXmigIwFnFaS37s
-DAcoCjTFV2IMQTvI22T5e4W0bkWqtw15MEiG3BQIhzVtBBylQORlnOzl7vHhdbCHVyhzYyq1LheW
-nURYyoKDxPE7PQRk2kd1hH4PNz4IPh6co+tBVCLmNi6oyu1HtNpFveaJ7HyvqNvdtjtibIM19DmG
-5Q0Y4ZAqTthFjGTmXjMd2PFBGUWULyHoqyi9TVdwG48rZEckVtZT0527r53BXpz2pTC8hentOxaq
-egA3/+3R6ZXwyqwg6JfVxyeJGYLeyQI10tGhOzGrOvyCrmfQI541SgEaDKYImGwLOzOWcCdQT1h0
-7Avq9H0HXeeOb+1mK2aM/K+my73vfQJnKgzFczdm5EaSzI2qO/UCKX3Io8KQL0g0bVP0UTdgNrus
-cw36rsA8rqQjz4HY7jslNmJd7c/ZlyC4VkAeh2Voxi2kZw1DsAjsPOXp9QaibmjSbpu5k+2VOx82
-ALHmqZws5+OVminh2oXi3tZ88kU7J7N7FcG6oF2kKU2SviO6T19maj2qWwpzMChcfl+dqel5XsiH
-XaXjXNJ0iCt+BPnTPJ7lLY0bdo1viZ9TLLmgQzjDzxSO8E+YNVcVMFS7XTgq9lMuDBhF2ZksUPmX
-w7EiEgb1ZdFTNFLC/x4mbdmdxcIrXuNYNqh8u7P5QtOo0jSlNxG+eFS+l33494MBDmXLrT6d56jr
-NBrLnhMTiuC2i+JH5LkfgVxQVon1+IIwpv5yBn5ZHWNIkq+fg48zlCsEk/5/G8aKKlirWqtvSYGO
-X2AzUG9WQ6SCIdz7uSS7LL2obzvldQ1hxM1iBpLRFtiae4ZX2ZSBbnthAT2l5EyAyaVZ4w4JiqbI
-LOlsiWGxCJTxcwHh2MQGRE1AG26Xa7YbcyaDx7q76ii+IBPZxarKvViI3jrIigbpO5qzlkD+0jr6
-C5vK7F3UP/fU6gWZm+c4qg1S6M6firhhu9o8A4feG7+4oEUrvT0HMsORLB2u6/19sXQkjGE1ALY8
-227uD0MfPiYWBTyiXZsUFIbAMh6jxqYMdhnuIkgjUJ69VZ104tL6rUmUIM+QPV9AQWGWkAwPQfZn
-e2fupj5ECabEFuPxef5BGm9/lp1vpbA9o0Yay9ii4qxAlUA9ur87Z/NmVQsQqvBBQsGgtE3UQF9l
-RC6lAXdMNPDvw0WBAMl2jN3EL82NkU/a/VwSHvuIGf27YdzH6fFoptNtp1FCGXAEWCpURUnjRT1d
-CmeC45Rk1JQJgQWhMV1zwV6dj8OQPR0C6+gALx4wReT5NplIYwr+0OUUMZWe5YSpFZXKgqDzaGHH
-a77waLm4Aa7NmU5S0ATf7/uNljKGTsedVRBHC0yCUuv96ce/vlrb/hxHZuelZsMEeDUsO0iJsJBS
-hpJWSpfvCUnf+QsLy6Yiqjwic20YfH+LLn5XaebNlnOq8L13phrxDIL/WEnh1tUgyi4/3GWZ0Vqk
-4fagDNqbihzmmqX86kAmD/1tlPFfs5wqCK0A/7ezVIM4RouVKUmjScp/QZzbwTVg7SVHyYVIzwXg
-nMAGeZkKkYQLI+oiUGV7wSVGZqKpOg7D2IFgBfC7BGYPyp3oApqAjf5ljkheLCLFombGlU2/GvZc
-yXoX7nSqfRK6RNv4erMz3QHK1GdehsCtj/RxMaWhToWh87tgIjpFVcKMgsu8jDlmW/OT9ESs20Uz
-iW8QuqU6Uoz4wdSf8aBI37zO4r4wPSdTgL4R6OBogzAv6TXZhbgFysJbj1nc1x+ncCBNM6ZZGfkj
-GCyj4p0qS7oqarHbv7ncOxnWuGaZcCfyVTYCb+/vhUmvpQL1qaGtj252MlZ7xLutO5SwyT+zFVfj
-CrWjjShqu9o3s91TeieXXoeormvXkcXB3DfvoUd0DJvFSSdEeeAmZobdBxm0522sShdWxUI8yLsB
-XgXmo33hDlgUuH+NOOGb6YT25BCDoCNH1cKiRtnTiSyEFVFn6TrcuQdjuO0ufDKWeHsmBDRjavsx
-1MweAQBEi/gCrWXUKPBMoNZsilkNDMYwi+nrtwF+rbX5Mv86fyzSWgCGeOMwa7Aq8wHpo3z9St9e
-6xWrG8QLZiE7B8PN1UU2BYdZsliJ24zZRJIBwyp/+rLXj2+kE6PBOy6q3uGevqDD3KnYzS0wC4KD
-/wgIE0+uz/W+Pop6OtETRwtUmX4LRzanAB8T99N0psZZkKf8ma0THpRhsFO5o9HwcJ8/jtA1Q5kS
-WdnyOMz1zd4Q6aeY8GOeAA1XtwghlFcaSh29Np1Q1IFfGnU44zAZnqvH3xUGfBMIiD6p6eScKLvx
-tSNi8xobdHNACe/bGXv2SUakPoUxxcYPPr+Ihjm8eW5z5LLWOFn66igvjWBlBhxWOJlxiDnF77nQ
-H3fhPeaKJsNOFPnuFWx/wEEAxd4PHnZpIBPjtayHaah7M8ydX5bSmrKX7o++iVM7QHXZlR9mUMKW
-xXTXL6SjL1dg9Dtwi2Q2cmFisj0bvo55euKKtmoKmrJjIzLX0dUQYGkz3Fb5LG3lDfaMeiLd0X7B
-SzR9JRDpvC48s+OwqII5dNijud470bfZzyFAUT/DrCkl2ymBJW4mQvgswj7+/L95uIv0+M+fa75u
-iE6eMuo+0oVGfdKSuHA6YVpuH3+JWeQvSpxyfGmMMUsQ81Vf7nEvRlziqCGFx06iEu2mOzgGlP4G
-sIajJphbL1ZS/Gw22vM/U17MAA1l+8GohJkz8YSOFJbgS8Ru87WzAhXxR/yLw21ZhXyN2Mupoep3
-iaLEWrruNLAWZvxgWl/DcV7/8SB/E+CgVOi5Bg3PsReAuFsO2agDMOaHb7iN3eDY2hSE4TU5aHth
-tLUfBdGWGsb4+8hrLEiQdRlPVypdOGI+GqzN2T0ASYYMC3K7yfSPK5Ey7qiFaP5DslwDb+wWZoWk
-wdwoDuN1/TfisM2xe2vPSB0F8HrUcalMUtjfl2dKP32iNrxyyt1un4fUD1CQiQermhf8o/f8UhBu
-ul5y3tyXPPu00fckVuFx9e9R2JPocnp+D5g1j+2xgngvoLGj+ug7OK1/CY1GhAfbLIurvUdl2ptK
-ktfgENrTjk/5g2t/hQb3//cMKdongWL8E3fHErCVwoK8kZdOcm4dqz85NbdYS45oMRkgI/AykOzX
-wip5ZnONgrqQT0qwMIJWFm5x3n3qZ2HZkbIn+qYTBCX+MzsBufyOk/tune3oUiLysbeY70p+LTG3
-RosQUfqHEEoWI3eku+cMsaj+r/1Y8+axe5cb+mNzMlTrNeFvriZ/yRnCscbxsTVdYuPjKihAfsT1
-UIvek7OfRe/XGy6dUn90T5LXozmzvhJTrCK+VKx8HwI7aurgr5KoTIE0ieYOUMYMQGXYKc5OJnf2
-+VSWbgyFxwW/eS8eai6v2ZUiMr09sp/d9udAYPvH02DUtS4Jn8mVFIp4e5eZ6gsjfi6/aMwEpINa
-NhNuTgVhrjes9WMi6Wq28Osw9aLq2YkQtr8eQfJwC1HE9FpTN0HPmfrQxGhAucMJXdclKwDKFY4H
-hCgtfM0xGhZzO9BkOh8O6Maa1BHYyhH4TyhcLfxTmSdp3fHolqU7f2rn9fFhETsoey128t/wfA6K
-6AZHAJwTCyFkr2S83kiNKCSdkyd10L90DamJ7jnfkTzFXwWuB8XsrFAJvmBWPCIUb1MEzTVi1P/Y
-yE2x3uOEbRRwJGJyf6ypQ8NIJ7wBnpHSaH/yzY2UNI1D5dAMw0qBYChdAX5H7rUlWqca9/3h0ZtX
-GUHweZeG8YgQTjTyKFTCX4u4r1WFIVC3dUFgWT3RxlDaXJ5r4744l+Eixkqi0cB7dAUPCwRoXuki
-mwCUOMtK6iWQ73eUNO19wlZ39pwyCxZsdYcdSvqShY0kCFyEjo1raTrrQ4g/TgVZQvNK4u5i3OAb
-Ofz6QTk0Uy/WyTIwJkHruUZb+Cq3d8bK14T+EYC573qsPlL20K8O0SXo3AHpF/QVyVch4aDgKQ6h
-TRTZsbYcG+w2qG37/m81UBeRgOUhbu5W3tLfNZxJ4ZVpQMhvZqCXEUELrd2SO+kY2Xfa+6fOsxsI
-DBxAZ6nz6s1hTIgPprEf8bZuwA0AOqIBV2iP66hHYy2p37og9vw9JLOBV/i/GphJkM2WD/b2k2H+
-Z6I/G6LyzTMRYoHy8ypPL5CTTbr3LjvQaEVu8csqkQ+bIOnpPXGDLqkdlEXX5aWjUaQaD12ZZ8yu
-95IA2v44ZzRLdxYMNTk6Gwcy5jTMFJdJHuijEZQAQHvOtlw6ks7AfyBPR+GrMHp7DoT9XYDorxJP
-rLhnrklEwSXYL0+k+2zuOqLhQrVBNKh46hoJWBsRCanZsCqaDLMbtfYc5LThbCSg5ZZ64TSz5KVy
-vDlW+VqrNNd5ZGk2zpy17P+H94IZNYeu3p07NzqcijlRUx2Gx32XO76vRbf+L+vCwkzIJ6c6RSpJ
-P9CkOzLDtkMM/7ucNtvKpue8G2m7XNc3f8cJIPhZypR/uHgWcGcYspuuJ34XCJDPiYs8fIKnR4+O
-RXsRlADdS9G3gopxVTj/q/IGrqclDCpPHRbuw5miILvozIudV+Ij9YBCZNoVZRKbZvRExAb4vEqK
-CG/9/aCIe4580k5EO613Ycfu/w0EXijHCFEFIKS7hkZryo4NbYSP3GRW+JLSB+wAlaT7knctc7Ds
-63vwG2/L+HiaRcf6t9iJpAWqI5MP2zZKk9vRSIw8aSXWApNCoEU47S5KypE3MCJUqlKwcC8h2mIc
-Sayob1tuW/zCHsROyw+5WI9GIV5CHfmXTwvEH6ChJTYsIHonFJc8C6IsEkU4qcI0AusF4gwncvvH
-HAaA2E+74L6ANAqSAfHTXtEqxD5S0oe7LYfNcatr6vODKzWxNSCh1YX/V6E8gf0fYG0ZTzyFg17Q
-2aS1xXfMjinn0CS/eCClv75G+VMf/aZAYHeVK2tIfdEg2Ee1UZY+De0NIriWTrhvy5Y7v7RQt/OF
-C3xQTPYKZTqPsRRTskT6RLeVH2SxVc14tRqSYcClpb8VGHiD6sXeJ3sIFQ9RsmlqoJRBSiXnlq5a
-dVU7iwtcyeoXIpKO7AzPq1zvbeVEHwSaUK8kqNPoyXe0U8fh5oZb1ORUrPfCk1W5rWB/PxOcxdzM
-i6SM9VEFVPDhzRyJkgpiLuWcL0/6ztf5yq3IHeH6dARsrqSMYZ/iDRWFZDK1ltvlK3eiWghN25Rk
-9hU34W6bw21mohc6k5KuKkFV19TREMUTVvXcMv64vPrilzxZJ3dJwyovByTmscpVMoFb2iwWMV/v
-+hgjqWE7vWhPQvytoWDoRkO8VliRGTVaSiRSjDU+exaS3a6/notqxbwu+QgJa43y6dKtbtsyuc9P
-JDfV69OFU7JCwxRD8l7ZY7f1IpLldkrzvrxzhazFojY3wefYWvbczvnvaao/E4SU54o9k+HejTlA
-uZdS+BlPvZQ7yjj3LyS/sVRND5MFHJ+8SlVZ3WDsO8KjiLAcSu/kfNrpS18V7FFzPquIqWpIIqgJ
-8vn2ItK4kdklEWbbEV8MdTeYhw2yYvzNeN8x9kNNsgm0S+i3vMeM5+s1rlz28xkQgkRjE42nyH0b
-c7B5XDjFDsD9ZW7NlUPYhYJXGB3P63/KDkFF/Lw9wfFPmg1NNd7gJ/HG+i1n2XBbzlyxeiJtFMo9
-cLf0bLnT0ui53ub7KscgsS1cDmpVVplZ+1ojNx6YeLVZ+1AE7u2vW1oA1eV8QcYChyK8yLyIPgCg
-T6ai2FfKL4wEi9ghKLXBSH6VrDKTAAti6xLw1HPlXIiJ/4lPdgSH6lhjYD9tSTaC9+XDEKArE95l
-ZzhslgjEjnQTVo+s3XenHGjoW3X/UNRI9fW9NvqGYlHHvHcvnSY2hJYGcJvN2ClR9wJ7I04mcXDP
-6rcVeLrc6xCuy6nJWUQnmYSYfiODtlTjIGSxGLnzX5FZDehQna2D36nbVLNmxmxRG9RsXKpqfydS
-Rw0nwuAIYu29/GkSR+mQFuoSvGgxkgXp/6s1qtOcM/6apAuYo2QfFpb4NvuLfNswc8UG/ZPz4uIi
-V3axkFwe11u64BO08naTdhpbndRoxp33xVxfyfiTdhMnb/iQumAseEf3TApX9yO5qnexJMf/vGYL
-eove87Kjg96EoEILb1iIwG8Jvr+QIOWS2GKtWP5+bOb+GYrWDetLBwcqpAeTpSxze93OJegEW/qQ
-EIzv/OMV3/HAhWLc2GRP62C9rrUZ4Jvh/p39UhYASnkVNbTquTvD14XSg8yuDFXrJmn2u80nFasH
-UKRRVLPyD1/g2L/tubHF8hJjB7hjGkiq3Omv+xmYahjzOn7MvgaZEcKBm9Rmanyeh4CNlHl6FQfe
-reM6hzQO2UfRPzUEpXmSKfV2Ukn+Zjg2gRVkP5f8C0lDC7TWCtTonYRSBv94Mq+y8p+t3Eg3YF72
-Va7PU+yEWPj0bft8qFYogSMJUgQMIVriSSm08a9oQMoNdOSQVYE/OpNQedg2WtA4I/aofiIh8wI3
-HHDRDUe3cRox80GYhdV5Hf9QvNP9q9UvFKnxokmQVipHAEcBWyE2ZwijCw7EAgKKGEiI739r+oXB
-A0nY0Ksuy8YLn1ts0Uddos327h6VU2qcIx3wjs8IEzLdcUpWwmj6L9ICpibxfz9p7kHyfPaXwEWl
-fYnDcaDi8XlhHGyvMw2pcW8s8R86ATyqPSWFK6z5TuMMhK0qe0rNrwlOJEXn1xWel5n/swu7nXjM
-hXv7N78==
-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
+<?php
+
+declare(strict_types=1);
+
+namespace Msi\Campaignchi\Admin;
+
+use Msi\Campaignchi\Admin\Pages\SettingsPage;
+use Msi\Campaignchi\Campaign\Repositories\CampaignRepository;
+use Msi\Campaignchi\Core\License;
+use Msi\Campaignchi\Core\ServiceProvider;
+use Msi\Campaignchi\Core\Hooks;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+/**
+ * Admin Service Provider
+ *
+ * Responsibilities:
+ *  - Register the Campaignchi menu item in WP admin sidebar
+ *  - Intercept the page load and render fully custom SaaS panel
+ *  - Suppress WP admin chrome (sidebar, footer, notices)
+ *  - Register all admin AJAX controllers
+ *
+ * @package Msi\Campaignchi\Admin
+ */
+class AdminServiceProvider extends ServiceProvider
+{
+    private const MENU_SLUG  = 'campaignchi';
+    private const CAPABILITY = 'manage_options';
+
+    // -------------------------------------------------------
+    // Register — bind services into container
+    // -------------------------------------------------------
+
+    public function register(): void
+    {
+        // Admin router
+        $this->container->singleton(
+            AdminRouter::class,
+            fn ($c) => new AdminRouter()
+        );
+
+        // Campaign service + repository
+        $this->container->singleton(
+            \Msi\Campaignchi\Campaign\Repositories\CampaignRepository::class,
+            fn ($c) => new \Msi\Campaignchi\Campaign\Repositories\CampaignRepository()
+        );
+
+        $this->container->singleton(
+            \Msi\Campaignchi\Campaign\Services\CampaignService::class,
+            fn ($c) => new \Msi\Campaignchi\Campaign\Services\CampaignService(
+                $c->make(\Msi\Campaignchi\Campaign\Repositories\CampaignRepository::class)
+            )
+        );
+
+        // Campaign AJAX controller
+        $this->container->singleton(
+            Controllers\CampaignController::class,
+            fn ($c) => new Controllers\CampaignController(
+                $c->make(\Msi\Campaignchi\Campaign\Services\CampaignService::class)
+            )
+        );
+
+        // Settings AJAX controller — no dependencies beyond WP globals
+        $this->container->singleton(
+            Controllers\SettingsAjaxController::class,
+            fn ($c) => new Controllers\SettingsAjaxController()
+        );
+    }
+
+    // -------------------------------------------------------
+    // Boot — register WP hooks
+    // -------------------------------------------------------
+
+    public function boot(): void
+    {
+        // -------------------------------------------------------
+        // License gate — until the product is activated, the
+        // Campaignchi dashboard menu is never registered and the
+        // panel never renders. Only a guidance notice is shown.
+        // (License check lives in Core\License — see RTL snippet.)
+        // -------------------------------------------------------
+        if (!License::isActive()) {
+            Hooks::action('admin_notices', [$this, 'renderLicenseNotice']);
+            return;
+        }
+
+        // WP admin menu entry
+        Hooks::action('admin_menu', [$this, 'registerMenu']);
+
+        // Full-page panel takeover (runs before any output)
+        Hooks::action('admin_init', [$this, 'maybeRenderPanel']);
+
+        // Keep brand colours in WP menu icon
+        Hooks::action('admin_head', [$this, 'injectMenuIconStyle']);
+
+        // Live-campaign count in the WP admin bar (Settings → General → admin_bar_badge).
+        Hooks::action('admin_bar_menu', [$this, 'renderAdminBarBadge'], 90);
+
+        // Register AJAX controllers
+        $this->container->make(Controllers\CampaignController::class)->register();
+        $this->container->make(Controllers\SettingsAjaxController::class)->register();
+    }
+
+    // -------------------------------------------------------
+    // License Notice
+    // -------------------------------------------------------
+
+    /**
+     * Inform capable admins that the panel is locked until the
+     * RTL license is activated. Shown in place of the menu/panel.
+     */
+    public function renderLicenseNotice(): void
+    {
+        if (!current_user_can(self::CAPABILITY)) {
+            return;
+        }
+
+        echo '<div class="notice notice-warning"><p>'
+            . esc_html__('کمپین‌چی: تا زمانی که لایسنس فعال نشود، پیشخوان نمایش داده نمی‌شود. لطفاً ابتدا لایسنس خود را فعال کنید.', 'campaignchi')
+            . '</p></div>';
+    }
+
+    // -------------------------------------------------------
+    // Menu
+    // -------------------------------------------------------
+
+    public function registerMenu(): void
+    {
+        add_menu_page(
+            __('کمپین‌چی', 'campaignchi'),
+            __('کمپین‌چی', 'campaignchi'),
+            self::CAPABILITY,
+            self::MENU_SLUG,
+            '__return_null',
+            $this->getMenuIcon(),
+            25
+        );
+    }
+
+    // -------------------------------------------------------
+    // Full-Page Panel Takeover
+    // -------------------------------------------------------
+
+    public function maybeRenderPanel(): void
+    {
+        $page = sanitize_key($_GET['page'] ?? '');
+
+        if ($page !== self::MENU_SLUG) {
+            return;
+        }
+
+        if (!current_user_can(self::CAPABILITY)) {
+            wp_die(esc_html__('دسترسی مجاز نیست.', 'campaignchi'), 403);
+        }
+
+        remove_all_actions('admin_notices');
+        remove_all_actions('all_admin_notices');
+        remove_all_actions('network_admin_notices');
+
+        $router = $this->container->make(AdminRouter::class);
+        $layout = new Layouts\PanelLayout($router);
+        $layout->render();
+
+        exit;
+    }
+
+    // -------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------
+
+    /**
+     * Return the plugin logo URL as the WP admin menu icon.
+     */
+    private function getMenuIcon(): string
+    {
+        return CMC_URL . 'assets/images/logo.png';
+    }
+
+    /**
+     * Inject CSS to prevent WordPress from grey-scaling our menu icon.
+     */
+    public function injectMenuIconStyle(): void
+    {
+        ?>
+        <style>
+            /* Remove WP greyscale filter from Campaignchi menu icon */
+            #adminmenu #toplevel_page_campaignchi .wp-menu-image img {
+                opacity: 1 !important;
+                filter: none !important;
+                width: 30px !important;
+                height: 30px !important;
+                margin-top: -7px;
+                margin-right: 7px;
+            }
+            #adminmenu #toplevel_page_campaignchi .wp-menu-name {
+                margin-right: 10px !important;
+            }
+            #adminmenu #toplevel_page_campaignchi:hover .wp-menu-image img,
+            #adminmenu #toplevel_page_campaignchi.wp-has-current-submenu .wp-menu-image img,
+            #adminmenu #toplevel_page_campaignchi.current .wp-menu-image img {
+                opacity: 1 !important;
+                filter: brightness(1.1) !important;
+            }
+        </style>
+        <?php
+    }
+
+    // -------------------------------------------------------
+    // Admin Bar Badge
+    // -------------------------------------------------------
+
+    /**
+     * Render a live-campaign count node in the WP admin bar.
+     *
+     * Visible only when enabled in Settings → General and only to users who
+     * can manage the plugin. The count reflects campaigns currently 'active'.
+     *
+     * @param \WP_Admin_Bar $wpAdminBar The admin bar instance passed by WP.
+     */
+    public function renderAdminBarBadge(\WP_Admin_Bar $wpAdminBar): void
+    {
+        // Respect the admin setting.
+        if (empty(SettingsPage::getGeneral()['admin_bar_badge'])) {
+            return;
+        }
+
+        // Only surface management data to capable users.
+        if (!current_user_can(self::CAPABILITY)) {
+            return;
+        }
+
+        try {
+            $repo  = $this->container->make(CampaignRepository::class);
+            $count = count($repo->getLiveCampaigns());
+        } catch (\Throwable) {
+            // Never let a toolbar widget break the page.
+            return;
+        }
+
+        $label = sprintf(
+            /* translators: %d: number of currently active campaigns */
+            _n('%d کمپین فعال', '%d کمپین فعال', $count, 'campaignchi'),
+            $count
+        );
+
+        $wpAdminBar->add_node([
+            'id'    => 'campaignchi-live',
+            'title' => '<span class="ab-icon dashicons dashicons-megaphone" style="top:2px"></span>'
+                       . esc_html($label),
+            'href'  => esc_url(admin_url('admin.php?page=' . self::MENU_SLUG)),
+            'meta'  => ['title' => __('کمپین‌چی — کمپین‌های فعال', 'campaignchi')],
+        ]);
+    }
+}
